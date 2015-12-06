@@ -90,7 +90,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
     $sthInsertRequest->execute($supporterId, $announceEmailListRequestTypeId, undef,
                                ($row->{on_announce_mailman_list} ? $fulfillmentId : undef));
   }
-  $sthInsertEmailAddress->execute($supporterId, $row->{paypal_payer});
+  $sthInsertEmailAddress->execute($row->{paypal_payer});
   my $emailId = $dbhNew->last_insert_id("","","","");
   $sthLinkSupporterToEmail->execute($supporterId, $emailId);
   $sthPostalAddress->execute($supporterId, $row->{formatted_address});
