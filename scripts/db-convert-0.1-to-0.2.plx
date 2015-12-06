@@ -68,8 +68,8 @@ my $sthInsertRequest = $dbhNew->prepare('INSERT INTO request' .
      "values(?, ?, ?, date('now'), ?," .
      '"import of old database; exact date of this request is unknown")');
 
-my $sthPostalAddress = 'INSERT INTO postal_address(formatted_address, type_id, date_encountered)' .
-                       "VALUES(?, $paypalPayerTypeId, date('now'))";
+my $sthPostalAddress = $dbhNew->prepare('INSERT INTO postal_address(formatted_address, type_id, date_encountered)' .
+                       "VALUES(?, $paypalPayerTypeId, date('now'))");
 
 my $sthOld = $dbhOld->prepare('SELECT * from supporters order by id;');
 $sthOld->execute();
