@@ -95,7 +95,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   $sthLinkSupporterToEmail->execute($supporterId, $emailId);
   $sthPostalAddress->execute($row->{formatted_address});
   my $postalId = $dbhNew->last_insert_id("","","","");
-  $sthLinkSupporterToPostal->($supporterId, $postalId);
+  $sthLinkSupporterToPostal->execute($supporterId, $postalId);
 }
 foreach my $sth (qw/$sthOld $sthOld $sthNewInsertSupporter $sthInsertEmailAddress
      $sthLinkSupporterToEmail $sthInsertRequest $sthPostalAddress $sthLinkSupporterToPostal/) {
