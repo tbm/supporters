@@ -30,7 +30,7 @@ my %tShirt0SizeRequestConfigurationIds;
 my $sthInsertRequestConfiguration = $dbhNew->prepare("INSERT INTO request_configuration" .
                         "(request_type_id, description) values(?, ?)");
 foreach my $requestTypeId (qw/$tShirt1RequestTypeId $tShirt0RequestTypeId/) {
-  foreach my $size (qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenXL Men2XL/) {
+  foreach my $size (qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/) {
     $sthInsertRequestConfiguration->execute($requestTypeId, $size);
     $tShirt0SizeRequestConfigurationIds{$size} = $dbhNew->last_insert_id("","","","");
   }
