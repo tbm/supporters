@@ -8,7 +8,7 @@ CREATE TABLE "supporter" (
     "postal_address_id " integer,
     "email_address_id " integer,
     "display_name" varchar(300),
-    "public_ack"   bool NOT NULL,
+    "public_ack"   bool NOT NULL
 );
 
 DROP TABLE IF EXISTS "request";
@@ -19,7 +19,7 @@ CREATE TABLE "request" (
     "request_type_id" integer NOT NULL,
     "request_configuration_id" integer,
     "date_requested" date NOT NULL,
-    "fulfillment_id" integer,
+    "fulfillment_id" integer
     "notes" TEXT
     );
 
@@ -28,7 +28,7 @@ DROP TABLE IF EXISTS "request_configuration";
 CREATE TABLE "request_configuration" (
     "id" integer NOT NULL PRIMARY KEY,
     "request_type_id" integer NOT NULL,
-    "description"   varchar(100) NOT NULL,
+    "description"   varchar(100) NOT NULL
     );
 
 DROP TABLE IF EXISTS "fulfillment";
@@ -37,14 +37,14 @@ CREATE TABLE "fulfillment" (
     "id" integer NOT NULL PRIMARY KEY,
     "date" TEXT NOT NULL,
     "who" varchar(300) NOT NULL,
-    "how" TEXT,
+    "how" TEXT
 );
 
 DROP TABLE IF EXISTS "request_type";
 
 CREATE TABLE "request_type" (
     "id" integer NOT NULL PRIMARY KEY,
-    "type"   varchar(100) NOT NULL,
+    "type"   varchar(100) NOT NULL
     );
 
 DROP TABLE IF EXISTS "email_address";
@@ -53,14 +53,14 @@ CREATE TABLE "email_address" (
     "id" integer NOT NULL PRIMARY KEY,
     "email_address" varchar(300) NOT NULL UNIQUE,
     "type_id" integer,
-    "date_encountered" date NOT NULL,
+    "date_encountered" date NOT NULL
     );
 
 DROP TABLE IF EXISTS "supporter_email_address_mapping";
 
 CREATE TABLE "supporter_email_address_mapping" (
     "supporter_id" integer NOT NULL,
-    "email_address_id integer NOT NULL,
+    "email_address_id" integer NOT NULL,
     "preferred" bool,
     PRIMARY KEY(supporter_id, email_address_id)
     );
@@ -72,7 +72,7 @@ DROP TABLE IF EXISTS "address_type";
 
 CREATE TABLE "address_type" (
     "id" integer NOT NULL PRIMARY KEY,
-    "name" varchar(50) NOT NULL UNIQUE,
+    "name" varchar(50) NOT NULL UNIQUE
     );
 
 DROP TABLE IF EXISTS "postal_address";
@@ -81,7 +81,7 @@ CREATE TABLE "postal_address" (
     "id" integer NOT NULL PRIMARY KEY,
     "formatted_address" varchar(5000),
     "type_id" INTEGER NOT NULL,
-    "date_encountered" date NOT NULL,
+    "date_encountered" date NOT NULL
     );
 
 DROP TABLE IF EXISTS "supporter_postal_address_mapping";
