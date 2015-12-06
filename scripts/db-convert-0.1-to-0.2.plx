@@ -93,7 +93,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   $sthInsertEmailAddress->execute($row->{paypal_payer});
   my $emailId = $dbhNew->last_insert_id("","","","");
   $sthLinkSupporterToEmail->execute($supporterId, $emailId);
-  $sthPostalAddress->execute($supporterId, $row->{formatted_address});
+  $sthPostalAddress->execute($row->{formatted_address});
   my $postalId = $dbhNew->last_insert_id("","","","");
   $sthLinkSupporterToPostal->($supporterId, $postalId);
 }
