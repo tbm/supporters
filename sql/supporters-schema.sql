@@ -65,7 +65,7 @@ CREATE TABLE "supporter_email_address_mapping" (
     PRIMARY KEY(supporter_id, email_address_id)
     );
 
-CREATE UNIQUE INDEX supporter2email_single_prefferred_per_supporter
+CREATE UNIQUE INDEX supporter_email_address_mapping__single_prefferred_per_supporter
    ON supporter_email_address_mapping(supporter_id, preferred);
    
 DROP TABLE IF EXISTS "address_type";
@@ -87,11 +87,12 @@ CREATE TABLE "postal_address" (
 DROP TABLE IF EXISTS "supporter_postal_address_mapping";
 
 CREATE TABLE "supporter_postal_address_mapping" (
-    "postal_address_id integer NOT NULL,
+    "supporter_id" integer NOT NULL,
+    "postal_address_id" integer NOT NULL,
     "preferred" bool,
-    PRIMARY KEY(supporter_id, email_address_id)
+    PRIMARY KEY(supporter_id, postal_address_id)
     );
 
-CREATE UNIQUE INDEX supporter2postal_single_prefferred_per_supporter
+CREATE UNIQUE INDEX supporter_postal_address_mapping_single_prefferred_per_supporter
    ON supporter_postal_address_mapping(supporter_id, preferred);
    
