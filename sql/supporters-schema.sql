@@ -11,6 +11,8 @@ CREATE TABLE "supporter" (
     "public_ack"   bool NOT NULL,
 );
 
+DROP TABLE IF EXISTS "request";
+
 CREATE TABLE "request" (
     "id" integer NOT NULL PRIMARY KEY,
     "supporter_id" integer NOT NULL,
@@ -21,11 +23,15 @@ CREATE TABLE "request" (
     "notes" TEXT
     );
 
+DROP TABLE IF EXISTS "request_configuration";
+
 CREATE TABLE "request_configuration" (
     "id" integer NOT NULL PRIMARY KEY,
     "request_type_id" integer NOT NULL,
     "description"   varchar(100) NOT NULL,
     );
+
+DROP TABLE IF EXISTS "fulfillment";
 
 CREATE TABLE "fulfillment" (
     "id" integer NOT NULL PRIMARY KEY,
@@ -34,10 +40,14 @@ CREATE TABLE "fulfillment" (
     "how" TEXT,
 );
 
+DROP TABLE IF EXISTS "request_type";
+
 CREATE TABLE "request_type" (
     "id" integer NOT NULL PRIMARY KEY,
     "type"   varchar(100) NOT NULL,
     );
+
+DROP TABLE IF EXISTS "email_address";
 
 CREATE TABLE "email_address" (
     "id" integer NOT NULL PRIMARY KEY,
@@ -45,6 +55,8 @@ CREATE TABLE "email_address" (
     "type_id" integer,
     "date_encountered" date NOT NULL,
     );
+
+DROP TABLE IF EXISTS "supporter_email_address_mapping";
 
 CREATE TABLE "supporter_email_address_mapping" (
     "supporter_id" integer NOT NULL,
@@ -54,12 +66,16 @@ CREATE TABLE "supporter_email_address_mapping" (
     );
 
 CREATE UNIQUE INDEX supporter2email_single_prefferred_per_supporter
-   ON supporter2email(supporter_id, preferred);
+   ON supporter_email_address_mapping(supporter_id, preferred);
    
+DROP TABLE IF EXISTS "address_type";
+
 CREATE TABLE "address_type" (
     "id" integer NOT NULL PRIMARY KEY,
     "name" varchar(50) NOT NULL UNIQUE,
     );
+
+DROP TABLE IF EXISTS "postal_address";
 
 CREATE TABLE "postal_address" (
     "id" integer NOT NULL PRIMARY KEY,
@@ -68,6 +84,8 @@ CREATE TABLE "postal_address" (
     "date_encountered" date NOT NULL,
     );
 
+DROP TABLE IF EXISTS "supporter_postal_address_mapping";
+
 CREATE TABLE "supporter_postal_address_mapping" (
     "postal_address_id integer NOT NULL,
     "preferred" bool,
@@ -75,5 +93,5 @@ CREATE TABLE "supporter_postal_address_mapping" (
     );
 
 CREATE UNIQUE INDEX supporter2postal_single_prefferred_per_supporter
-   ON supporter2email(supporter_id, preferred);
+   ON supporter_postal_address_mapping(supporter_id, preferred);
    
