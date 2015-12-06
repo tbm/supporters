@@ -55,13 +55,13 @@ $sthNew->finish();
 my $sthNewInsertSupporter = $dbhNew->prepare('INSERT INTO supporter(' .
                               'ledger_entity_id, display_name, public_ack) values (?, ?, ?)');
 my $sthInsertEmailAddress = $dbhNew->prepare('INSERT INTO email_address(email_address, type_id, date_encountered)' .
-                  "values(?, ?, $paypalPayerTypeId, date('now'))");
+                  "values(?, $paypalPayerTypeId, date('now'))");
 
 my $sthLinkSupporterToEmail = $dbhNew->prepare('INSERT INTO supporter_email_address_mapping(supporter_id, email_address_id, preferred)' .
-                  "values(?, ?, $paypalPayerTypeId, date('now'), 1)");
+                  "values(?, ?, 1)");
 
 my $sthLinkSupporterToPostal = $dbhNew->prepare('INSERT INTO supporter_postal_address_mapping(supporter_id, postal_address_id, preferred)' .
-                  "values(?, ?, $paypalPayerTypeId, date('now'), 1)");
+                  "values(?, ?, 1)");
 
 my $sthInsertRequest = $dbhNew->prepare('INSERT INTO request' .
      '(supporter_id, request_type_id, request_configuration_id, date_requested, fulfillment_id, notes) ' .
