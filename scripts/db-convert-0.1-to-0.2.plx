@@ -18,30 +18,31 @@ my $dbhNew = DBI->connect("dbi:SQLite:dbname=$NEW_SUPPORTERS_SQLITE_DB_FILE", ""
 
 # Insert t-shirt types and sizes
 
-my $sthNew = $dbhNew->prepare("INSERT INTO request_type(type) values(?)");
+my $sthInsertRequestType = $dbhNew->prepare("INSERT INTO request_type(type) values(?)");
 
-$sthNew->execute("t-shirt-0");
+$sthInsertRequestType->execute("t-shirt-0");
 my $tShirt0RequestTypeId = $dbhNew->last_insert_id("","","","");
-$sthNew->execute("t-shirt-1");
+$sthInsertRequestType->execute("t-shirt-1");
 my $tShirt1RequestTypeId = $dbhNew->last_insert_id("","","","");
-$sthNew->finish();
 
 my %tShirt0SizeRequestConfigurationIds;
 
-$sthNew = $dbhNew->prepare("INSERT INTO request_configuration" .
+my $sthInsertRequestConfiguration = $dbhNew->prepare("INSERT INTO request_configuration" .
                         "(request_type_id, description) values(?, ?)");
 foreach my $requestTypeId (qw/$tShirt1RequestTypeId $tShirt0RequestTypeId/) {
   foreach my $size (qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenXL Men2XL/) {
-    $sthNew->execute($requestTypeId, $size);
+    $sthInsertRequestConfiguration->execute($requestTypeId, $size);
     $tShirt0SizeRequestConfigurationIds{$size} = $dbhNew->last_insert_id("","","","");
   }
 }
-$sthNew->execute("join-announce-email-list");
+$sthInsertRequestConfiguration->finish();
+
+$sthInsertRequestType->execute("join-announce-email-list");
 my $announceEmailListRequestTypeId = $dbhNew->last_insert_id("","","","");
-$sthNew->finish();
+$sthInsertRequestType->finish();
 
 # Only one email Adress type so far
-$sthNew = $dbhNew->prepare("INSERT INTO address_type(name) values('paypal_payer')");
+my $sthNew = $dbhNew->prepare("INSERT INTO address_type(name) values('paypal_payer')");
 my $paypalPayerEmailAddresTypeId = $dbhNew->last_insert_id("","","","");
 $sthNew->finish();
 
