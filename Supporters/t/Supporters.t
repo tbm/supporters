@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 use Test::Exception;
 
 BEGIN { use_ok('Supporters') };
@@ -33,8 +33,18 @@ Test adding a supporter to the database.
 
 =cut
 
-dies_ok(sub { $sp->addSupporter({}) }, "addSupporter: ledger_entity_id required");
+dies_ok { $sp->addSupporter({}) }
+        "addSupporter: ledger_entity_id required";
 
+lives_ok { $sp->addSupporter({ ledger_entity_id => "Whitman-Dick" }) }
+         "addSupporter: minimal acceptable settings";
+
+dies_ok  { $sp->addSupporter({ public_ack => 1, ledger_entity_id => "Whitman-Dick" }) }
+         "addSupporter: display_name required";
+
+lives_ok { $sp->addSupporter({ display_name => "Donald Drapper",
+                               public_ack => 1, ledger_entity_id => "Whitman-Dick" }) }
+         "addSupporter: public_ack set to true with a display_name given";
 
 $dbh->disconnect();
 

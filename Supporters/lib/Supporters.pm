@@ -44,10 +44,16 @@ sub ledgerCmd ($) {
   return $_[0]->{ledgerCmd};
 }
 ######################################################################
-sub addSupporter ($) {
-  my($sp) = @_;
+sub addSupporter ($$) {
+  my($this, $sp) = @_;
 
   die "ledger_entity_id required" unless defined $sp->{ledger_entity_id};
+
+  $sp->{public_ack} = 0 if not defined $sp->{public_ack};
+
+  if ($sp->{public_ack}) {
+    die "display_name required if public_ack requested" unless defined $sp->{display_name};
+  }
 }
 
 
