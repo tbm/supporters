@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'Supporters',
     VERSION_FROM      => 'lib/Supporters.pm', # finds $VERSION, requires EU::MM from perl >= 5.5
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
+    PREREQ_PM         => { DBI => 1.6, 'Test::Exception' => 0.35}, # e.g., Module::Name => 1.1
     ABSTRACT_FROM     => 'lib/Supporters.pm', # retrieve abstract from module
     AUTHOR            => 'Bradley M. Kuhn <bkuhn@>',
     #LICENSE           => 'perl',
