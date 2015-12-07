@@ -33,7 +33,8 @@ Test adding a supporter to the database.
 
 =cut
 
-dies_ok { $sp->addSupporter({}) } "ledger_entity_id required";
+dies_ok(sub { $sp->addSupporter({}) }, "ledger_entity_id required");
+
 
 $dbh->disconnect();
 
