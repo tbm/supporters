@@ -32,53 +32,33 @@ our $VERSION = '0.01';
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Supporters - Perl extension for blah blah blah
+Supporters - Simple database of supporters of an organation.
 
 =head1 SYNOPSIS
 
   use Supporters;
-  blah blah blah
 
 =head1 DESCRIPTION
 
-Stub documentation for Supporters, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
+Supporters is an extremely lightweight alternative to larger systems like
+CiviCRM to manage a database of Supporters.  The module assumes a setup that
+works with Ledger-CLI to find the actual amounts donated.
 
 =head2 EXPORT
 
 None by default.
 
-
-
-=head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
-
 =head1 AUTHOR
 
-Bradley M. Kuhn, E<lt>bkuhn@E<gt>
+Bradley M. Kuhn, E<lt>bkuhn@ebb.org<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2015 by Bradley M. Kuhn
+See COPYRIGHT.md and LICENSE.md in the main distribution of this software.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.20.2 or,
-at your option, any later version of Perl 5 you may have available.
-
+License: AGPLv3-or-later
 
 =cut
