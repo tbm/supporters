@@ -19,10 +19,10 @@ require 't/CreateTestDB.pl';
 
 my $dbh = get_test_dbh();
 
-my $supporters = new Supporters($dbh, "testcmd");
+my $sp = new Supporters($dbh, "testcmd");
 
-is($dbh, $supporters->dbh());
-is("testcmd", $supporters->ledgerCmd());
+is($dbh, $sp->dbh());
+is("testcmd", $sp->ledgerCmd());
 
 $dbh->disconnect();
 
