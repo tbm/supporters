@@ -3,16 +3,26 @@
 
 #########################
 
-# change 'tests => 1' to 'tests => last_test_to_print';
-
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 3;
 BEGIN { use_ok('Supporters') };
 
-#########################
+=pod
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
+Initial tests to verify creation of objects
+
+=cut
+
+require 't/CreateTestDB.pl';
+
+my $dbh = get_test_dbh();
+
+my $supporters = new Supporters($dbh, "testcmd");
+
+is($dbh, $supporters->dbh());
+is("testcmd", $supporters->ledgerCmd());
+
+$dbh->disconnect();
 

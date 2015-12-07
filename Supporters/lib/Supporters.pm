@@ -27,8 +27,23 @@ our @EXPORT = qw(
 
 our $VERSION = '0.02';
 
+######################################################################
+sub new ($$) {
+  my $package = shift;
+  my($dbh, $ledgerCmd) = @_;
 
-# Preloaded methods go here.
+  return bless({ dbh => $dbh, ledgerCmd => $ledgerCmd },
+                 $package);
+}
+######################################################################
+sub dbh ($) {
+  return $_[0]->{dbh};
+}
+######################################################################
+sub ledgerCmd ($) {
+  return $_[0]->{ledgerCmd};
+}
+
 
 1;
 __END__
