@@ -6,7 +6,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 4;
+use Test::Exception;
+
 BEGIN { use_ok('Supporters') };
 
 =pod
@@ -23,6 +25,15 @@ my $sp = new Supporters($dbh, "testcmd");
 
 is($dbh, $sp->dbh());
 is("testcmd", $sp->ledgerCmd());
+
+
+=pod
+
+Test adding a supporter to the database.
+
+=cut
+
+dies_ok { $sp->addSupporter({}) } "ledger_entity_id required";
 
 $dbh->disconnect();
 

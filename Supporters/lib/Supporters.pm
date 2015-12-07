@@ -43,6 +43,12 @@ sub dbh ($) {
 sub ledgerCmd ($) {
   return $_[0]->{ledgerCmd};
 }
+######################################################################
+sub addSupporter ($) {
+  my($sp) = @_;
+
+  die "ledger_entity_id required" unless defined $sp->{ledger_entity_id};
+}
 
 
 1;
