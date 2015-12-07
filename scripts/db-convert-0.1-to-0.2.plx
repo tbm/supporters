@@ -29,7 +29,7 @@ my %tShirt0SizeRequestConfigurationIds;
 
 my $sthInsertRequestConfiguration = $dbhNew->prepare("INSERT INTO request_configuration" .
                         "(request_type_id, description) values(?, ?)");
-foreach my $requestTypeId (qw/$tShirt1RequestTypeId $tShirt0RequestTypeId/) {
+foreach my $requestTypeId ($tShirt1RequestTypeId, $tShirt0RequestTypeId) {
   foreach my $size (qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/) {
     $sthInsertRequestConfiguration->execute($requestTypeId, $size);
     $tShirt0SizeRequestConfigurationIds{$size} = $dbhNew->last_insert_id("","","","");
@@ -43,12 +43,14 @@ $sthInsertRequestType->finish();
 
 # Only one email Adress type so far
 my $sthNew = $dbhNew->prepare("INSERT INTO address_type(name) values('paypal_payer')");
+$sthNew->execute();
 my $paypalPayerTypeId = $dbhNew->last_insert_id("","","","");
 $sthNew->finish();
 
 # Legacy fulfillment confirmation
 $sthNew = $dbhNew->prepare("INSERT INTO fulfillment(date, who, how)" .
                            "values(date('now'), 'bkuhn', 'legacy import of old database; exact details of this fulfillment are unknown')");
+$sthNew->execute();
 my $fulfillmentId = $dbhNew->last_insert_id("","","","");
 $sthNew->finish();
 
@@ -77,6 +79,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   $sthNewInsertSupporter->execute($row->{ledger_entity_id}, $row->{display_name},
                                   $row->{public_ack});
   my $supporterId = $dbhNew->last_insert_id("","","","");
+  print STDERR "handling $supporterId ($row->{ledger_entity_id})\n"; 
   die("Database conversion failed on id matching: $row->{ledger_entity_id} had ID $row->{id} now has $supporterId")
       unless ($row->{id} == $supporterId);
   if ($row->{want_gift}) {
@@ -97,11 +100,12 @@ while (my $row = $sthOld->fetchrow_hashref) {
   my $postalId = $dbhNew->last_insert_id("","","","");
   $sthLinkSupporterToPostal->execute($supporterId, $postalId);
 }
-foreach my $sth (qw/$sthOld $sthOld $sthNewInsertSupporter $sthInsertEmailAddress
-     $sthLinkSupporterToEmail $sthInsertRequest $sthPostalAddress $sthLinkSupporterToPostal/) {
+foreach my $sth (($sthOld, $sthOld, $sthNewInsertSupporter, $sthInsertEmailAddress,
+                  $sthLinkSupporterToEmail, $sthInsertRequest, $sthPostalAddress,
+                  $sthLinkSupporterToPostal,)) {
   $sth->finish();
 }
-foreach my $dbh (qw/$dbhNew $dbhOld/) {
+foreach my $dbh ($dbhNew, $dbhOld) {
   $dbhNew->disconnect();
 }
 
