@@ -23,8 +23,8 @@ my $dbh = get_test_dbh();
 
 my $sp = new Supporters($dbh, "testcmd");
 
-is($dbh, $sp->dbh());
-is("testcmd", $sp->ledgerCmd());
+is($dbh, $sp->dbh(), "verify dbh set");
+is("testcmd", $sp->ledgerCmd(), "verify ledgerCmd set");
 
 
 =pod
