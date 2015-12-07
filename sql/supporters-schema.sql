@@ -5,8 +5,6 @@ DROP TABLE IF EXISTS "supporter";
 CREATE TABLE "supporter" (
     "id" integer NOT NULL PRIMARY KEY,
     "ledger_entity_id" varchar(300) NOT NULL UNIQUE,
-    "postal_address_id " integer,
-    "email_address_id " integer,
     "display_name" varchar(300),
     "public_ack"   bool NOT NULL
 );
