@@ -54,6 +54,15 @@ sub addSupporter ($$) {
   if ($sp->{public_ack}) {
     die "display_name required if public_ack requested" unless defined $sp->{display_name};
   }
+  my $sth = $this->dbh->prepare(
+                      "INSERT INTO supporter(ledger_entity_id, display_name, public_ack)" .
+                                    " values(?,                ?,            ?)");
+
+  $sth->execute($sp->{ledger_entity_id}, $sp->{display_name}, $sp->{public_ack});
+  my $id = $this->dbh->last_insert_id("","","","");
+  $sth->finish();
+
+  return $id;
 }
 
 

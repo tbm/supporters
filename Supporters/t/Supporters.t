@@ -9,6 +9,8 @@ use warnings;
 use Test::More tests => 7;
 use Test::Exception;
 
+use Scalar::Util qw(looks_like_number);
+
 BEGIN { use_ok('Supporters') };
 
 =pod
@@ -36,15 +38,22 @@ Test adding a supporter to the database.
 dies_ok { $sp->addSupporter({}) }
         "addSupporter: ledger_entity_id required";
 
-lives_ok { $sp->addSupporter({ ledger_entity_id => "Whitman-Dick" }) }
-         "addSupporter: minimal acceptable settings";
+my $id1;
+lives_ok { $id1 = $sp->addSupporter({ ledger_entity_id => "Campbell-Peter" }); }
+         "addSupporter: add works for minimal acceptable settings";
+
+ok( (looks_like_number($id1) and $id1 > 0),
+   "addSupporter: add works for minimal acceptable settings");
 
 dies_ok  { $sp->addSupporter({ public_ack => 1, ledger_entity_id => "Whitman-Dick" }) }
          "addSupporter: display_name required";
 
-lives_ok { $sp->addSupporter({ display_name => "Donald Drapper",
-                               public_ack => 1, ledger_entity_id => "Whitman-Dick" }) }
+my $id2;
+lives_ok { $id2 = $sp->addSupporter({ display_name => "Donald Drapper",
+                               public_ack => 1, ledger_entity_id => "Whitman-Dick" }); }
          "addSupporter: public_ack set to true with a display_name given";
 
-$dbh->disconnect();
+ok( (looks_like_number($id2) and $id2 > $id1),
+   "addSupporter: add works with public_ack set to true and a display_name given");
 
+$dbh->disconnect();
