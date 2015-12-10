@@ -174,7 +174,6 @@ sub _verifyId($) {
   die "_verifyId() called with a non-numeric id" unless defined $id and looks_like_number($id);
 
   my $val = $self->dbh()->selectall_hashref("SELECT id FROM supporter WHERE id = $id", 'id');
-  use Data::Dumper;
   return (defined $val and defined $val->{$id});
 
 }
