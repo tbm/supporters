@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
