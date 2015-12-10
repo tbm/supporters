@@ -57,3 +57,9 @@ ok( (looks_like_number($id2) and $id2 > $id1),
    "addSupporter: add works with public_ack set to true and a display_name given");
 
 $dbh->disconnect();
+###############################################################################
+#
+# Local variables:
+# compile-command: "perl -c Supporters.t"
+# End:
+

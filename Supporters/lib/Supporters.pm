@@ -98,3 +98,9 @@ See COPYRIGHT.md and LICENSE.md in the main distribution of this software.
 License: AGPLv3-or-later
 
 =cut
+
+###############################################################################
+#
+# Local variables:
+# compile-command: "perl -c Supporters.pm"
+# End:
