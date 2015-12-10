@@ -62,12 +62,12 @@ ok( (looks_like_number($id1) and $id1 > 0),
 dies_ok  { $sp->addSupporter({ public_ack => 1, ledger_entity_id => "Whitman-Dick" }) }
          "addSupporter: display_name required";
 
-my $id2;
-lives_ok { $id2 = $sp->addSupporter({ display_name => "Donald Drapper",
+my $drapperId;
+lives_ok { $drapperId = $sp->addSupporter({ display_name => "Donald Drapper",
                                public_ack => 1, ledger_entity_id => "Whitman-Dick" }); }
          "addSupporter: public_ack set to true with a display_name given";
 
-ok( (looks_like_number($id2) and $id2 > $id1),
+ok( (looks_like_number($drapperId) and $drapperId > $id1),
    "addSupporter: add works with public_ack set to true and a display_name given");
 
 =item addEmailAddress
@@ -106,13 +106,13 @@ ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the
 
 =cut
 
-ok( $sp->_verifyId($id2), "_verifyId: id just added exists");
+ok( $sp->_verifyId($drapperId), "_verifyId: id just added exists");
 
 dies_ok { $sp->_verifyId(undef); } "_verifyId: dies for undefined id";
 dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 
 # This is a hacky way to test this; but should work
-ok(not ($sp->_verifyId($id2 + 10)), "_verifyId: non-existent id is not found");
+ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
 
 =pod
 
