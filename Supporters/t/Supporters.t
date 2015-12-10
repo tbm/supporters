@@ -10,17 +10,32 @@ use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
 
-BEGIN { use_ok('Supporters') };
-
 =pod
 
-Initial tests to verify creation of objects
+Supporters.t is the basic unit tests for Supporters.pm.  It tests the
+following things:
+
+=over
+
+=item use command for the module.
 
 =cut
+
+BEGIN { use_ok('Supporters') };
+
 
 require 't/CreateTestDB.pl';
 
 my $dbh = get_test_dbh();
+
+
+=item Public-facing methods of the module, as follows:
+
+=over
+
+=item new
+
+=cut
 
 my $sp = new Supporters($dbh, "testcmd");
 
@@ -30,7 +45,7 @@ is("testcmd", $sp->ledgerCmd(), "new: verify ledgerCmd set");
 
 =pod
 
-Test adding a supporter to the database.
+=item addSupporter
 
 =cut
 
@@ -55,14 +70,22 @@ lives_ok { $id2 = $sp->addSupporter({ display_name => "Donald Drapper",
 ok( (looks_like_number($id2) and $id2 > $id1),
    "addSupporter: add works with public_ack set to true and a display_name given");
 
-=pod
+=item addEmailAddress
 
-Tests for internal methods:
+=cut
+
+dies_ok { $sp->_addEmailAdress(undef, 'drapper@example.org', 'paypal'); }
+        "_addEmailAdress: dies for undefined id";
+dies_ok { $sp->_addEmailAdress("String", 'drapper@example.org', 'paypal'); }
+        "_addEmailAdress: dies for non-numeric id";
+
+=back
+
+=item Internal methods used only by the module itself.
 
 =over
 
-
-=item _verifyId tests
+=item _verifyId
 
 =cut
 
@@ -74,12 +97,9 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($id2 + 10)), "_verifyId: non-existent id is not found");
 
-dies_ok { $sp->_addEmailAdress(undef, 'drapper@example.org', 'paypal'); }
-        "_addEmailAdress: dies for undefined id";
-dies_ok { $sp->_addEmailAdress("String", 'drapper@example.org', 'paypal'); }
-        "_addEmailAdress: dies for non-numeric id";
-
 =pod
+
+=back
 
 =back
 
