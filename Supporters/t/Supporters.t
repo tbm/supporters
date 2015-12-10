@@ -74,9 +74,9 @@ ok( (looks_like_number($id2) and $id2 > $id1),
 
 =cut
 
-dies_ok { $sp->_addEmailAdress(undef, 'drapper@example.org', 'paypal'); }
+dies_ok { $sp->addEmailAddress(undef, 'drapper@example.org', 'paypal'); }
         "_addEmailAdress: dies for undefined id";
-dies_ok { $sp->_addEmailAdress("String", 'drapper@example.org', 'paypal'); }
+dies_ok { $sp->addEmailAddress("String", 'drapper@example.org', 'paypal'); }
         "_addEmailAdress: dies for non-numeric id";
 
 =item addAddressType
