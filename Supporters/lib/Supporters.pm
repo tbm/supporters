@@ -28,6 +28,29 @@ our @EXPORT = qw(
 our $VERSION = '0.02';
 
 ######################################################################
+
+=begin new
+
+Create new Supporters object.
+
+Arguments:
+
+=over
+
+=item $dbh
+
+   Scalar references for the database handle, already opened and pointing to
+   the right database.
+
+=item $ledgerCmd
+
+   Scalar string that contains the main ledger command (without arguments) to
+   run for looking up Supporter donation data.
+
+=back
+
+=cut
+
 sub new ($$) {
   my $package = shift;
   my($dbh, $ledgerCmd) = @_;
@@ -36,10 +59,26 @@ sub new ($$) {
                  $package);
 }
 ######################################################################
+
+=begin dbh
+
+Accessor method, returns the database handle currently used by this
+Supporters object.
+
+=cut
+
 sub dbh ($) {
   return $_[0]->{dbh};
 }
 ######################################################################
+
+=begin ledgerCmd
+
+Accessor method, returns the ledger command currently used by this Supporters
+object.
+
+=cut
+
 sub ledgerCmd ($) {
   return $_[0]->{ledgerCmd};
 }
