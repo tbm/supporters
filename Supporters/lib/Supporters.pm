@@ -27,6 +27,8 @@ our @EXPORT = qw(
 
 our $VERSION = '0.02';
 
+use Scalar::Util qw(looks_like_number);
+
 ######################################################################
 
 =begin new
@@ -100,10 +102,52 @@ sub addSupporter ($$) {
   $sth->execute($sp->{ledger_entity_id}, $sp->{display_name}, $sp->{public_ack});
   my $id = $this->dbh->last_insert_id("","","","");
   $sth->finish();
-
   return $id;
 }
 
+######################################################################
+
+=head1 Non-Public Methods
+
+These methods are part of the internal implementation are not recommended for
+use outside of this module.
+
+=over
+
+=item _verifyId()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=item $id: A scalar numeric argument that is the to lookup
+
+
+=back
+
+Returns: scalar boolean, which is true iff. the $id is valid and already in the supporter database.
+
+
+=cut
+
+
+sub _verifyId($) {
+  my($self, $id) = @_;
+
+  die "_verifyId() called with a non-numeric id" unless defined $id and looks_like_number($id);
+
+  my $val = $self->dbh()->selectall_hashref("SELECT id FROM supporter WHERE id = $id", 'id');
+  use Data::Dumper;
+  return (defined $val and defined $val->{$id});
+
+}
+
+
+=back
+
+=cut
 
 1;
 __END__

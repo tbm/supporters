@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 13;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -55,6 +55,31 @@ lives_ok { $id2 = $sp->addSupporter({ display_name => "Donald Drapper",
 
 ok( (looks_like_number($id2) and $id2 > $id1),
    "addSupporter: add works with public_ack set to true and a display_name given");
+
+=pod
+
+Tests for internal methods:
+
+=over
+
+
+=item _verifyId tests
+
+=cut
+
+ok( $sp->_verifyId($id2), "_verifyId: id just added exists");
+
+dies_ok { $sp->_verifyId(undef); } "_verifyId: dies for undefined id";
+dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
+
+# This is a hacky way to test this; but should work
+ok(not ($sp->_verifyId($id2 + 10)), "_verifyId: non-existent id is not found");
+
+=pod
+
+=back
+
+=cut
 
 $dbh->disconnect();
 ###############################################################################
