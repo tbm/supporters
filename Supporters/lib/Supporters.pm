@@ -102,9 +102,44 @@ sub addSupporter ($$) {
   $sth->execute($sp->{ledger_entity_id}, $sp->{display_name}, $sp->{public_ack});
   my $id = $this->dbh->last_insert_id("","","","");
   $sth->finish();
+
+  $this->addEmailAddress($id, $sp->{email_address}, $sp->{email_address_type})
+    if defined $sp->{email_address};
+
   return $id;
 }
+######################################################################
 
+=begin addEmailAddress
+
+Arguments:
+
+=over
+
+=item $id
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item $emailAddress
+
+   Scalar string that contains an email address.  die() will occur if the
+   email address isn't properly formatted.
+
+=item $emailAddressType
+
+  Scalar string that contains the email address type.  This type will be
+  created in the database if it does not already exist, so be careful.
+
+=back
+
+=cut
+
+sub addEmailAddress($$$$) {
+  my($self, $id, $emailAddress, $emailAddressType) = @_;
+
+  die "addEmailAddress: invalid id, $id" unless $self->_verifyId($id);
+}
 ######################################################################
 
 =head1 Non-Public Methods

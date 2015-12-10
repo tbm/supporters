@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 13;
+use Test::More tests => 15;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -73,6 +73,11 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($id2 + 10)), "_verifyId: non-existent id is not found");
+
+dies_ok { $sp->_addEmailAdress(undef, 'drapper@example.org', 'paypal'); }
+        "_addEmailAdress: dies for undefined id";
+dies_ok { $sp->_addEmailAdress("String", 'drapper@example.org', 'paypal'); }
+        "_addEmailAdress: dies for non-numeric id";
 
 =pod
 
