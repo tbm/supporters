@@ -174,6 +174,9 @@ sub addEmailAddress($$$$) {
   my($self, $id, $emailAddress, $emailAddressType) = @_;
 
   die "addEmailAddress: invalid id, $id" unless $self->_verifyId($id);
+
+  my $addressTypeId = $self->addAddressType($emailAddressType);
+
 }
 ######################################################################
 

@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 21;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -79,10 +79,17 @@ dies_ok { $sp->addEmailAddress(undef, 'drapper@example.org', 'paypal'); }
 dies_ok { $sp->addEmailAddress("String", 'drapper@example.org', 'paypal'); }
         "addEmailAddress: dies for non-numeric id";
 
+ok($sp->addEmailAddress($drapperId, 'drapper@example.org', 'work'),
+        "addEmailAddress: simple add test");
 
 =item addAddressType
 
 =cut
+
+#  This test cheats a bit -- it assumes that the database is assigning serials starting with 1
+
+ok($sp->addAddressType('work') == 1,
+   "addEmailAddress: verify addEmailAddress added the addressType underneath");
 
 dies_ok { $sp->addAddressType(undef); } "addAddressType: dies for undef";
 
