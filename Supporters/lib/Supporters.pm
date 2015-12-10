@@ -110,6 +110,41 @@ sub addSupporter ($$) {
 }
 ######################################################################
 
+=begin addAddressType
+
+Adds an address type, or returns the existing one of that name if it already exists.
+
+Arguments:
+
+=over
+
+=item $addressType
+
+  Scalar string that contains the email address type.  die() is called if not defined.
+
+=back
+
+  Returns id of the address type.
+
+=cut
+
+sub addAddressType($$) {
+  my($self, $type) = @_;
+
+  die "addAddressType: type argument must be defined" if not defined $type;
+
+  my $val = $self->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = '$type'", 'name');
+  return $val->{$type}{id} if (defined $val and defined $val->{$type} and defined $val->{$type}{id});
+
+  my $sth = $self->dbh->prepare("INSERT INTO address_type(name) VALUES(?)");
+
+  $sth->execute($type);
+  my $id = $self->dbh->last_insert_id("","","","");
+  $sth->finish();
+
+  return $id;
+}
+
 =begin addEmailAddress
 
 Arguments:

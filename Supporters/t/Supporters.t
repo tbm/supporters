@@ -79,6 +79,23 @@ dies_ok { $sp->_addEmailAdress(undef, 'drapper@example.org', 'paypal'); }
 dies_ok { $sp->_addEmailAdress("String", 'drapper@example.org', 'paypal'); }
         "_addEmailAdress: dies for non-numeric id";
 
+=item addAddressType
+
+=cut
+
+dies_ok { $sp->addAddressType(undef); } "addAddressType: dies for undef";
+
+my $paypalPayerAddressType;
+
+ok($paypalPayerAddressType = $sp->addAddressType("paypal payer"), "addAddressType: basic add works");
+
+my $same;
+
+ok($same = $sp->addAddressType("paypal payer"), "addAddressType: lookup works");
+
+ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the basic add");
+
+
 =back
 
 =item Internal methods used only by the module itself.
