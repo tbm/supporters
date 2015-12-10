@@ -75,9 +75,10 @@ ok( (looks_like_number($drapperId) and $drapperId > $id1),
 =cut
 
 dies_ok { $sp->addEmailAddress(undef, 'drapper@example.org', 'paypal'); }
-        "_addEmailAdress: dies for undefined id";
+        "addEmailAddress: dies for undefined id";
 dies_ok { $sp->addEmailAddress("String", 'drapper@example.org', 'paypal'); }
-        "_addEmailAdress: dies for non-numeric id";
+        "addEmailAddress: dies for non-numeric id";
+
 
 =item addAddressType
 
