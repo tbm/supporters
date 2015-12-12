@@ -177,6 +177,15 @@ sub addEmailAddress($$$$) {
 
   my $addressTypeId = $self->addAddressType($emailAddressType);
 
+  my $sth = $self->dbh->prepare("INSERT INTO email_address(email_address, type_id, date_encountered)" .
+                                "VALUES(                    ?,            ?,       date('now'))");
+
+  $self->dbh->begin_work();
+  $sth->execute($emailAddress, $addressTypeId);
+  my $addressId = $self->dbh->last_insert_id("","","","");
+  $sth->finish();
+  $self->dbh->commit();
+  return $addressId;
 }
 ######################################################################
 
