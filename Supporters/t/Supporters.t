@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 23;
+use Test::More tests => 25;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -78,6 +78,18 @@ dies_ok { $sp->addEmailAddress(undef, 'drapper@example.org', 'paypal'); }
         "addEmailAddress: dies for undefined id";
 dies_ok { $sp->addEmailAddress("String", 'drapper@example.org', 'paypal'); }
         "addEmailAddress: dies for non-numeric id";
+dies_ok { $sp->addEmailAddress($drapperId, undef, 'work') }
+         "addEmailAddress: email address undefined fails";
+dies_ok { $sp->addEmailAddress($drapperId, 'drapper@ex@ample.org', 'work') }
+         "addEmailAddress: email address with extra @ fails to add.";
+
+# Verify that the addressType wasn't added when the Email address is invalid
+# and the address type did not already exist.
+
+my $val = $sp->dbh()->selectall_hashref("SELECT id FROM address_type WHERE name = 'work'", 'id');
+
+ok((not defined $val or not defined $val->{'id'}),
+   "addEmailAddress: type is not added with email address is bad");
 
 my $drapperEmailId;
 

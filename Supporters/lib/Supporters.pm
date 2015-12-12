@@ -28,6 +28,7 @@ our @EXPORT = qw(
 our $VERSION = '0.02';
 
 use Scalar::Util qw(looks_like_number);
+use Mail::RFC822::Address;
 
 ######################################################################
 
@@ -177,12 +178,16 @@ sub addEmailAddress($$$$) {
 
   die "addEmailAddress: invalid id, $id" unless $self->_verifyId($id);
 
+  die "addEmailAddress:: invalid email address, $emailAddressType"
+    unless defined $emailAddressType and Mail::RFC822::Address::valid($emailAddress);
+
+  $self->dbh->begin_work();
+
   my $addressTypeId = $self->addAddressType($emailAddressType);
 
   my $sth = $self->dbh->prepare("INSERT INTO email_address(email_address, type_id, date_encountered)" .
                                 "VALUES(                    ?,            ?,       date('now'))");
 
-  $self->dbh->begin_work();
   $sth->execute($emailAddress, $addressTypeId);
   my $addressId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
