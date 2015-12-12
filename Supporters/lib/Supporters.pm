@@ -168,6 +168,8 @@ Arguments:
 
 =back
 
+Returns the id value of the email_address entry.
+
 =cut
 
 sub addEmailAddress($$$$) {

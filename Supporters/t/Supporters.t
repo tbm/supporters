@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 23;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -79,8 +79,11 @@ dies_ok { $sp->addEmailAddress(undef, 'drapper@example.org', 'paypal'); }
 dies_ok { $sp->addEmailAddress("String", 'drapper@example.org', 'paypal'); }
         "addEmailAddress: dies for non-numeric id";
 
-ok($sp->addEmailAddress($drapperId, 'drapper@example.org', 'work'),
-        "addEmailAddress: simple add test");
+my $drapperEmailId;
+
+lives_ok { $drapperEmailId = $sp->addEmailAddress($drapperId, 'drapper@example.org', 'work') }
+         "addEmailAdress: inserting a valid email address works";
+ok((looks_like_number($drapperEmailId) and $drapperEmailId > 0), "addEmailAddress: id returned is sane.");
 
 =item addAddressType
 
