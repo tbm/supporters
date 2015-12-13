@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 31;
+use Test::More tests => 34;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -70,9 +70,27 @@ lives_ok { $drapperId = $sp->addSupporter({ display_name => "Donald Drapper",
 ok( (looks_like_number($drapperId) and $drapperId > $id1),
    "addSupporter: add works with public_ack set to true and a display_name given");
 
+my $olsonId;
+
+lives_ok { $olsonId = $sp->addSupporter({ display_name => "Peggy Olson",
+                                          public_ack => 0, ledger_entity_id => "Olson-Margaret",
+                                          email_address => 'olson@example.net',
+                                          email_address_type => 'home' }); }
+         "addSupporter: succeeds with email address";
+
+ok( (looks_like_number($olsonId) and $olsonId > $drapperId),
+   "addSupporter: add succeeded with email address added.");
+
 =item addEmailAddress
 
 =cut
+
+my $val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = 'home'", 'name');
+
+ok((defined $val and defined $val->{home}{id} and $val->{home}{id} > 0),
+   "addSuporter/addEmailAddress: emailAddressType was added when new one given to addSupporter");
+
+my $emailAddressTypeHomeId = $val->{home}{id};
 
 dies_ok { $sp->addEmailAddress(undef, 'drapper@example.org', 'paypal'); }
         "addEmailAddress: dies for undefined id";
@@ -103,7 +121,7 @@ ok((looks_like_number($drapperEmailId) and $drapperEmailId > 0), "addEmailAddres
 
 #  This test cheats a bit -- it assumes that the database is assigning serials starting with 1
 
-ok($sp->addAddressType('work') == 1,
+ok($sp->addAddressType('work') > $emailAddressTypeHomeId,
    "addEmailAddress: verify addEmailAddress added the addressType underneath");
 
 dies_ok { $sp->addAddressType(undef); } "addAddressType: dies for undef";
