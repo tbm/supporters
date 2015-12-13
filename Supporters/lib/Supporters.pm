@@ -260,6 +260,32 @@ sub addRequestType($$) {
 }
 ######################################################################
 
+=begin getRequestConfigurations
+
+Arguments:
+
+=over
+
+=item type
+
+   A string describing the request_type.
+
+=back
+
+Returns undef if the request_type is not found in the database.  If the reuqest type is 
+is no request of that type.
+
+=cut
+
+sub getRequestConfigurations($$) {
+  my($self, $type) = @_;
+
+  return undef if not defined $type;
+  my $typeId = $self->getRequestType($type);
+  return undef if not defined $typeId;
+}
+######################################################################
+
 =head1 Non-Public Methods
 
 These methods are part of the internal implementation are not recommended for

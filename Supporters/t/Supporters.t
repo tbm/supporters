@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 34;
+use Test::More tests => 36;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -160,6 +160,15 @@ lives_ok { $testSameRequestType = $sp->addRequestType('t-shirt-0'); }
 
 is $requestTypeId,  $testSameRequestType,
     "addRequestType: lookup first of existing request type before adding.";
+
+=item getRequestConfigurations
+
+=cut
+
+is undef, $sp->getRequestConfigurations(undef), "getRequestConfigurations: undef type returns undef";
+
+is undef, $sp->getRequestConfigurations('Hae2Ohlu'), "getRequestConfigurations: non-existent type returns undef";
+
 
 =back
 
