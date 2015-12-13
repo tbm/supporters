@@ -222,7 +222,7 @@ Returns: scalar boolean, which is true iff. the $id is valid and already in the 
 =cut
 
 
-sub _verifyId($) {
+sub _verifyId($$) {
   my($self, $id) = @_;
 
   die "_verifyId() called with a non-numeric id" unless defined $id and looks_like_number($id);
