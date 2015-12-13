@@ -196,6 +196,70 @@ sub addEmailAddress($$$$) {
 }
 ######################################################################
 
+=begin getRequestType
+
+Arguments:
+
+=over
+
+=item type
+
+   A string describing the request.
+
+=back
+
+Returns the id value of the request_type entry.  undef is returned if there
+is no request of that type.
+
+=cut
+
+sub getRequestType($$) {
+  my($self, $type) = @_;
+
+  return undef if not defined $type;
+  my $val = $self->dbh()->selectall_hashref("SELECT id, type FROM request_type WHERE type = '$type'", 'type');
+  return $val->{$type}{id} if (defined $val and defined $val->{$type} and defined $val->{$type}{id});
+  return undef;
+}
+######################################################################
+
+=begin addRequestType
+
+Arguments:
+
+=over
+
+=item type
+
+   A string describing the request.  die()'s if not defined.
+
+=back
+
+Returns the id value of the request_type entry.  If the type already exists,
+it is simply returned.
+
+=cut
+
+sub addRequestType($$) {
+  my($self, $requestType) = @_;
+
+  die "addRequestType: undefined request type." unless defined $requestType;
+
+  my $requestId = $self->getRequestType($requestType);
+  return $requestId if (defined $requestId);
+
+  $self->dbh->begin_work();
+
+  my $sth = $self->dbh->prepare("INSERT INTO request_type(type) VALUES(?)");
+
+  $sth->execute($requestType);
+  $requestId = $self->dbh->last_insert_id("","","","");
+  $sth->finish();
+  $self->dbh->commit();
+  return $requestId;
+}
+######################################################################
+
 =head1 Non-Public Methods
 
 These methods are part of the internal implementation are not recommended for

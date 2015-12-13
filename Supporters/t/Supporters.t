@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 25;
+use Test::More tests => 31;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -118,6 +118,30 @@ ok($same = $sp->addAddressType("paypal payer"), "addAddressType: lookup works");
 
 ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the basic add");
 
+=item addAddressType/getRequestType
+
+=cut
+
+dies_ok { $sp->addRequestType(undef); }
+        "addRequestType: undef argument dies.";
+
+my $requestTypeId;
+
+ok( (not defined $sp->getRequestType('t-shirt-0')), "getRequestType: returns undef when not found");
+
+lives_ok { $requestTypeId = $sp->addRequestType('t-shirt-0'); }
+  "addRequestType: succeeds on add";
+
+ok( (defined $requestTypeId and looks_like_number($requestTypeId) and $requestTypeId > 0),
+    "addRequestType: id is a number");
+
+my $testSameRequestType;
+
+lives_ok { $testSameRequestType = $sp->addRequestType('t-shirt-0'); }
+  "addRequestType: succeeds on add when type already exists";
+
+is $requestTypeId,  $testSameRequestType,
+    "addRequestType: lookup first of existing request type before adding.";
 
 =back
 
