@@ -104,9 +104,9 @@ dies_ok { $sp->addEmailAddress($drapperId, 'drapper@ex@ample.org', 'work') }
 # Verify that the addressType wasn't added when the Email address is invalid
 # and the address type did not already exist.
 
-my $val = $sp->dbh()->selectall_hashref("SELECT id FROM address_type WHERE name = 'work'", 'id');
+$val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = 'work'", 'name');
 
-ok((not defined $val or not defined $val->{'id'}),
+ok((not defined $val or not defined $val->{'name'}),
    "addEmailAddress: type is not added with email address is bad");
 
 my $drapperEmailId;
