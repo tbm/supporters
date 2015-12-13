@@ -19,12 +19,8 @@ my $dbhNew = DBI->connect("dbi:SQLite:dbname=$NEW_SUPPORTERS_SQLITE_DB_FILE", ""
 
 # Insert t-shirt types and sizes
 
-my $sthInsertRequestType = $dbhNew->prepare("INSERT INTO request_type(type) values(?)");
-
-$sthInsertRequestType->execute("t-shirt-0");
-my $tShirt0RequestTypeId = $dbhNew->last_insert_id("","","","");
-$sthInsertRequestType->execute("t-shirt-1");
-my $tShirt1RequestTypeId = $dbhNew->last_insert_id("","","","");
+my $tShirt0RequestTypeId = $sp->addRequestType("t-shirt-0");
+my $tShirt1RequestTypeId = $sp->addRequestType("t-shirt-1");
 
 my %tShirt0SizeRequestConfigurationIds;
 
