@@ -213,6 +213,6 @@ $dbh->disconnect();
 ###############################################################################
 #
 # Local variables:
-# compile-command: "perl -c Supporters.t"
+# compile-command: "perl -c Supporters.t && cd ..; make clean; perl Makefile.PL && make &&  make test TEST_VERBOSE=1"
 # End:
 
