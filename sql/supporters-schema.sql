@@ -29,6 +29,9 @@ CREATE TABLE "request_configuration" (
     "description"   varchar(100) NOT NULL
     );
 
+CREATE UNIQUE INDEX request_configuration__single_description
+   ON request_configuration(request_type_id, description);
+
 DROP TABLE IF EXISTS "fulfillment";
 
 CREATE TABLE "fulfillment" (

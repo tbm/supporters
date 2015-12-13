@@ -300,7 +300,8 @@ Arguments:
 =item descriptionListRef
 
    A list reference to the list of configuration descriptions to associate
-   with this requestId.
+   with this requestId.  Duplicates aren't permitted in this list, and
+   die()'s if duplicates exist.
 
 =back
 
@@ -323,7 +324,17 @@ sub addRequestConfigurations($$$) {
     unless defined $requestType;
 
   my %descriptions;
-
+  my $sth = $self->dbh->prepare("INSERT INTO request_configuration(request_type_id, description) " .
+                                                           "VALUES(?,               ?)");
+  foreach my $description (@{$descriptionListRef}) {
+    if (defined $descriptions{$description}) {
+      $self->dbh->rollback();
+      die "addRequestConfigurations: attempt to create duplicate request_configuration \"$description\" for requestType, \"$requestType\"";
+    }
+    $sth->execute($requestId, $description);
+    $descriptions{$description} = $self->dbh->last_insert_id("","","","");
+  }
+  $sth->finish();
   $self->dbh->commit();
   return { $requestId => \%descriptions };
 }
