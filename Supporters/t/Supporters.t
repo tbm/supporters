@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 49;
+use Test::More tests => 52;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -167,7 +167,6 @@ is $tShirt0RequestTypeId, $testSameRequestType,
 
 dies_ok { $sp->addRequestConfigurations(undef, undef); } "addRequestConfigurations: undef type dies";
 
-
 is_deeply({ $tShirt0RequestTypeId => {} },
           $sp->addRequestConfigurations('t-shirt-0'),
           "addRequestConfigurations: existing requestType with no configuration yields same");
@@ -175,6 +174,13 @@ is_deeply({ $tShirt0RequestTypeId => {} },
 my @sizeList = qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/;
 
 my $tShirt0Data;
+
+dies_ok { $sp->addRequestConfigurations('t-shirt-0', [ @sizeList, 'Men2XL']) }
+  "addRequestConfigurations: dies with duplicate items on configuration list.";
+
+is_deeply({ $tShirt0RequestTypeId => {} },
+          $sp->getRequestConfigurations('t-shirt-0'),
+          "addRequestConfigurations/getRequestConfigurations: add fails with duplicate in configuration list");
 
 lives_ok { $tShirt0Data = $sp->addRequestConfigurations('t-shirt-0', \@sizeList) }
   "addRequestConfigurations: existing requestType with configuration runs.";
@@ -190,6 +196,7 @@ foreach my $size (@sizeList) {
       sprintf "addRequestConfigurations: item %d added correctly", $cnt++);
 }
 
+
 =back
 
 =item getRequestConfigurations
@@ -199,6 +206,10 @@ foreach my $size (@sizeList) {
 is undef, $sp->getRequestConfigurations(undef), "getRequestConfigurations: undef type returns undef";
 
 is undef, $sp->getRequestConfigurations('Hae2Ohlu'), "getRequestConfigurations: non-existent type returns undef";
+
+is_deeply $tShirt0Data,
+          $sp->getRequestConfigurations('t-shirt-0'),
+          "getRequestConfigurations: lookup of previously added items is same";
 
 
 =back

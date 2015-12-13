@@ -283,6 +283,16 @@ sub getRequestConfigurations($$) {
   return undef if not defined $type;
   my $typeId = $self->getRequestType($type);
   return undef if not defined $typeId;
+
+  my %descriptions;
+  my $dbData =
+    $self->dbh()->selectall_hashref("SELECT description, id FROM request_configuration " .
+                                    "WHERE request_type_id = " . $self->dbh->quote($typeId, 'SQL_INTEGER'),
+                                    'description');
+  foreach my $description (keys %$dbData) {
+    $descriptions{$description} = $dbData->{$description}{id};
+  }
+  return { $typeId => \%descriptions };
 }
 ######################################################################
 
