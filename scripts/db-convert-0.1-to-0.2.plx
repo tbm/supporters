@@ -5,6 +5,7 @@ use warnings;
 
 use DBI;
 use Encode qw(encode decode);
+use Supporter;
 
 my($OLD_SUPPORTERS_SQLITE_DB_FILE, $NEW_SUPPORTERS_SQLITE_DB_FILE) = @ARGV;
 
@@ -75,11 +76,14 @@ my $sthPostalAddress = $dbhNew->prepare('INSERT INTO postal_address(formatted_ad
 
 my $sthOld = $dbhOld->prepare('SELECT * from supporters order by id;');
 $sthOld->execute();
+
+my $sp = new Supporter($dbhNew, "/usr/bin/ledger");
+
 while (my $row = $sthOld->fetchrow_hashref) {
-  $sthNewInsertSupporter->execute($row->{ledger_entity_id}, $row->{display_name},
-                                  $row->{public_ack});
-  my $supporterId = $dbhNew->last_insert_id("","","","");
-  print STDERR "handling $supporterId ($row->{ledger_entity_id})\n"; 
+  $row->{email_address_type} = 'paypal';
+  $row->{email_address} = $row->{paypal_payer};
+  my $supporterId = $sp->addSupporter($row);
+  
   die("Database conversion failed on id matching: $row->{ledger_entity_id} had ID $row->{id} now has $supporterId")
       unless ($row->{id} == $supporterId);
   if ($row->{want_gift}) {
