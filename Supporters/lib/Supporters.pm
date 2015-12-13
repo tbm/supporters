@@ -286,6 +286,49 @@ sub getRequestConfigurations($$) {
 }
 ######################################################################
 
+=begin addRequestConfigurations
+
+Arguments:
+
+=over
+
+=item type
+
+   A string describing the request type.  This will be created if it does not
+   already exist, so be careful.
+
+=item descriptionListRef
+
+   A list reference to the list of configuration descriptions to associate
+   with this requestId.
+
+=back
+
+Returns a hash in the form of:
+
+  $requestTypeId => { description => $requestConfigurationId }
+
+=cut
+
+sub addRequestConfigurations($$$) {
+  my($self, $requestType, $descriptionListRef) = @_;
+
+  die "addRequestConfigurations: undefined request type." unless defined $requestType;
+
+  $self->dbh->begin_work();
+
+  my $requestId = $self->addRequestType($requestType);
+
+  die "addRequestConfigurations: unable to create request configurations"
+    unless defined $requestType;
+
+  my %descriptions;
+
+  $self->dbh->commit();
+  return { $requestId => \%descriptions };
+}
+######################################################################
+
 =head1 Non-Public Methods
 
 These methods are part of the internal implementation are not recommended for

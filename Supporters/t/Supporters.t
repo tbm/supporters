@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 36;
+use Test::More tests => 38;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -143,14 +143,14 @@ ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the
 dies_ok { $sp->addRequestType(undef); }
         "addRequestType: undef argument dies.";
 
-my $requestTypeId;
+my $tShirt0RequestTypeId;
 
 ok( (not defined $sp->getRequestType('t-shirt-0')), "getRequestType: returns undef when not found");
 
-lives_ok { $requestTypeId = $sp->addRequestType('t-shirt-0'); }
+lives_ok { $tShirt0RequestTypeId = $sp->addRequestType('t-shirt-0'); }
   "addRequestType: succeeds on add";
 
-ok( (defined $requestTypeId and looks_like_number($requestTypeId) and $requestTypeId > 0),
+ok( (defined $tShirt0RequestTypeId and looks_like_number($tShirt0RequestTypeId) and $tShirt0RequestTypeId > 0),
     "addRequestType: id is a number");
 
 my $testSameRequestType;
@@ -158,8 +158,21 @@ my $testSameRequestType;
 lives_ok { $testSameRequestType = $sp->addRequestType('t-shirt-0'); }
   "addRequestType: succeeds on add when type already exists";
 
-is $requestTypeId,  $testSameRequestType,
+is $tShirt0RequestTypeId, $testSameRequestType,
     "addRequestType: lookup first of existing request type before adding.";
+
+=item addRequestConfigurations
+
+=cut
+
+dies_ok { $sp->addRequestConfigurations(undef, undef); } "addRequestConfigurations: undef type dies";
+
+
+is_deeply({ $tShirt0RequestTypeId => {} },
+          $sp->addRequestConfigurations('t-shirt-0'),
+          "addRequestConfigurations: existing requestType with no configuration yields same");
+
+=back
 
 =item getRequestConfigurations
 
