@@ -172,6 +172,24 @@ is_deeply({ $tShirt0RequestTypeId => {} },
           $sp->addRequestConfigurations('t-shirt-0'),
           "addRequestConfigurations: existing requestType with no configuration yields same");
 
+my @sizeList = qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/;
+
+my $tShirt0Data;
+
+lives_ok { $tShirt0Data = $sp->addRequestConfigurations('t-shirt-0') }
+  "addRequestConfigurations: existing requestType with configuration runs.";
+
+is( keys %{$tShirt0Data}, ($tShirt0RequestTypeId),
+    "addRequestConfigurations: reuses same requestTypeId on add of configurations");
+
+my $cnt;
+foreach my $size (@sizeList) {
+  ok( (defined $tShirt0Data->{$tShirt0RequestTypeId}{$size} and
+       looks_like_number($tShirt0Data->{$tShirt0RequestTypeId}{$size}) and
+       $tShirt0Data->{$tShirt0RequestTypeId}{$size} > 0),
+      sprintf "addRequestConfigurations: item %d added correctly", $cnt++);
+}
+
 =back
 
 =item getRequestConfigurations
