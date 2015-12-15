@@ -5,7 +5,7 @@ use warnings;
 
 use DBI;
 use Encode qw(encode decode);
-use Supporter;
+use Supporters;
 
 my($OLD_SUPPORTERS_SQLITE_DB_FILE, $NEW_SUPPORTERS_SQLITE_DB_FILE) = @ARGV;
 
@@ -17,26 +17,23 @@ my $dbhNew = DBI->connect("dbi:SQLite:dbname=$NEW_SUPPORTERS_SQLITE_DB_FILE", ""
                                { RaiseError => 1, sqlite_unicode => 1 })
   or die $DBI::errstr;
 
+my $sp = new Supporter($dbhNew, "/usr/bin/ledger");
+
 # Insert t-shirt types and sizes
 
-my $tShirt0RequestTypeId = $sp->addRequestType("t-shirt-0");
+
+my @sizes = qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/;
+my $tShirt0 = $sp->addRequestConfigurations("t-shirt-0", \@sizes);
+my $thShirt1 = $sp->addRequestConfigurations("t-shirt-1", \@sizes);
+
+my $tShirt0RequestTypeId = (keys %{$tShirt0})[0];
+my $tShirt1RequestTypeId = (keys %{$tShirt0})[0];
+
+my %tShirt0SizeRequestConfigurationIds = %{$tShirt0->{$tShirt0RequestTypeId}};
+
 my $tShirt1RequestTypeId = $sp->addRequestType("t-shirt-1");
 
-my %tShirt0SizeRequestConfigurationIds;
-
-my $sthInsertRequestConfiguration = $dbhNew->prepare("INSERT INTO request_configuration" .
-                        "(request_type_id, description) values(?, ?)");
-foreach my $requestTypeId ($tShirt1RequestTypeId, $tShirt0RequestTypeId) {
-  foreach my $size (qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/) {
-    $sthInsertRequestConfiguration->execute($requestTypeId, $size);
-    $tShirt0SizeRequestConfigurationIds{$size} = $dbhNew->last_insert_id("","","","");
-  }
-}
-$sthInsertRequestConfiguration->finish();
-
-$sthInsertRequestType->execute("join-announce-email-list");
-my $announceEmailListRequestTypeId = $dbhNew->last_insert_id("","","","");
-$sthInsertRequestType->finish();
+my $announceEmailListRequestTypeId = $sp->addRequestType("join-announce-email-list");
 
 # Only one email Adress type so far
 my $sthNew = $dbhNew->prepare("INSERT INTO address_type(name) values('paypal_payer')");
@@ -72,8 +69,6 @@ my $sthPostalAddress = $dbhNew->prepare('INSERT INTO postal_address(formatted_ad
 
 my $sthOld = $dbhOld->prepare('SELECT * from supporters order by id;');
 $sthOld->execute();
-
-my $sp = new Supporter($dbhNew, "/usr/bin/ledger");
 
 while (my $row = $sthOld->fetchrow_hashref) {
   $row->{email_address_type} = 'paypal';
