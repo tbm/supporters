@@ -145,6 +145,7 @@ sub addAddressType($$) {
 
   return $id;
 }
+######################################################################
 
 =begin addEmailAddress
 
@@ -181,7 +182,7 @@ sub addEmailAddress($$$$) {
   die "addEmailAddress:: invalid email address, $emailAddressType"
     unless defined $emailAddressType and Mail::RFC822::Address::valid($emailAddress);
 
-  $self->dbh->begin_work();
+  $self->_beginWork();
 
   my $addressTypeId = $self->addAddressType($emailAddressType);
 
@@ -191,7 +192,7 @@ sub addEmailAddress($$$$) {
   $sth->execute($emailAddress, $addressTypeId);
   my $addressId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
-  $self->dbh->commit();
+  $self->_commit();
   return $addressId;
 }
 ######################################################################
@@ -248,14 +249,14 @@ sub addRequestType($$) {
   my $requestId = $self->getRequestType($requestType);
   return $requestId if (defined $requestId);
 
-  $self->dbh->begin_work();
+  $self->_beginWork();
 
   my $sth = $self->dbh->prepare("INSERT INTO request_type(type) VALUES(?)");
 
   $sth->execute($requestType);
   $requestId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
-  $self->dbh->commit();
+  $self->_commit();
   return $requestId;
 }
 ######################################################################
@@ -326,7 +327,7 @@ sub addRequestConfigurations($$$) {
 
   die "addRequestConfigurations: undefined request type." unless defined $requestType;
 
-  $self->dbh->begin_work();
+  $self->_beginWork();
 
   my $requestId = $self->addRequestType($requestType);
 
@@ -345,7 +346,7 @@ sub addRequestConfigurations($$$) {
     $descriptions{$description} = $self->dbh->last_insert_id("","","","");
   }
   $sth->finish();
-  $self->dbh->commit();
+  $self->_commit();
   return { $requestId => \%descriptions };
 }
 ######################################################################
@@ -386,6 +387,61 @@ sub _verifyId($$) {
 
 }
 
+=item _beginWork()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=back
+
+Returns: None.
+
+This method is a reference counter to keep track of nested begin_work()/commit().
+
+
+=cut
+
+my $NESTED_TRANSACTION_COUNTER = 0;
+
+sub _beginWork($) {
+  my($self) = @_;
+
+  die "_beginWork: Mismatched begin_work/commit pair in API implementation"  if ($NESTED_TRANSACTION_COUNTER < 0);
+
+  $NESTED_TRANSACTION_COUNTER++;
+
+  $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER == 1);
+}
+
+=item _commit()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=back
+
+Returns: None.
+
+This method is a reference counter to keep track of nested begin_work()
+transactions to verify we don't nest $self->dbh->begin_work()
+
+=cut
+
+sub _commit($) {
+  my($self) = @_;
+
+  die "_commit: Mismatched begin_work/commit pair in API implementation"  if ($NESTED_TRANSACTION_COUNTER <= 0);
+
+  $NESTED_TRANSACTION_COUNTER--;
+
+  $self->dbh->commit() if ($NESTED_TRANSACTION_COUNTER == 0);
+}
 
 =back
 
