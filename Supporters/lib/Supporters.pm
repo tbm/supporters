@@ -411,9 +411,7 @@ sub _beginWork($) {
 
   die "_beginWork: Mismatched begin_work/commit pair in API implementation"  if ($NESTED_TRANSACTION_COUNTER < 0);
 
-  $NESTED_TRANSACTION_COUNTER++;
-
-  $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER == 1);
+  $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER++ == 1);
 }
 
 =item _commit()
@@ -438,9 +436,7 @@ sub _commit($) {
 
   die "_commit: Mismatched begin_work/commit pair in API implementation"  if ($NESTED_TRANSACTION_COUNTER <= 0);
 
-  $NESTED_TRANSACTION_COUNTER--;
-
-  $self->dbh->commit() if ($NESTED_TRANSACTION_COUNTER == 0);
+  $self->dbh->commit() if ($NESTED_TRANSACTION_COUNTER-- == 0);
 }
 
 =back
