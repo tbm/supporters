@@ -96,6 +96,7 @@ sub addSupporter ($$) {
   if ($sp->{public_ack}) {
     die "display_name required if public_ack requested" unless defined $sp->{display_name};
   }
+  $this->_beginWork;
   my $sth = $this->dbh->prepare(
                       "INSERT INTO supporter(ledger_entity_id, display_name, public_ack)" .
                                     " values(?,                ?,            ?)");
@@ -107,6 +108,7 @@ sub addSupporter ($$) {
   $this->addEmailAddress($id, $sp->{email_address}, $sp->{email_address_type})
     if defined $sp->{email_address};
 
+  $this->_commit;
   return $id;
 }
 ######################################################################
