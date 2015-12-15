@@ -186,8 +186,7 @@ my $tShirt0Data;
 dies_ok { $sp->addRequestConfigurations('t-shirt-0', [ @sizeList, 'Men2XL']) }
   "addRequestConfigurations: dies with duplicate items on configuration list.";
 
-is_deeply({ $tShirt0RequestTypeId => {} },
-          $sp->getRequestConfigurations('t-shirt-0'),
+is_deeply($sp->getRequestConfigurations('t-shirt-0'), undef,
           "addRequestConfigurations/getRequestConfigurations: add fails with duplicate in configuration list");
 
 lives_ok { $tShirt0Data = $sp->addRequestConfigurations('t-shirt-0', \@sizeList) }
