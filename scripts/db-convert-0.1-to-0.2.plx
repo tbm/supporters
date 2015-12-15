@@ -48,8 +48,6 @@ $sthNew->execute();
 my $fulfillmentId = $dbhNew->last_insert_id("","","","");
 $sthNew->finish();
 
-my $sthNewInsertSupporter = $dbhNew->prepare('INSERT INTO supporter(' .
-                              'ledger_entity_id, display_name, public_ack) values (?, ?, ?)');
 my $sthInsertEmailAddress = $dbhNew->prepare('INSERT INTO email_address(email_address, type_id, date_encountered)' .
                   "values(?, $paypalPayerTypeId, date('now'))");
 
@@ -95,7 +93,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   my $postalId = $dbhNew->last_insert_id("","","","");
   $sthLinkSupporterToPostal->execute($supporterId, $postalId);
 }
-foreach my $sth (($sthOld, $sthOld, $sthNewInsertSupporter, $sthInsertEmailAddress,
+foreach my $sth (($sthOld, $sthOld, $sthInsertEmailAddress,
                   $sthLinkSupporterToEmail, $sthInsertRequest, $sthPostalAddress,
                   $sthLinkSupporterToPostal,)) {
   $sth->finish();
