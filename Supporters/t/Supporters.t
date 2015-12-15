@@ -259,7 +259,7 @@ dies_ok { $tempSP->addSupporter({ display_name => "Roger Sterling",
                                   email_address_type => 'home' }) }
         "addSupporter: dies when email_address table does not exist & email adress given";
 
-$tempDBH = reopen_test_dbh();
+$tempDBH->disconnect; $tempDBH = reopen_test_dbh();
 
 $val = $tempDBH->selectall_hashref("SELECT id FROM supporter;", 'id');
 
