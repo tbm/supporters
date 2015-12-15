@@ -31,8 +31,6 @@ my $tShirt1RequestTypeId = (keys %{$tShirt0})[0];
 
 my %tShirt0SizeRequestConfigurationIds = %{$tShirt0->{$tShirt0RequestTypeId}};
 
-my $tShirt1RequestTypeId = $sp->addRequestType("t-shirt-1");
-
 my $announceEmailListRequestTypeId = $sp->addRequestType("join-announce-email-list");
 
 # Only one email Adress type so far
