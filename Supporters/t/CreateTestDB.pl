@@ -37,5 +37,12 @@ sub get_test_dbh {
   die $dbh->errstr if $dbh->errstr;
   return $dbh;
 }
+sub reopen_test_dbh {
+  my $dbh = DBI->connect("dbi:SQLite:dbname=test-supporters.db", "", "",
+                                     { RaiseError => 1, sqlite_unicode => 1})
+    or die $DBI::errstr;
+
+  return $dbh;
+}
 
 1;

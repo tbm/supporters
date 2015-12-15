@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 53;
+use Test::More tests => 55;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -238,15 +238,43 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
 
-=pod
-
 =back
+
+=item Database weirdness tests
+
+=cut
+
+sub ResetDB($) {
+  $_[0]->disconnect() if defined $_[0];
+  my $tempDBH = get_test_dbh();
+  my $tempSP = new Supporters($tempDBH, "testcmd");
+  return ($tempDBH, $tempSP);
+}
+
+my($tempDBH, $tempSP) = ResetDB($dbh);
+$tempDBH->do("DROP TABLE email_address;");
+
+dies_ok { $tempSP->addSupporter({ display_name => "Roger Sterling",
+                                  public_ack => 0, ledger_entity_id => "Sterling-Roger",
+                                  email_address => 'sterlingjr@example.com',
+                                  email_address_type => 'home' }) }
+        "addSupporter: dies when email_address table does not exist & email adress given";
+
+$tempDBH = reopen_test_dbh();
+
+$val = $tempDBH->selectall_hashref("SELECT id FROM supporter;", 'id');
+
+ok( (defined $val and keys(%{$val}) == 0),
+    "addSupporter: fails if email_address given but email cannot be inserted");
+
 
 =back
 
 =cut
 
-$dbh->disconnect();
+$tempDBH->disconnect;
+
+1;
 ###############################################################################
 #
 # Local variables:
