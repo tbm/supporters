@@ -8,7 +8,7 @@ use warnings;
 use Test::More tests => 55;
 use Test::Exception;
 
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util qw(looks_like_number reftype);
 
 =pod
 
@@ -263,7 +263,7 @@ $tempDBH = reopen_test_dbh();
 
 $val = $tempDBH->selectall_hashref("SELECT id FROM supporter;", 'id');
 
-ok( (defined $val and keys(%{$val}) == 0),
+ok( (defined $val and reftype $val eq "HASH" and keys(%{$val}) == 0),
     "addSupporter: fails if email_address given but email cannot be inserted");
 
 
