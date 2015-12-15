@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 52;
+use Test::More tests => 53;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number);
@@ -81,11 +81,19 @@ lives_ok { $olsonId = $sp->addSupporter({ display_name => "Peggy Olson",
 ok( (looks_like_number($olsonId) and $olsonId > $drapperId),
    "addSupporter: add succeeded with email address added.");
 
+my $val = $sp->dbh()->selectall_hashref("SELECT supporter_id, email_address_id " .
+                                        "FROM supporter_email_address_mapping  " .
+                                        "WHERE supporter_id = " . $sp->dbh->quote($olsonId, 'SQL_INTEGER'),
+                                        'supporter_id');
+
+ok((defined $val and defined $val->{$olsonId}{email_address_id} and $val->{$olsonId}{email_address_id} > 0),
+   "addSuporter: email address mapping is created on addSupporter() w/ email address included");
+
 =item addEmailAddress
 
 =cut
 
-my $val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = 'home'", 'name');
+$val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = 'home'", 'name');
 
 ok((defined $val and defined $val->{home}{id} and $val->{home}{id} > 0),
    "addSuporter/addEmailAddress: emailAddressType was added when new one given to addSupporter");
