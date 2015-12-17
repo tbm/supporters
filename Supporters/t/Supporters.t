@@ -8,7 +8,7 @@ use warnings;
 use Test::More tests => 61;
 use Test::Exception;
 
-use Scalar::Util qw(looks_like_number reftype);
+use Scalar::Util qw(looks_like_number reftype blessed);
 
 =pod
 
@@ -37,7 +37,14 @@ my $dbh = get_test_dbh();
 
 =cut
 
-my $sp = new Supporters($dbh, "testcmd");
+my $sp;
+
+dies_ok { $sp = new Supporters(undef, "test"); }
+        "new: dies when dbh is undefined.";
+dies_ok { $sp = new Supporters(bless({}, "Not::A::Real::Module"), "test"); }
+        "new: dies when dbh is blessed into another module.";
+
+$sp = new Supporters($dbh, "testcmd");
 
 is($dbh, $sp->dbh(), "new: verify dbh set");
 is("testcmd", $sp->ledgerCmd(), "new: verify ledgerCmd set");
