@@ -251,7 +251,6 @@ is_deeply $tShirt0Data,
           $sp->getRequestConfigurations('t-shirt-0'),
           "getRequestConfigurations: lookup of previously added items is same";
 
-
 =back
 
 =item Internal methods used only by the module itself.
