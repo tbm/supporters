@@ -144,7 +144,7 @@ ok($same = $sp->addAddressType("paypal payer"), "addAddressType: lookup works");
 
 ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the basic add");
 
-=item addAddressType/getRequestType
+=item addRequestType/getRequestType
 
 =cut
 
