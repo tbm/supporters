@@ -27,7 +27,7 @@ our @EXPORT = qw(
 
 our $VERSION = '0.02';
 
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util qw(looks_like_number blessed);
 use Mail::RFC822::Address;
 
 ######################################################################
@@ -42,8 +42,9 @@ Arguments:
 
 =item $dbh
 
-   Scalar references for the database handle, already opened and pointing to
-   the right database.
+   Scalar references for the database handle from the L<DBI>, already opened
+   and pointing to the right database.  This class will take over and control
+   the DBI object after C<new()> completes.
 
 =item $ledgerCmd
 
@@ -58,8 +59,13 @@ sub new ($$) {
   my $package = shift;
   my($dbh, $ledgerCmd) = @_;
 
-  return bless({ dbh => $dbh, ledgerCmd => $ledgerCmd },
-                 $package);
+  my $self = bless({ dbh => $dbh, ledgerCmd => $ledgerCmd },
+                   $package);
+
+  die "new: first argument must be a database handle"
+    unless (defined $dbh and blessed($dbh) =~ /DBI/);
+
+  return $self;
 }
 ######################################################################
 

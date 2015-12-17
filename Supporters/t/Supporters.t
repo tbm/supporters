@@ -5,10 +5,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 61;
+use Test::More tests => 63;
 use Test::Exception;
 
-use Scalar::Util qw(looks_like_number reftype blessed);
+use Scalar::Util qw(looks_like_number reftype);
 
 =pod
 
