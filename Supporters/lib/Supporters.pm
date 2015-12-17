@@ -259,7 +259,38 @@ Returns the id value of the postal_address table entry.
 sub addPostalAddress($$$$) {
   my($self, $id, $formattedPostalAddress, $addressType) = @_;
 
-  return undef;
+  die "addPostalAddress: invalid id, $id" unless $self->_verifyId($id);
+  die "addPostalAddress: the formatted postal address must be defined"
+    unless defined $formattedPostalAddress;
+
+  $self->_beginWork();
+
+  my $addressTypeId;
+  eval {
+    $addressTypeId = $self->addAddressType($emailAddressType);
+  };
+  if ($@ or not defined $addressTypeId) {
+    my $err = $@;
+    $err = "addPostalAddress: unable to addAddressType"  if (not defined $err);
+    $self->_rollback();
+    die $@ if $@;
+  }
+  my $sth = $self->dbh->prepare("INSERT INTO postal_address(formatted_address, type_id, date_encountered)" .
+                                "VALUES(                    ?,             ?,       date('now'))");
+
+  $sth->execute($formattedPostalAddress, $addressTypeId);
+  my $addressId = $self->dbh->last_insert_id("","","","");
+  $sth->finish();
+
+  $sth = $self->dbh->prepare("INSERT INTO supporter_postal_address_mapping" .
+                                      "(supporter_id, postal_address_id) " .
+                                "VALUES(           ?, ?)");
+  $sth->execute($id, $addressId);
+  $sth->finish();
+
+  $self->_commit();
+
+  return $addressId;
 }
 ######################################################################
 
