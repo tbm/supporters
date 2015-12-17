@@ -195,7 +195,7 @@ sub addEmailAddress($$$$) {
   my $addressId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
 
-  my $sth = $self->dbh->prepare("INSERT INTO supporter_email_address_mapping" .
+  $sth = $self->dbh->prepare("INSERT INTO supporter_postal_address_mapping" .
                                       "(supporter_id, email_address_id) " .
                                 "VALUES(           ?, ?)");
   $sth->execute($id, $addressId);
