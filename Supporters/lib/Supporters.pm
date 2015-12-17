@@ -196,13 +196,21 @@ sub addEmailAddress($$$$) {
 
   die "addEmailAddress: invalid id, $id" unless $self->_verifyId($id);
 
-  die "addEmailAddress:: invalid email address, $emailAddressType"
+  die "addEmailAddress: invalid email address, $emailAddressType"
     unless defined $emailAddressType and Mail::RFC822::Address::valid($emailAddress);
 
   $self->_beginWork();
 
-  my $addressTypeId = $self->addAddressType($emailAddressType);
-
+  my $addressTypeId;
+  eval {
+    $addressTypeId = $self->addAddressType($emailAddressType);
+  };
+  if ($@ or not defined $addressTypeId) {
+    my $err = $@;
+    $err = "addEmailAddress: unable to addAddressType"  if (not defined $err);
+    $self->_rollback();
+    die $@ if $@;
+  }
   my $sth = $self->dbh->prepare("INSERT INTO email_address(email_address, type_id, date_encountered)" .
                                 "VALUES(                    ?,            ?,       date('now'))");
 
