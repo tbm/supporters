@@ -49,9 +49,6 @@ $sthNew->finish();
 my $sthInsertEmailAddress = $dbhNew->prepare('INSERT INTO email_address(email_address, type_id, date_encountered)' .
                   "values(?, $paypalPayerTypeId, date('now'))");
 
-my $sthLinkSupporterToEmail = $dbhNew->prepare('INSERT INTO supporter_email_address_mapping(supporter_id, email_address_id, preferred)' .
-                  "values(?, ?, 1)");
-
 my $sthLinkSupporterToPostal = $dbhNew->prepare('INSERT INTO supporter_postal_address_mapping(supporter_id, postal_address_id, preferred)' .
                   "values(?, ?, 1)");
 
@@ -84,15 +81,12 @@ while (my $row = $sthOld->fetchrow_hashref) {
     $sthInsertRequest->execute($supporterId, $announceEmailListRequestTypeId, undef,
                                ($row->{on_announce_mailman_list} ? $fulfillmentId : undef));
   }
-  $sthInsertEmailAddress->execute($row->{paypal_payer});
-  my $emailId = $dbhNew->last_insert_id("","","","");
-  $sthLinkSupporterToEmail->execute($supporterId, $emailId);
   $sthPostalAddress->execute($row->{formatted_address});
   my $postalId = $dbhNew->last_insert_id("","","","");
   $sthLinkSupporterToPostal->execute($supporterId, $postalId);
 }
 foreach my $sth (($sthOld, $sthOld, $sthInsertEmailAddress,
-                  $sthLinkSupporterToEmail, $sthInsertRequest, $sthPostalAddress,
+                  $sthInsertRequest, $sthPostalAddress,
                   $sthLinkSupporterToPostal,)) {
   $sth->finish();
 }
