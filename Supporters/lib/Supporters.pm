@@ -194,7 +194,15 @@ sub addEmailAddress($$$$) {
   $sth->execute($emailAddress, $addressTypeId);
   my $addressId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
+
+  my $sth = $self->dbh->prepare("INSERT INTO supporter_email_address_mapping" .
+                                      "(supporter_id, email_address_id) " .
+                                "VALUES(           ?, ?)");
+  $sth->execute($id, $addressId);
+  $sth->finish();
+
   $self->_commit();
+
   return $addressId;
 }
 ######################################################################
