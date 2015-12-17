@@ -87,7 +87,7 @@ sub ledgerCmd ($) {
 }
 ######################################################################
 sub addSupporter ($$) {
-  my($this, $sp) = @_;
+  my($self, $sp) = @_;
 
   die "ledger_entity_id required" unless defined $sp->{ledger_entity_id};
 
@@ -96,19 +96,19 @@ sub addSupporter ($$) {
   if ($sp->{public_ack}) {
     die "display_name required if public_ack requested" unless defined $sp->{display_name};
   }
-  $this->_beginWork;
-  my $sth = $this->dbh->prepare(
+  $self->_beginWork;
+  my $sth = $self->dbh->prepare(
                       "INSERT INTO supporter(ledger_entity_id, display_name, public_ack)" .
                                     " values(?,                ?,            ?)");
 
   $sth->execute($sp->{ledger_entity_id}, $sp->{display_name}, $sp->{public_ack});
-  my $id = $this->dbh->last_insert_id("","","","");
+  my $id = $self->dbh->last_insert_id("","","","");
   $sth->finish();
 
-  $this->addEmailAddress($id, $sp->{email_address}, $sp->{email_address_type})
+  $self->addEmailAddress($id, $sp->{email_address}, $sp->{email_address_type})
     if defined $sp->{email_address};
 
-  $this->_commit;
+  $self->_commit;
   return $id;
 }
 ######################################################################
