@@ -389,15 +389,17 @@ sub addRequestConfigurations($$$) {
 
   my $requestId = $self->addRequestType($requestType);
 
-  die "addRequestConfigurations: unable to create request configurations"
-    unless defined $requestType;
+  if (not defined $requestType) {
+    $self->_rollback();
+    die "addRequestConfigurations: unable to create request configurations";
+  }
 
   my %descriptions;
   my $sth = $self->dbh->prepare("INSERT INTO request_configuration(request_type_id, description) " .
                                                            "VALUES(?,               ?)");
   foreach my $description (@{$descriptionListRef}) {
     if (defined $descriptions{$description}) {
-      $self->dbh->rollback();
+      $self->_rollback();
       die "addRequestConfigurations: attempt to create duplicate request_configuration \"$description\" for requestType, \"$requestType\"";
     }
     $sth->execute($requestId, $description);
