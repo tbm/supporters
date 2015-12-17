@@ -510,7 +510,6 @@ sub _beginWork($) {
     die "_beginWork: Mismatched begin_work/commit pair in API implementation";
     $NESTED_TRANSACTION_COUNTER = 0;
   }
-  print STDERR "begin work with $NESTED_TRANSACTION_COUNTER\n";
   $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER++ == 0);
 }
 
@@ -560,7 +559,6 @@ This method resets the reference counter entirely and calls $dbh->rollback.
 sub _rollback($) {
   my($self) = @_;
 
-  print STDERR "rollback with $NESTED_TRANSACTION_COUNTER\n";
   $NESTED_TRANSACTION_COUNTER = 0;
   $self->dbh->rollback();
 }
