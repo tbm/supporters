@@ -30,6 +30,8 @@ our $VERSION = '0.02';
 use Scalar::Util qw(looks_like_number blessed);
 use Mail::RFC822::Address;
 
+my $NESTED_TRANSACTION_COUNTER = 0;
+
 ######################################################################
 
 =begin new
@@ -65,6 +67,13 @@ sub new ($$) {
   die "new: first argument must be a database handle"
     unless (defined $dbh and blessed($dbh) =~ /DBI/);
 
+  # Turn off AutoCommit, and create our own handler that resets the
+  # begin_work/commit reference counter.
+  $dbh->{RaiseError} = 0;
+  $dbh->{HandleError} = sub {
+    $NESTED_TRANSACTION_COUNTER = 0;
+    die $_[0];
+  };
   return $self;
 }
 ######################################################################
@@ -453,14 +462,15 @@ This method is a reference counter to keep track of nested begin_work()/commit()
 
 =cut
 
-my $NESTED_TRANSACTION_COUNTER = 0;
-
 sub _beginWork($) {
   my($self) = @_;
 
-  die "_beginWork: Mismatched begin_work/commit pair in API implementation"  if ($NESTED_TRANSACTION_COUNTER < 0);
-
-  $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER++ == 1);
+  if ($NESTED_TRANSACTION_COUNTER < 0) {
+    die "_beginWork: Mismatched begin_work/commit pair in API implementation";
+    $NESTED_TRANSACTION_COUNTER = 0;
+  }
+  print STDERR "begin work with $NESTED_TRANSACTION_COUNTER\n";
+  $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER++ == 0);
 }
 
 =item _commit()
@@ -483,9 +493,35 @@ transactions to verify we don't nest $self->dbh->begin_work()
 sub _commit($) {
   my($self) = @_;
 
-  die "_commit: Mismatched begin_work/commit pair in API implementation"  if ($NESTED_TRANSACTION_COUNTER <= 0);
+  if ($NESTED_TRANSACTION_COUNTER < 0) {
+    die "_commit: Mismatched begin_work/commit pair in API implementation";
+    $NESTED_TRANSACTION_COUNTER = 0;
+  }
+  $self->dbh->commit() if (--$NESTED_TRANSACTION_COUNTER == 0);
+}
 
-  $self->dbh->commit() if ($NESTED_TRANSACTION_COUNTER-- == 0);
+=item _rollback()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=back
+
+Returns: None.
+
+This method resets the reference counter entirely and calls $dbh->rollback.
+
+=cut
+
+sub _rollback($) {
+  my($self) = @_;
+
+  print STDERR "rollback with $NESTED_TRANSACTION_COUNTER\n";
+  $NESTED_TRANSACTION_COUNTER = 0;
+  $self->dbh->rollback();
 }
 
 =back
