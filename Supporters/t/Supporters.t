@@ -165,7 +165,7 @@ ok((not defined $val or not defined $val->{'name'}),
 
 my $drapperPostalId;
 
-lives_ok { $drapperPostalId = $sp->addPostalAddress($drapperPostalId,
+lives_ok { $drapperPostalId = $sp->addPostalAddress($drapperId,
                                                     "405 Madison Avenue\nNew York, NY 10000\nUSA", 'office'); }
          "addPostalAddress: addPostalAddress of a valid formatted_address works.";
 ok((looks_like_number($drapperPostalId) and $drapperPostalId > 0), "addPostalAddress: id returned is sane.");
