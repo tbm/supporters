@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 55;
+use Test::More tests => 61;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -143,6 +143,32 @@ my $same;
 ok($same = $sp->addAddressType("paypal payer"), "addAddressType: lookup works");
 
 ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the basic add");
+
+=item addPostalAddress
+
+=cut
+
+dies_ok { $sp->addPostalAddress(undef, "405 Madison Avenue\nNew York, NY 10000\nUSA", 'office'); }
+        "addPostalAddress: dies for undefined id";
+dies_ok { $sp->addPostalAddress("String", "405 Madison Avenue\nNew York, NY 10000\nUSA", 'office'); }
+        "addPostalAddress: dies for non-numeric id";
+dies_ok { $sp->addPostalAddress($drapperId, undef, 'work') }
+         "addPostalAddress: postal address undefined fails";
+
+# Verify that the addressType wasn't added when the Email address is invalid
+# and the address type did not already exist.
+
+$val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = 'office'", 'name');
+
+ok((not defined $val or not defined $val->{'name'}),
+   "addPostalAddress: type is not added when other input paramaters are invalid");
+
+my $drapperPostalId;
+
+lives_ok { $drapperPostalId = $sp->addPostalAddress($drapperPostalId,
+                                                    "405 Madison Avenue\nNew York, NY 10000\nUSA", 'office'); }
+         "addPostalAddress: addPostalAddress of a valid formatted_address works.";
+ok((looks_like_number($drapperPostalId) and $drapperPostalId > 0), "addPostalAddress: id returned is sane.");
 
 =item addRequestType/getRequestType
 

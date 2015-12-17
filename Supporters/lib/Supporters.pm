@@ -207,6 +207,39 @@ sub addEmailAddress($$$$) {
 }
 ######################################################################
 
+=begin addPostalAddress
+
+Arguments:
+
+=over
+
+=item $id
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item $formattedPostalAddress
+
+   Scalar string that contains a multi-line, fully formatted, postal address.
+
+=item $addressType
+
+  Scalar string that contains the address type.  This type will be created in
+  the database if it does not already exist, so be careful.
+
+=back
+
+Returns the id value of the postal_address table entry.
+
+=cut
+
+sub addPostalAddress($$$$) {
+  my($self, $id, $formattedPostalAddress, $addressType) = @_;
+
+  return undef;
+}
+######################################################################
+
 =begin getRequestType
 
 Arguments:
