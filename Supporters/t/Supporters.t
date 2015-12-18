@@ -5,10 +5,13 @@
 use strict;
 use warnings;
 
-use Test::More tests => 63;
+use Test::More tests => 98;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
+use POSIX qw(strftime);
+# Yes, this may cause tests to fail if you run them near midnight. :)
+my $today = strftime "%Y-%m-%d", localtime;
 
 =pod
 
@@ -237,11 +240,120 @@ foreach my $size (@sizeList) {
 }
 
 
-=back
+=item addRequest
+
+=cut
+
+dies_ok { $sp->addRequest({}); }  "addRequest: dies if supporterId not specified.";
+
+dies_ok { $sp->addRequest({ supporterId => $drapperId }); }
+        "addRequest: dies if requestTypeId / requestType not specified.";
+
+dies_ok { $sp->addRequest({ supporterId => 0, requestTypeId => $tShirt0RequestTypeId }); }
+        "addRequest: dies if supporterId invalid.";
+
+dies_ok { $sp->addRequest({ supporterId => $drapperId, requestTypeId => 0 }); }
+        "addRequest: dies if requestTypeId invalid.";
+
+my $emailListRequestId;
+
+lives_ok { $emailListRequestId =
+             $sp->addRequest({ supporterId => $drapperId, requestType => "join-announce-email-list" }); }
+        "addRequest: succeeds with a requestType but no configuration parameter.";
+
+ok( (defined $emailListRequestId and looks_like_number($emailListRequestId) and $emailListRequestId > 0),
+    "addRequest: id returned on successful addRequest() is a number");
+
+is($sp->getRequestType("join-announce-email-list"), $emailListRequestId,
+   "addRequest: underlying call to addRequestType works properly, per getRequestType");
+
+lives_ok { $emailListRequestId =
+             $sp->addRequest({ supporterId => $drapperId, requestType => "t-shirt-small-only",
+                               requestConfiguration => 'Small',
+                               note => 'he probably needs a larger size but this shirt has none'}); }
+        "addRequest: succeeds with a requestType and requestConfiguration and a note.";
+
+lives_ok { $emailListRequestId =
+             $sp->addRequest({ supporterId => $drapperId, requestTypeId => $tShirt0RequestTypeId,
+                               requestConfigurationId => $tShirt0Data->{$tShirt0RequestTypeId}{'MenL'} }); }
+        "addRequest: succeeds with a requestTypeId and requestConfigurationId with no a note.";
+
+=item fufillRequest
+
+=cut
+
+
+my $fufillRequestId;
+
+lives_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,
+                                            requestType => "t-shirt-small-only", who => 'joe',
+                                                    how => "in-person delivery" }); }
+     "fufillRequest: succeeds for existing request";
+
+ok( (defined $fufillRequestId and looks_like_number($fufillRequestId) and $fufillRequestId > 0),
+    "fufillRequestId: id returned on successful fufillRequest() is a number");
+
+=item getRequest
+
+=cut
+
+dies_ok { $sp->getRequest({}); }  "getRequest: dies if supporterId not specified.";
+
+dies_ok { $sp->getRequest({ supporterId => 0 }); } "getRequest: dies if supporterId invalid.";
+
+dies_ok { $sp->getRequest({ supporterId => $drapperId }); }
+        "getRequest: dies if requestTypeId / requestType not specified.";
+
+my $tt;
+lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => 'this-one-is-not-there' }); }
+        "getRequest: returns normally with non-existent request.";
+
+is($tt, undef, "getRequest: returns undef for valid supporter and on-existent request.");
+
+lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => 't-shirt-small-only' }); }
+         "getRequest: succeeds with valid parameters.";
+
+is($tt->{requestType}, 't-shirt-small-only', "getRequest: requestType is correct.");
+is($tt->{fufillDate}, $today, "getRequest: fufilled request is today.");
+is($tt->{requestDate}, $today, "getRequest: request date is today.");
+is($tt->{requestConfiguration}, 'Small', "getRequest: configuration is correct.");
+is($tt->{notes}, 'he probably needs a larger size but this shirt has none',
+   "getRequest: notes are correct.");
+
+lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestTypeId => $tShirt0RequestTypeId }); }
+         "getRequest: succeeds with valid parameters.";
+
+is($tt->{requestType}, 't-shirt-0', "getRequest: requestType is correct.");
+is($tt->{requestDate}, $today, "getRequest: request date is today.");
+is($tt->{requestConfiguration}, 'MenL', "getRequest: configuration is correct.");
+is($tt->{notes}, undef,    "getRequest: notes are undef when null in database.");
+
+lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => "join-announce-email-list" }); }
+         "getRequest: succeeds with valid parameters.";
+
+is($tt->{requestType}, "join-announce-email-list", "getRequest: requestType is correct.");
+is($tt->{requestDate}, $today, "getRequest: request date is today.");
+is($tt->{requestConfiguration}, undef, "getRequest: configuration is undefined when there is none.");
+is($tt->{notes}, undef,    "getRequest: notes are undef when null in database.");
+
 
 =item getRequestConfigurations
 
 =cut
+
+my $tShirtSmallOnlyRequestId;
+lives_ok { $tShirtSmallOnlyRequestId = $sp->getRequestType('t-shirt-small-only'); }
+  "addRequest: added request type";
+
+my $tShirtSmallOnlyData = $sp->getRequestConfigurations('t-shirt-small-only');
+
+is(scalar keys %{$tShirtSmallOnlyData->{$tShirtSmallOnlyRequestId}}, 1,
+   "addRequest: just one configuration added correctly");
+
+ok( (defined $tShirtSmallOnlyData->{$tShirtSmallOnlyRequestId}{'Small'} and
+       looks_like_number($tShirtSmallOnlyData->{$tShirt0RequestTypeId}{'Small'}) and
+       $tShirtSmallOnlyData->{$tShirt0RequestTypeId}{'Small'} > 0),
+      "addRequest: configuration added correctly");
 
 is undef, $sp->getRequestConfigurations(undef), "getRequestConfigurations: undef type returns undef";
 
