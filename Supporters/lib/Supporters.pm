@@ -267,7 +267,7 @@ sub addPostalAddress($$$$) {
 
   my $addressTypeId;
   eval {
-    $addressTypeId = $self->addAddressType($emailAddressType);
+    $addressTypeId = $self->addAddressType($addressType);
   };
   if ($@ or not defined $addressTypeId) {
     my $err = $@;
