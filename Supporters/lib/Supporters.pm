@@ -487,6 +487,40 @@ sub _verifyId($$) {
 
 }
 
+=item _getOrCreateRequestType
+
+Arguments:
+
+=over
+
+=item $params (hash reference)
+
+This hash reference usually contains other paramaters, too, but this method
+looks only at the keys C<requestType> and C<requestTypeId>.  If
+C<requestTypeId> is set, it simply deletes the C<requestType> parameter and
+verifies c<reuqestTypeId> is in the request_type table.
+
+=cut
+
+sub _getOrCreateRequestType($$) {
+  my($self, $params) = @_;
+
+  if (not defined $params->{requestTypeId}) {
+    $params->{requestTypeId} = $self->addRequestType($params->{requestType});
+  } else {
+    my $id = $params->{requestTypeId};
+    die "_getOrCreateRequestType(): called with a non-numeric requestTypeId"
+      unless defined $id and looks_like_number($id);
+
+    my $val = $self->dbh()->selectall_hashref("SELECT id FROM request_type WHERE id = " .
+                                              $self->dbh->quote($id, 'SQL_INTEGER'), 'id');
+
+    die "_getOrCreateRequestType(): given requestTypeId, $id, is invalid"
+      unless (defined $val and defined $val->{$id});
+  }
+  delete $params->{requestType};
+}
+
 =item _beginWork()
 
 Parameters:
