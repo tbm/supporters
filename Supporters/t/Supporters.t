@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 98;
+use Test::More tests => 104;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -380,6 +380,32 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
+
+=item _getOrCreateRequestType
+
+=cut
+
+dies_ok { $sp->_getOrCreateRequestType({ }); }
+   "_getOrCreateRequestType: dies on empty hash";
+
+dies_ok { $sp->_getOrCreateRequestType({ requestTypeId => 0 }); }
+   "_getOrCreateRequestType: dies for non-existant requestTypeId";
+
+my %hh = ( requestType => 'test-request' );
+lives_ok { $sp->_getOrCreateRequestType(\%hh); }
+   "_getOrCreateRequestType: succeeds with just requestType";
+
+my $rr;
+lives_ok { $rr = $sp->getRequest("test-request"); }
+   "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType";
+
+is_deeply(\%hh, { requestTypeId => $rr },
+   "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType");
+
+%hh = ( requestTypeId => $rr, requestType => 'this-arg-matters-not' );
+
+is_deeply(\%hh, { requestTypeId => $rr },
+   "_getOrCreateRequestType: deletes requestType if both are provided.");
 
 =back
 
