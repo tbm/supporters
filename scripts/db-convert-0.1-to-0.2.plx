@@ -49,16 +49,10 @@ $sthNew->finish();
 my $sthInsertEmailAddress = $dbhNew->prepare('INSERT INTO email_address(email_address, type_id, date_encountered)' .
                   "values(?, $paypalPayerTypeId, date('now'))");
 
-my $sthLinkSupporterToPostal = $dbhNew->prepare('INSERT INTO supporter_postal_address_mapping(supporter_id, postal_address_id, preferred)' .
-                  "values(?, ?, 1)");
-
 my $sthInsertRequest = $dbhNew->prepare('INSERT INTO request' .
      '(supporter_id, request_type_id, request_configuration_id, date_requested, fulfillment_id, notes) ' .
      "values(?, ?, ?, date('now'), ?," .
      '"import of old database; exact date of this request is unknown")');
-
-my $sthPostalAddress = $dbhNew->prepare('INSERT INTO postal_address(formatted_address, type_id, date_encountered)' .
-                       "VALUES(?, $paypalPayerTypeId, date('now'))");
 
 my $sthOld = $dbhOld->prepare('SELECT * from supporters order by id;');
 $sthOld->execute();
@@ -81,13 +75,9 @@ while (my $row = $sthOld->fetchrow_hashref) {
     $sthInsertRequest->execute($supporterId, $announceEmailListRequestTypeId, undef,
                                ($row->{on_announce_mailman_list} ? $fulfillmentId : undef));
   }
-  $sthPostalAddress->execute($row->{formatted_address});
-  my $postalId = $dbhNew->last_insert_id("","","","");
-  $sthLinkSupporterToPostal->execute($supporterId, $postalId);
+  $sp->addPostalAddress($supporterId, $row->{formatted_address}, 'paypal');
 }
-foreach my $sth (($sthOld, $sthOld, $sthInsertEmailAddress,
-                  $sthInsertRequest, $sthPostalAddress,
-                  $sthLinkSupporterToPostal,)) {
+foreach my $sth (($sthOld, $sthOld, $sthInsertEmailAddress, $sthInsertRequest)) {
   $sth->finish();
 }
 foreach my $dbh ($dbhNew, $dbhOld) {
