@@ -388,6 +388,9 @@ ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not fou
 dies_ok { $sp->_getOrCreateRequestType({ }); }
    "_getOrCreateRequestType: dies on empty hash";
 
+dies_ok { $sp->_getOrCreateRequestType({ requestTypeId => "NoStringsPlease" }); }
+   "_getOrCreateRequestType: dies for string request id";
+
 dies_ok { $sp->_getOrCreateRequestType({ requestTypeId => 0 }); }
    "_getOrCreateRequestType: dies for non-existant requestTypeId";
 
@@ -396,13 +399,16 @@ lives_ok { $sp->_getOrCreateRequestType(\%hh); }
    "_getOrCreateRequestType: succeeds with just requestType";
 
 my $rr;
-lives_ok { $rr = $sp->getRequest("test-request"); }
+lives_ok { $rr = $sp->getRequestType("test-request"); }
    "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType";
 
 is_deeply(\%hh, { requestTypeId => $rr },
    "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType");
 
 %hh = ( requestTypeId => $rr, requestType => 'this-arg-matters-not' );
+
+lives_ok { $sp->_getOrCreateRequestType(\%hh); }
+   "_getOrCreateRequestType: lookup of existing requestType suceeds.";
 
 is_deeply(\%hh, { requestTypeId => $rr },
    "_getOrCreateRequestType: deletes requestType if both are provided.");
