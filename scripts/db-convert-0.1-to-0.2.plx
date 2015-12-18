@@ -46,9 +46,6 @@ $sthNew->execute();
 my $fulfillmentId = $dbhNew->last_insert_id("","","","");
 $sthNew->finish();
 
-my $sthInsertEmailAddress = $dbhNew->prepare('INSERT INTO email_address(email_address, type_id, date_encountered)' .
-                  "values(?, $paypalPayerTypeId, date('now'))");
-
 my $sthInsertRequest = $dbhNew->prepare('INSERT INTO request' .
      '(supporter_id, request_type_id, request_configuration_id, date_requested, fulfillment_id, notes) ' .
      "values(?, ?, ?, date('now'), ?," .
@@ -77,7 +74,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   }
   $sp->addPostalAddress($supporterId, $row->{formatted_address}, 'paypal');
 }
-foreach my $sth (($sthOld, $sthOld, $sthInsertEmailAddress, $sthInsertRequest)) {
+foreach my $sth (($sthOld, $sthOld, $sthInsertRequest)) {
   $sth->finish();
 }
 foreach my $dbh ($dbhNew, $dbhOld) {
