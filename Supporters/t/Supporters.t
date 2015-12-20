@@ -264,7 +264,8 @@ lives_ok { $emailListRequestId =
 ok( (defined $emailListRequestId and looks_like_number($emailListRequestId) and $emailListRequestId > 0),
     "addRequest: id returned on successful addRequest() is a number");
 
-is($sp->getRequestType("join-announce-email-list"), $emailListRequestId,
+my $joinEmailListRequestId = $sp->getRequestType("join-announce-email-list");
+ok((defined $joinEmailListRequestId and looks_like_number($joinEmailListRequestId) and $joinEmailListRequestId > 0),
    "addRequest: underlying call to addRequestType works properly, per getRequestType");
 
 lives_ok { $emailListRequestId =
