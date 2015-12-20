@@ -526,7 +526,7 @@ sub addRequest($$) {
 }
 ######################################################################
 
-=begin fufillRequest
+=begin fulfillRequest
 
 Arguments:
 
@@ -546,7 +546,7 @@ A hash reference, the following keys are considered:
 =item requestType
 
    requestType of the request to be fulfilled.  die() will occur if this is
-   undefined.  undef is returned if there is no unfufilled request of
+   undefined.  undef is returned if there is no unfulfilled request of
    requestType in the database for supporter identified by
    C<$params->{supporterId}>
 
@@ -557,7 +557,7 @@ A hash reference, the following keys are considered:
 
 =item how
 
-   A scalar string describing how the request was fufilled.  It can safely be
+   A scalar string describing how the request was fulfilled.  It can safely be
    undefined.
 
 =back
@@ -568,23 +568,23 @@ Returns the id value of the request entry.
 
 =cut
 
-sub fufillRequest($$) {
+sub fulfillRequest($$) {
   my($self, $params) = @_;
-  die "fufillRequest: undefined supporterId" unless defined $params->{supporterId};
+  die "fulfillRequest: undefined supporterId" unless defined $params->{supporterId};
   my $supporterId = $params->{supporterId};
-  die "fufillRequest: supporterId, \"$supporterId\" not found in supporter database"
+  die "fulfillRequest: supporterId, \"$supporterId\" not found in supporter database"
     unless $self->_verifyId($supporterId);
-  die "fufillRequest: undefined who" unless defined $params->{who};
-  die "fufillRequest: undefined requestType" unless defined $params->{requestType};
+  die "fulfillRequest: undefined who" unless defined $params->{who};
+  die "fulfillRequest: undefined requestType" unless defined $params->{requestType};
 
   my $requestId = $self->getRequest($supporterId, $params->{requestType});
   return undef if not defined $requestId;
 
-  my $fufillLookupSql = "SELECT * FROM fulfillment WHERE request_id = " .
+  my $fulfillLookupSql = "SELECT * FROM fulfillment WHERE request_id = " .
                         $self->dbh->quote($requestId, 'SQL_INTEGER');
 
-  my $fufillRecord = $self->dbh()->selectall_hashref($fufillLookupSql, "request_id");
-  if (not defined $fufillRecord and not defined $fufillRecord->{$requestId}) {
+  my $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
+  if (not defined $fulfillRecord and not defined $fulfillRecord->{$requestId}) {
     $self->_beginWork;
     my $sth->prepare("INSERT INTO fulfillment(request_id, who, how, date) " .
                                       "VALUES(?         , ?  , ?  , date('now');");
@@ -592,9 +592,9 @@ sub fufillRequest($$) {
     $sth->execute($requestId, $params->{who}, $params->{how});
     $sth->finish;
     $self->_commit;
-     $fufillRecord = $self->dbh()->selectall_hashref($fufillLookupSql, "request_id");
+     $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
   }
-  return $fufillRecord->{$requestId};
+  return $fulfillRecord->{$requestId};
 }
 ######################################################################
 
@@ -873,3 +873,30 @@ License: AGPLv3-or-later
 # Local variables:
 # compile-command: "perl -c Supporters.pm"
 # End:
+
+
+  sub Supporter_FullLookupUsingId($$) {
+  my($dbh, $id) = @_;
+
+  my $sth = $dbh->prepare('SELECT m.supporter_id ' .
+                          'FROM email_address e, supporter_email_address_mapping m  ' .
+                          'WHERE e.email_address = ? and e.id = m.email_address_id');
+  $sth->execute($email);
+}
+###############################################################################
+sub Supporter_LookupByEmail($$) {
+  my($dbh, $email) = @_;
+
+  my $sth = $dbh->prepare('SELECT m.supporter_id ' .
+                          'FROM email_address e, supporter_email_address_mapping m  ' .
+                          'WHERE e.email_address = ? and e.id = m.email_address_id');
+  $sth->execute($email);
+  my $supporter = $sth->fetchrow_hashref();
+
+  if (defined $supporter) {
+    return Supporter_FullLookupUsingId($dbh, $supporter->{'m.supporter_id'});
+  } else {
+    return undef;
+  }
+
+  

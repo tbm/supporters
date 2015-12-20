@@ -289,72 +289,72 @@ ok( (defined $tShirt0RequestId and looks_like_number($tShirt0RequestId) and $tSh
     "addRequest: another successful call returns an integer id.");
 
 
-=item fufillRequest
+=item fulfillRequest
 
 =cut
 
 
-my $fufillRequestId;
+my $fulfillRequestId;
 
 
-dies_ok { $fufillRequestId = $sp->fufillRequest( { requestType => "t-shirt-small-only", who => 'joe',
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
-     "fufillRequest: dies if supporterId not specified";
+     "fulfillRequest: dies if supporterId not specified";
 
-dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId + 1000,
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId + 1000,
                                             requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
-     "fufillRequest: dies if supporterId not found in database";
+     "fulfillRequest: dies if supporterId not found in database";
 
-dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,  who => 'joe',
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,  who => 'joe',
                                                     how => "in-person delivery" }); }
-     "fufillRequest: dies if requestType not specified";
+     "fulfillRequest: dies if requestType not specified";
 
-dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,
                                                    requestType => "t-shirt-small-only",
                                                     how => "in-person delivery" }); }
-     "fufillRequest: who not specified";
+     "fulfillRequest: who not specified";
 
-lives_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,
+lives_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
-     "fufillRequest: succeeds for existing request";
+     "fulfillRequest: succeeds for existing request";
 
-ok( (defined $fufillRequestId and looks_like_number($fufillRequestId) and $fufillRequestId > 0),
-    "fufillRequest: id returned on successful fufillRequest() is a number");
+ok( (defined $fulfillRequestId and looks_like_number($fulfillRequestId) and $fulfillRequestId > 0),
+    "fulfillRequest: id returned on successful fulfillRequest() is a number");
 
 lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, date, who, how, request_id FROM fulfillment", 'id'); }
-         "fufillRequest: sql command in  database for entry succeeds.";
-is_deeply($val, { $fufillRequestId => { id => $fufillRequestId, date => $today,
+         "fulfillRequest: sql command in  database for entry succeeds.";
+is_deeply($val, { $fulfillRequestId => { id => $fulfillRequestId, date => $today,
                                          how => 'in-person delivery', who => 'joe',
                                          request_id => $tshirtSmallRequestId } },
-          "fufillRequest: databse etnry from successful return is correct");
+          "fulfillRequest: databse etnry from successful return is correct");
 
 ok((defined $val and (keys(%$val) == 0)),
    "_getOrCreateRequestConfiguration: no request_configuration record added for failed attempts");
 
 my $badFR;
-lives_ok { $badFR = $sp->fufillRequest( { supporterId => $drapperId, who => 'john',
+lives_ok { $badFR = $sp->fulfillRequest( { supporterId => $drapperId, who => 'john',
                                                    requestType => "does-not-exist",
                                                     how => "in-person delivery" }); }
-     "fufillRequest: attempt to fulfill a request never made does not die...";
+     "fulfillRequest: attempt to fulfill a request never made does not die...";
 
 ok( (not defined $badFR),
-     "fufillRequest: ... but, rather, returns undef.");
+     "fulfillRequest: ... but, rather, returns undef.");
 
 is($sp->getRequestType("does-not-exist"), undef,
-     "fufillRequest: requestType not created when fufillRequest fails.");
+     "fulfillRequest: requestType not created when fulfillRequest fails.");
 
 
 my $val2;
 
-lives_ok { $val2 = $sp->fufillRequest( { supporterId => $drapperId,
+lives_ok { $val2 = $sp->fulfillRequest( { supporterId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'peggy',
                                                     how => "left in his office." }); }
-     "fufillRequest: attempt to fulfill an already-fulfill request does not die ...";
+     "fulfillRequest: attempt to fulfill an already-fulfill request does not die ...";
 
 is_deeply($val2, $val,
-     "fufillRequest: ... but, rather, returns the same values from the previous fufillRequest() call.");
+     "fulfillRequest: ... but, rather, returns the same values from the previous fulfillRequest() call.");
 
 =item getRequest
 
@@ -377,7 +377,7 @@ lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => 't-
          "getRequest: succeeds with valid parameters.";
 
 is($tt->{requestType}, 't-shirt-small-only', "getRequest: requestType is correct.");
-is($tt->{fufillDate}, $today, "getRequest: fufilled request is today.");
+is($tt->{fulfillDate}, $today, "getRequest: fulfilled request is today.");
 is($tt->{requestDate}, $today, "getRequest: request date is today.");
 is($tt->{requestConfiguration}, 'Small', "getRequest: configuration is correct.");
 is($tt->{notes}, 'he probably needs a larger size but this shirt has none',
