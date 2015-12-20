@@ -504,9 +504,25 @@ sub addRequest($$) {
   my $supporterId = $params->{supporterId};
   die "addRequest: supporterId, \"$supporterId\" not found in supporter database"
     unless $self->_verifyId($supporterId);
+
   $self->_beginWork;
   $self->_getOrCreateRequestType($params);
+  $self->_getOrCreateRequestConfiguration($params) if (defined $params->{requestConfiguration} or
+                                                       defined $params->{requestConfigurationId});
+
+  # After those two calls above, I know I have requestTypeId and
+  # requestConfigurationId are accurate.  Note that
+  # $params->{requestConfigurationId} can be undef, which is permitted in the
+  # database schema.
+
+
+
+  my $sth = $self->dbh->prepare("INSERT INTO request(supporter_id, request_type_id, request_configuration_id, notes, date_requested) " .
+                                             "VALUES(?,            ?,               ?,                        ?,      date('now'))");
+  $sth->execute($supporterId, $params->{requestTypeId}, $params->{requestConfigurationId}, $params->{notes});
+  my $id = $self->dbh->last_insert_id("","","","");
   $self->_commit;
+  return $id;
 }
 ######################################################################
 
