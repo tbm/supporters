@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 124;
+use Test::More tests => 125;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -457,6 +457,10 @@ dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestTypeId => "NoString
 
 dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestTypeId => 0 }); }
    "_getOrCreateRequestConfiguration: dies for non-existant requestTypeId";
+
+dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestTypeId => $rr,
+                                                      requestConfigurationId => "NoStringsPlease" }); }
+   "_getOrCreateRequestConfiguration: dies for string requestConfigurationId with valid requestTypeId";
 
 %hh = ( requestConfiguration => 'test-request-config' );
 dies_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
