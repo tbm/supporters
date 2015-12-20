@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 139;
+use Test::More tests => 141;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -345,6 +345,16 @@ ok( (not defined $badFR),
 is($sp->getRequestType("does-not-exist"), undef,
      "fufillRequest: requestType not created when fufillRequest fails.");
 
+
+my $val2;
+
+lives_ok { $val2 = $sp->fufillRequest( { supporterId => $drapperId,
+                                            requestType => "t-shirt-small-only", who => 'peggy',
+                                                    how => "left in his office." }); }
+     "fufillRequest: attempt to fulfill an already-fulfill request does not die ...";
+
+is_deeply($val2, $val,
+     "fufillRequest: ... but, rather, returns the same values from the previous fufillRequest() call.");
 
 =item getRequest
 
