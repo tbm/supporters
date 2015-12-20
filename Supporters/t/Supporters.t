@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 129;
+use Test::More tests => 138;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -296,13 +296,50 @@ ok( (defined $tShirt0RequestId and looks_like_number($tShirt0RequestId) and $tSh
 
 my $fufillRequestId;
 
+
+dies_ok { $fufillRequestId = $sp->fufillRequest( { requestType => "t-shirt-small-only", who => 'joe',
+                                                    how => "in-person delivery" }); }
+     "fufillRequest: dies if supporterId not specified";
+
+dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,  who => 'joe',
+                                                    how => "in-person delivery" }); }
+     "fufillRequest: dies if requestType not specified";
+
+dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,
+                                                   requestType => "t-shirt-small-only",
+                                                    how => "in-person delivery" }); }
+     "fufillRequest: who not specified";
+
 lives_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
      "fufillRequest: succeeds for existing request";
 
 ok( (defined $fufillRequestId and looks_like_number($fufillRequestId) and $fufillRequestId > 0),
-    "fufillRequestId: id returned on successful fufillRequest() is a number");
+    "fufillRequest: id returned on successful fufillRequest() is a number");
+
+lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, date, who, how, request_id FROM fulfillment", 'id'); }
+         "fufillRequest: sql command in  database for entry succeeds.";
+is_deeply($val, { $fufillRequestId => { id => $fufillRequestId, date => $today,
+                                         how => 'in-person delivery', who => 'joe',
+                                         request_id => $tshirtSmallRequestId } },
+          "fufillRequest: databse etnry from successful return is correct");
+
+ok((defined $val and (keys(%$val) == 0)),
+   "_getOrCreateRequestConfiguration: no request_configuration record added for failed attempts");
+
+my $badFR;
+lives_ok { $badFR = $sp->fufillRequest( { supporterId => $drapperId, who => 'john',
+                                                   requestType => "does-not-exist",
+                                                    how => "in-person delivery" }); }
+     "fufillRequest: attempt to fulfill a request never made does not die...";
+
+ok( (not defined $badFR),
+     "fufillRequest: ... but, rather, returns undef.");
+
+is($sp->getRequestType("does-not-exist"), undef,
+     "fufillRequest: requestType not created when fufillRequest fails.");
+
 
 =item getRequest
 
