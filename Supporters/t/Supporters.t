@@ -365,7 +365,7 @@ dies_ok { $sp->getRequest(undef, undef); }  "getRequest: dies if supporterId not
 dies_ok { $sp->getRequest(0, "t-shirt-small-only"); } "getRequest: dies if supporterId invalid.";
 
 dies_ok { $sp->getRequest($drapperId, undef); }
-        "getRequest: dies if requestTypeId / requestType not specified.";
+        "getRequest: dies if requestType not specified.";
 
 my $tt;
 lives_ok { $tt = $sp->getRequest($drapperId, 'this-one-is-not-there'); }
