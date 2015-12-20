@@ -450,6 +450,67 @@ sub addRequestConfigurations($$$) {
 }
 ######################################################################
 
+=begin addRequest
+
+Arguments:
+
+=over
+
+=item $parmas
+
+A hash reference, the following keys are considered:
+
+=over
+
+=item supporterId
+
+   Valid supporter_id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item requestTypeId
+
+   Numeric id of a request_type entry.  This must be a valid id in the
+   request_type table, otherwise the method  L<die>()s.
+
+   requestType is ignored if this parameter is set.
+
+=item requestType
+
+   If requestTypeId is not given, requestType will be used.  The type is
+   added to the request_type table if it is not present, so be careful.
+
+
+=item requestConfigurationId
+
+   Numeric id of a request_configuration entry.  This must be a valid id in
+   the request_configuration table, otherwise the method L<die>()s.
+
+=item requestConfiguration
+
+   If requestConfigurationId is not given, requestConfiguration will be used.
+   This configuration will be added to the request_configuration table if it
+   is not present, so be careful.
+
+=back
+
+=back
+
+Returns the id value of the request entry.
+
+=cut
+
+sub addRequest($$) {
+  my($self, $params) = @_;
+  die "addRequest: undefined supporterId" unless defined $params->{supporterId};
+  my $supporterId = $params->supporterId;
+  die "addRequest: supporterId, \"$supporterId\" not found in supporter database"
+    unless $self->_verifyId($supporterId);
+  $self->_beginWork;
+  $self->_getOrCreateRequestType($params);
+  $self->_commit;
+}
+######################################################################
+
 =head1 Non-Public Methods
 
 These methods are part of the internal implementation are not recommended for
