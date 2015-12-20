@@ -613,6 +613,32 @@ sub _getOrCreateRequestType($$) {
   delete $params->{requestType};
 }
 
+=item _getOrCreateRequestConfiguration
+
+Arguments:
+
+=over
+
+=item $params (hash reference)
+
+This hash reference usually contains other paramaters, too, but this method
+looks only at the keys C<requestTypeId>, C<requestConfiguration> and
+C<requestConfigurationId>.  If C<requestConfigurationId> is set, it simply
+deletes the C<requestConfiguration> parameter and verifies c<reuqestTypeId>
+is in the request_type table.
+
+=cut
+
+sub _getOrCreateRequestConfiguration($$) {
+  my($self, $params) = @_;
+
+  die "_getOrCreateRequestConfiguration: requestTypeId is required" unless defined $params->{requestTypeId};
+  my $id = $params->{requestTypeId};
+  die "_getOrCreateRequestConfiguration: requestTypeId must be a number" unless looks_like_number($id);
+  die "_getOrCreateRequestConfiguration: requestTypeId is unknown" unless $self->_verifyRequestTypeId($id);
+
+}
+
 =item _beginWork()
 
 Parameters:
