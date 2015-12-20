@@ -383,6 +383,8 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
 
 
+$sp = undef;
+
 sub ResetDB($) {
   $_[0]->disconnect() if defined $_[0];
   my $tempDBH = get_test_dbh();
