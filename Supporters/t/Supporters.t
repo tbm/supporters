@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 127;
+use Test::More tests => 129;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -268,16 +268,26 @@ my $joinEmailListRequestId = $sp->getRequestType("join-announce-email-list");
 ok((defined $joinEmailListRequestId and looks_like_number($joinEmailListRequestId) and $joinEmailListRequestId > 0),
    "addRequest: underlying call to addRequestType works properly, per getRequestType");
 
-lives_ok { $emailListRequestId =
+my $tshirtSmallRequestId;
+
+lives_ok { $tshirtSmallRequestId =
              $sp->addRequest({ supporterId => $drapperId, requestType => "t-shirt-small-only",
                                requestConfiguration => 'Small',
                                note => 'he probably needs a larger size but this shirt has none'}); }
         "addRequest: succeeds with a requestType and requestConfiguration and a note.";
 
-lives_ok { $emailListRequestId =
+ok( (defined $tshirtSmallRequestId and looks_like_number($tshirtSmallRequestId) and $tshirtSmallRequestId > 0),
+    "addRequest: successful call returns an integer id.");
+
+my $tShirt0RequestId;
+lives_ok { $tShirt0RequestId =
              $sp->addRequest({ supporterId => $drapperId, requestTypeId => $tShirt0RequestTypeId,
                                requestConfigurationId => $tShirt0Data->{$tShirt0RequestTypeId}{'MenL'} }); }
         "addRequest: succeeds with a requestTypeId and requestConfigurationId with no a note.";
+
+ok( (defined $tShirt0RequestId and looks_like_number($tShirt0RequestId) and $tShirt0RequestId > 0),
+    "addRequest: another successful call returns an integer id.");
+
 
 =item fufillRequest
 
