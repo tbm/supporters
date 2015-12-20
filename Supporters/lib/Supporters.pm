@@ -30,8 +30,6 @@ our $VERSION = '0.02';
 use Scalar::Util qw(looks_like_number blessed);
 use Mail::RFC822::Address;
 
-my $NESTED_TRANSACTION_COUNTER = 0;
-
 ######################################################################
 
 =begin new
@@ -71,9 +69,10 @@ sub new ($$) {
   # begin_work/commit reference counter.
   $dbh->{RaiseError} = 0;
   $dbh->{HandleError} = sub {
-    $NESTED_TRANSACTION_COUNTER = 0;
+    $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
     die $_[0];
   };
+  $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
   return $self;
 }
 ######################################################################
@@ -687,11 +686,11 @@ This method is a reference counter to keep track of nested begin_work()/commit()
 sub _beginWork($) {
   my($self) = @_;
 
-  if ($NESTED_TRANSACTION_COUNTER < 0) {
+  if ($self->{__NESTED_TRANSACTION_COUNTER__} < 0) {
     die "_beginWork: Mismatched begin_work/commit pair in API implementation";
-    $NESTED_TRANSACTION_COUNTER = 0;
+    $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
   }
-  $self->dbh->begin_work() if ($NESTED_TRANSACTION_COUNTER++ == 0);
+  $self->dbh->begin_work() if ($self->{__NESTED_TRANSACTION_COUNTER__}++ == 0);
 }
 
 =item _commit()
@@ -714,11 +713,11 @@ transactions to verify we don't nest $self->dbh->begin_work()
 sub _commit($) {
   my($self) = @_;
 
-  if ($NESTED_TRANSACTION_COUNTER < 0) {
+  if ($self->{__NESTED_TRANSACTION_COUNTER__} < 0) {
     die "_commit: Mismatched begin_work/commit pair in API implementation";
-    $NESTED_TRANSACTION_COUNTER = 0;
+    $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
   }
-  $self->dbh->commit() if (--$NESTED_TRANSACTION_COUNTER == 0);
+  $self->dbh->commit() if (--$self->{__NESTED_TRANSACTION_COUNTER__} == 0);
 }
 
 =item _rollback()
@@ -740,7 +739,7 @@ This method resets the reference counter entirely and calls $dbh->rollback.
 sub _rollback($) {
   my($self) = @_;
 
-  $NESTED_TRANSACTION_COUNTER = 0;
+  $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
   $self->dbh->rollback();
 }
 
