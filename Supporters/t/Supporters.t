@@ -484,10 +484,6 @@ $rc = $fullConfig->{$rr}{'test-request-config'};
 is_deeply(\%hh, { requestTypeId => $rr, requestConfigurationId => $rc },
    "_getOrCreateRequestConfiguration: modification of paramater argument was correct after successful add");
 
-use Data::Dumper;
-print Data::Dumper->Dump( [ \%hh ]);
-
-
 is_deeply $fullConfig,
   { 1 => { 'test-request-config' => 1 } },
    "_getOrCreateRequestConfiguration: lookup of a request configuration works after _getOrCreateRequestConfiguration";
