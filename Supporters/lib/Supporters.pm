@@ -548,6 +548,37 @@ sub _verifyId($$) {
 
 }
 
+=item _verifyRequestTypeId()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=item $requestTypeId: A scalar numeric argument that is the request type id to  lookup
+
+
+=back
+
+Returns: scalar boolean, which is true iff. the $requestTypeId is valid and
+already in the supporter database's request_type table.
+
+
+=cut
+
+
+sub _verifyRequestTypeId($$) {
+  my($self, $requestTypeId) = @_;
+
+  die "_verifyRequestTypeId() called with a non-numeric id" unless defined $requestTypeId and looks_like_number($requestTypeId);
+
+  my $val = $self->dbh()->selectall_hashref("SELECT id FROM request_type WHERE id = " .
+                                            $self->dbh->quote($requestTypeId, 'SQL_INTEGER'), 'id');
+  return (defined $val and defined $val->{$requestTypeId});
+
+}
+
 =item _getOrCreateRequestType
 
 Arguments:

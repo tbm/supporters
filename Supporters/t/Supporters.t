@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 110;
+use Test::More tests => 124;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -422,6 +422,22 @@ lives_ok { $tempSP->_getOrCreateRequestType(\%hh); }
 
 is_deeply(\%hh, { requestTypeId => $rr },
    "_getOrCreateRequestType: deletes requestType if both are provided.");
+
+dies_ok { $tempSP->_verifyRequestTypeId(undef); }
+        "_verifyRequestTypeId: dies for undefined requestTypeId";
+
+dies_ok { $tempSP->_verifyRequestTypeId("NoStringsPlease"); }
+        "_verifyRequestTypeId: dies for a string requestTypeId";
+
+ok( (not $tempSP->_verifyRequestTypeId(0)), "_verifyRequestTypeId: returns false for id lookup for 0");
+
+# Assumption here: that id number one more than the last added would never be in db.
+ok( (not $tempSP->_verifyRequestTypeId($rr + 1)),
+    "_verifyRequestTypeId: returns false for id one greater than last added");
+
+ok( ($tempSP->_verifyRequestTypeId($rr)),
+    "_verifyRequestTypeId: returns true for id known to be in database");
+
 
 =item _getOrCreateRequestConfiguration
 
