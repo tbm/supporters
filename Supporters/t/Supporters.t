@@ -512,7 +512,7 @@ is_deeply(\%hh, { requestTypeId => $rr, requestConfigurationId => $rc },
 
 =cut
 
-($tempDBH, $tempSP) = ResetDB($dbh);
+($tempDBH, $tempSP) = ResetDB($tempDBH);
 $tempDBH->do("DROP TABLE email_address;");
 
 dies_ok { $tempSP->addSupporter({ display_name => "Roger Sterling",
