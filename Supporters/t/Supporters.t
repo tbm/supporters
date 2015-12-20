@@ -447,7 +447,7 @@ dies_ok { $tempSP->_getOrCreateRequestConfiguration({ }); }
    "_getOrCreateRequestConfiguration: dies on empty hash";
 
 dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestConfigurationId => "NoStringsPlease" }); }
-   "_getOrCreateRequestConfiguration: dies for string request id";
+   "_getOrCreateRequestConfiguration: dies for string requestConfigurationId";
 
 dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestConfigurationId => 0 }); }
    "_getOrCreateRequestConfiguration: dies for non-existant requestConfigurationId";
