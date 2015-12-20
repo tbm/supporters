@@ -360,20 +360,20 @@ is_deeply($val2, $val,
 
 =cut
 
-dies_ok { $sp->getRequest({}); }  "getRequest: dies if supporterId not specified.";
+dies_ok { $sp->getRequest(undef, undef); }  "getRequest: dies if supporterId not specified.";
 
-dies_ok { $sp->getRequest({ supporterId => 0 }); } "getRequest: dies if supporterId invalid.";
+dies_ok { $sp->getRequest(0, "t-shirt-small-only"); } "getRequest: dies if supporterId invalid.";
 
-dies_ok { $sp->getRequest({ supporterId => $drapperId }); }
+dies_ok { $sp->getRequest($drapperId, undef); }
         "getRequest: dies if requestTypeId / requestType not specified.";
 
 my $tt;
-lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => 'this-one-is-not-there' }); }
+lives_ok { $tt = $sp->getRequest($drapperId, 'this-one-is-not-there'); }
         "getRequest: returns normally with non-existent request.";
 
 is($tt, undef, "getRequest: returns undef for valid supporter and on-existent request.");
 
-lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => 't-shirt-small-only' }); }
+lives_ok { $tt = $sp->getRequest($drapperId, 't-shirt-small-only'); }
          "getRequest: succeeds with valid parameters.";
 
 is($tt->{requestType}, 't-shirt-small-only', "getRequest: requestType is correct.");
@@ -383,7 +383,7 @@ is($tt->{requestConfiguration}, 'Small', "getRequest: configuration is correct."
 is($tt->{notes}, 'he probably needs a larger size but this shirt has none',
    "getRequest: notes are correct.");
 
-lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestTypeId => $tShirt0RequestTypeId }); }
+lives_ok { $tt = $sp->getRequest($drapperId, 't-shirt-0'); }
          "getRequest: succeeds with valid parameters.";
 
 is($tt->{requestType}, 't-shirt-0', "getRequest: requestType is correct.");
@@ -391,7 +391,7 @@ is($tt->{requestDate}, $today, "getRequest: request date is today.");
 is($tt->{requestConfiguration}, 'MenL', "getRequest: configuration is correct.");
 is($tt->{notes}, undef,    "getRequest: notes are undef when null in database.");
 
-lives_ok { $tt = $sp->getRequest({ supporterId => $drapperId, requestType => "join-announce-email-list" }); }
+lives_ok { $tt = $sp->getRequest($drapperId,  "join-announce-email-list"); }
          "getRequest: succeeds with valid parameters.";
 
 is($tt->{requestType}, "join-announce-email-list", "getRequest: requestType is correct.");
