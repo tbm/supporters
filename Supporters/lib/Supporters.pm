@@ -633,9 +633,9 @@ sub _getOrCreateRequestConfiguration($$) {
   my($self, $params) = @_;
 
   die "_getOrCreateRequestConfiguration: requestTypeId is required" unless defined $params->{requestTypeId};
-  my $id = $params->{requestTypeId};
-  die "_getOrCreateRequestConfiguration: requestTypeId must be a number" unless looks_like_number($id);
-  die "_getOrCreateRequestConfiguration: requestTypeId is unknown" unless $self->_verifyRequestTypeId($id);
+  my $requestTypeId = $params->{requestTypeId};
+  die "_getOrCreateRequestConfiguration: requestTypeId must be a number" unless looks_like_number($requestTypeId);
+  die "_getOrCreateRequestConfiguration: requestTypeId is unknown" unless $self->_verifyRequestTypeId($requestTypeId);
 
 }
 
