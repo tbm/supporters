@@ -36,10 +36,13 @@ DROP TABLE IF EXISTS "fulfillment";
 
 CREATE TABLE "fulfillment" (
     "id" integer NOT NULL PRIMARY KEY,
+    "request_id" integer NOT NULL,
     "date" TEXT NOT NULL,
     "who" varchar(300) NOT NULL,
     "how" TEXT
 );
+
+CREATE UNIQUE INDEX fulfillment__one_fulfillment_per_request ON fulfillment(request_id);
 
 DROP TABLE IF EXISTS "request_type";
 

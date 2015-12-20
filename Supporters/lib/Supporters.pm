@@ -579,6 +579,22 @@ sub fufillRequest($$) {
 
   my $requestId = $self->getRequest($supporterId, $params->{requestType});
   return undef if not defined $requestId;
+
+  my $fufillLookupSql = "SELECT * FROM fulfillment WHERE request_id = " .
+                        $self->dbh->quote($requestId, 'SQL_INTEGER');
+
+  my $fufillRecord = $self->dbh()->selectall_hashref($fufillLookupSql, "request_id");
+  if (not defined $fufillRecord and not defined $fufillRecord->{$requestId}) {
+    $self->_beginWork;
+    my $sth->prepare("INSERT INTO fulfillment(request_id, who, how, date) " .
+                                      "VALUES(?         , ?  , ?  , date('now');");
+
+    $sth->execute($requestId, $params->{who}, $params->{how});
+    $sth->finish;
+    $self->_commit;
+     $fufillRecord = $self->dbh()->selectall_hashref($fufillLookupSql, "request_id");
+  }
+  return $fufillRecord->{$requestId};
 }
 ######################################################################
 
