@@ -502,7 +502,7 @@ Returns the id value of the request entry.
 sub addRequest($$) {
   my($self, $params) = @_;
   die "addRequest: undefined supporterId" unless defined $params->{supporterId};
-  my $supporterId = $params->supporterId;
+  my $supporterId = $params->{supporterId};
   die "addRequest: supporterId, \"$supporterId\" not found in supporter database"
     unless $self->_verifyId($supporterId);
   $self->_beginWork;
