@@ -635,20 +635,33 @@ sub _getOrCreateRequestConfiguration($$) {
   die "_getOrCreateRequestConfiguration: requestTypeId is required" unless defined $params->{requestTypeId};
   my $requestTypeId = $params->{requestTypeId};
   die "_getOrCreateRequestConfiguration: requestTypeId must be a number" unless looks_like_number($requestTypeId);
-  die "_getOrCreateRequestConfiguration: requestTypeId is unknown" unless $self->_verifyRequestTypeId($requestTypeId);
+
+  my $val = $self->dbh()->selectall_hashref("SELECT id, type FROM request_type WHERE id = " .
+                                            $self->dbh->quote($requestTypeId, 'SQL_INTEGER'), 'id');
+  die "_getOrCreateRequestConfiguration: unknown requestTypeId, \"$requestTypeId\""
+    unless (defined $val and defined $val->{$requestTypeId} and defined $val->{$requestTypeId}{type});
+  my $requestType =  $val->{$requestTypeId}{type};
+
+  my $existingRequestConfig =  $self->getRequestConfigurations($requestType);
+
+  die "_getOrCreateRequestConfiguration: requestTypeId is unknown" unless (keys(%$existingRequestConfig) == 1);
 
   if (not defined $params->{requestConfigurationId}) {
-    $params->{requestConfigurationId} = $self->addRequestType($params->{requestConfiguration});
+    die "_getOrCreateRequestConfiguration: requestConfiguration is not defined" unless defined $params->{requestConfiguration};
+    if (defined $existingRequestConfig->{$requestTypeId}{$params->{requestConfiguration}}) {
+      $params->{requestConfigurationId} = $existingRequestConfig->{$requestTypeId}{$params->{requestConfiguration}};
+    } else {
+      $existingRequestConfig = $self->addRequestConfigurations($requestType, [ $params->{requestConfiguration} ]);
+      $params->{requestConfigurationId} = $existingRequestConfig->{$requestTypeId}{$params->{requestConfiguration}};
+    }
   } else {
     my $id = $params->{requestConfigurationId};
     die "_getOrCreateRequestConfiguration(): called with a non-numeric requestConfigurationId, \"$id\""
       unless defined $id and looks_like_number($id);
-
-    my $val = $self->dbh()->selectall_hashref("SELECT id FROM request_configuration WHERE id = " .
-                                              $self->dbh->quote($id, 'SQL_INTEGER'), 'id');
-
+    my $found = 0;
+    foreach my $foundId (values %{$existingRequestConfig->{$requestTypeId}}) { if ($foundId == $id) { $found = 1; last; } }
     die "_getOrCreateRequestType(): given requestConfigurationId, \"$id\", is invalid"
-      unless (defined $val and defined $val->{$id});
+       unless defined $found;
   }
   delete $params->{requestConfiguration};
   return $params->{requestConfigurationId};
