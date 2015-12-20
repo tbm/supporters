@@ -637,6 +637,21 @@ sub _getOrCreateRequestConfiguration($$) {
   die "_getOrCreateRequestConfiguration: requestTypeId must be a number" unless looks_like_number($requestTypeId);
   die "_getOrCreateRequestConfiguration: requestTypeId is unknown" unless $self->_verifyRequestTypeId($requestTypeId);
 
+  if (not defined $params->{requestConfigurationId}) {
+    $params->{requestConfigurationId} = $self->addRequestType($params->{requestConfiguration});
+  } else {
+    my $id = $params->{requestConfigurationId};
+    die "_getOrCreateRequestConfiguration(): called with a non-numeric requestConfigurationId, \"$id\""
+      unless defined $id and looks_like_number($id);
+
+    my $val = $self->dbh()->selectall_hashref("SELECT id FROM request_configuration WHERE id = " .
+                                              $self->dbh->quote($id, 'SQL_INTEGER'), 'id');
+
+    die "_getOrCreateRequestType(): given requestConfigurationId, \"$id\", is invalid"
+      unless (defined $val and defined $val->{$id});
+  }
+  delete $params->{requestConfiguration};
+  return $params->{requestConfigurationId};
 }
 
 =item _beginWork()
