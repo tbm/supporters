@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 104;
+use Test::More tests => 110;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -381,43 +381,6 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
 
-=item _getOrCreateRequestType
-
-=cut
-
-dies_ok { $sp->_getOrCreateRequestType({ }); }
-   "_getOrCreateRequestType: dies on empty hash";
-
-dies_ok { $sp->_getOrCreateRequestType({ requestTypeId => "NoStringsPlease" }); }
-   "_getOrCreateRequestType: dies for string request id";
-
-dies_ok { $sp->_getOrCreateRequestType({ requestTypeId => 0 }); }
-   "_getOrCreateRequestType: dies for non-existant requestTypeId";
-
-my %hh = ( requestType => 'test-request' );
-lives_ok { $sp->_getOrCreateRequestType(\%hh); }
-   "_getOrCreateRequestType: succeeds with just requestType";
-
-my $rr;
-lives_ok { $rr = $sp->getRequestType("test-request"); }
-   "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType";
-
-is_deeply(\%hh, { requestTypeId => $rr },
-   "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType");
-
-%hh = ( requestTypeId => $rr, requestType => 'this-arg-matters-not' );
-
-lives_ok { $sp->_getOrCreateRequestType(\%hh); }
-   "_getOrCreateRequestType: lookup of existing requestType suceeds.";
-
-is_deeply(\%hh, { requestTypeId => $rr },
-   "_getOrCreateRequestType: deletes requestType if both are provided.");
-
-=back
-
-=item Database weirdness tests
-
-=cut
 
 sub ResetDB($) {
   $_[0]->disconnect() if defined $_[0];
@@ -427,6 +390,96 @@ sub ResetDB($) {
 }
 
 my($tempDBH, $tempSP) = ResetDB($dbh);
+
+=item _getOrCreateRequestType
+
+=cut
+
+dies_ok { $tempSP->_getOrCreateRequestType({ }); }
+   "_getOrCreateRequestType: dies on empty hash";
+
+dies_ok { $tempSP->_getOrCreateRequestType({ requestTypeId => "NoStringsPlease" }); }
+   "_getOrCreateRequestType: dies for string request id";
+
+dies_ok { $tempSP->_getOrCreateRequestType({ requestTypeId => 0 }); }
+   "_getOrCreateRequestType: dies for non-existant requestTypeId";
+
+my %hh = ( requestType => 'test-request' );
+lives_ok { $tempSP->_getOrCreateRequestType(\%hh); }
+   "_getOrCreateRequestType: succeeds with just requestType";
+
+my $rr;
+lives_ok { $rr = $tempSP->getRequestType("test-request"); }
+   "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType";
+
+is_deeply(\%hh, { requestTypeId => $rr },
+   "_getOrCreateRequestType: lookup of a request works after _getOrCreateRequestType");
+
+%hh = ( requestTypeId => $rr, requestType => 'this-arg-matters-not' );
+
+lives_ok { $tempSP->_getOrCreateRequestType(\%hh); }
+   "_getOrCreateRequestType: lookup of existing requestType suceeds.";
+
+is_deeply(\%hh, { requestTypeId => $rr },
+   "_getOrCreateRequestType: deletes requestType if both are provided.");
+
+=item _getOrCreateRequestConfiguration
+
+=cut
+
+dies_ok { $tempSP->_getOrCreateRequestConfiguration({ }); }
+   "_getOrCreateRequestConfiguration: dies on empty hash";
+
+dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestConfigurationId => "NoStringsPlease" }); }
+   "_getOrCreateRequestConfiguration: dies for string request id";
+
+dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestConfigurationId => 0 }); }
+   "_getOrCreateRequestConfiguration: dies for non-existant requestConfigurationId";
+
+dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestTypeId => "NoStringsPlease" }); }
+   "_getOrCreateRequestConfiguration: dies for string request id";
+
+dies_ok { $tempSP->_getOrCreateRequestConfiguration({ requestTypeId => 0 }); }
+   "_getOrCreateRequestConfiguration: dies for non-existant requestTypeId";
+
+%hh = ( requestConfiguration => 'test-request-config' );
+dies_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
+   "_getOrCreateRequestConfiguration: fails with just requestConfiguration.";
+
+$val = $tempSP->dbh()->selectall_hashref("SELECT id, description FROM request_configuration", 'description');
+
+ok((not defined $val),
+   "_getOrCreateRequestConfiguration: no request_configuration record added for failed attempts");
+
+%hh = ( requestTypeId => $rr, requestConfiguration => 'test-request-config' );
+lives_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
+   "_getOrCreateRequestConfiguration: succeeds with requestConfiguration and requestType";
+
+my $rc;
+lives_ok { $rc = $tempSP->getRequestType("test-request"); }
+   "_getOrCreateRequestConfiguration: lookup of a request works after _getOrCreateRequestConfiguration";
+
+ok( (defined $rc and looks_like_number($rc) and $rc > 0),
+    "_getOrCreateRequestConfiguration: returns valid id of requestConfiguration created");
+
+is_deeply(\%hh, { requestTypeId => $rr, requestConfiguration => $rc },
+   "_getOrCreateRequestConfiguration: lookup of a request works after _getOrCreateRequestConfiguration");
+
+%hh = ( requestTypeId => $rr, requestConfigurationId => $rc, requestConfiguration => 'this-arg-matters-not' );
+
+lives_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
+   "_getOrCreateRequestConfiguration: lookup of existing requestConfiguration suceeds.";
+
+is_deeply(\%hh, { requestTypeId => $rr, requestConfigurationId => $rc },
+   "_getOrCreateRequestConfiguration: deletes requestType if both are provided.");
+
+=back
+
+=item Database weirdness tests
+
+=cut
+
+($tempDBH, $tempSP) = ResetDB($dbh);
 $tempDBH->do("DROP TABLE email_address;");
 
 dies_ok { $tempSP->addSupporter({ display_name => "Roger Sterling",
