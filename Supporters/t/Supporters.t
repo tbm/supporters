@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 138;
+use Test::More tests => 139;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -300,6 +300,11 @@ my $fufillRequestId;
 dies_ok { $fufillRequestId = $sp->fufillRequest( { requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
      "fufillRequest: dies if supporterId not specified";
+
+dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId + 1000,
+                                            requestType => "t-shirt-small-only", who => 'joe',
+                                                    how => "in-person delivery" }); }
+     "fufillRequest: dies if supporterId not found in database";
 
 dies_ok { $fufillRequestId = $sp->fufillRequest( { supporterId => $drapperId,  who => 'joe',
                                                     how => "in-person delivery" }); }

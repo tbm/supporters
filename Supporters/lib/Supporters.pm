@@ -526,6 +526,62 @@ sub addRequest($$) {
 }
 ######################################################################
 
+=begin fufillRequest
+
+Arguments:
+
+=over
+
+=item $parmas
+
+A hash reference, the following keys are considered:
+
+=over
+
+=item supporterId
+
+   Valid supporter_id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item requestType
+
+   requestType of the request to be fulfilled.  die() will occur if this is
+   undefined.  undef is returned if there is no unfufilled request of
+   requestType in the database for supporter identified by
+   C<$params->{supporterId}>
+
+=item who
+
+   A scalar string representing the person that fulfilled the request.  die()
+   will occur if C<$params->{who}> is not defined.
+
+=item how
+
+   A scalar string describing how the request was fufilled.  It can safely be
+   undefined.
+
+=back
+
+=back
+
+Returns the id value of the request entry.
+
+=cut
+
+sub fufillRequest($$) {
+  my($self, $params) = @_;
+  die "fufillRequest: undefined supporterId" unless defined $params->{supporterId};
+  my $supporterId = $params->{supporterId};
+  die "fufillRequest: supporterId, \"$supporterId\" not found in supporter database"
+    unless $self->_verifyId($supporterId);
+  die "fufillRequest: undefined who" unless defined $params->{who};
+  die "fufillRequest: undefined requestType" unless defined $params->{requestType};
+
+  my $requestId = $self->getRequest($supporterId, $params->{requestType});
+  return undef if not defined $requestId;
+}
+######################################################################
+
 =head1 Non-Public Methods
 
 These methods are part of the internal implementation are not recommended for
