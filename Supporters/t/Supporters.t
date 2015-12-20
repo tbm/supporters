@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 125;
+use Test::More tests => 127;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -468,30 +468,44 @@ dies_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
 
 $val = $tempSP->dbh()->selectall_hashref("SELECT id, description FROM request_configuration", 'description');
 
-ok((not defined $val),
+ok((defined $val and (keys(%$val) == 0)),
    "_getOrCreateRequestConfiguration: no request_configuration record added for failed attempts");
 
 %hh = ( requestTypeId => $rr, requestConfiguration => 'test-request-config' );
 lives_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
    "_getOrCreateRequestConfiguration: succeeds with requestConfiguration and requestType";
 
-my $rc;
-lives_ok { $rc = $tempSP->getRequestType("test-request"); }
-   "_getOrCreateRequestConfiguration: lookup of a request works after _getOrCreateRequestConfiguration";
+my($fullConfig, $rc);
+lives_ok { $fullConfig =  $tempSP->getRequestConfigurations('test-request'); }
+   "getRequestConfigurations: succeeds after successful _getOrCreateRequestConfiguration()";
 
-ok( (defined $rc and looks_like_number($rc) and $rc > 0),
-    "_getOrCreateRequestConfiguration: returns valid id of requestConfiguration created");
+$rc = $fullConfig->{$rr}{'test-request-config'};
 
-is_deeply(\%hh, { requestTypeId => $rr, requestConfiguration => $rc },
+is_deeply(\%hh, { requestTypeId => $rr, requestConfigurationId => $rc },
+   "_getOrCreateRequestConfiguration: modification of paramater argument was correct after successful add");
+
+use Data::Dumper;
+print Data::Dumper->Dump( [ \%hh ]);
+
+
+is_deeply $fullConfig,
+  { 1 => { 'test-request-config' => 1 } },
+   "_getOrCreateRequestConfiguration: lookup of a request configuration works after _getOrCreateRequestConfiguration";
+
+%hh = (requestTypeId => $rr, requestConfiguration => "test-request-config");
+lives_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
+   "_getOrCreateRequestConfiguration: looks up one previously added by _getOrCreateRequestConfiguration()";
+
+is_deeply(\%hh, { requestTypeId => $rr, requestConfigurationId => $rc },
    "_getOrCreateRequestConfiguration: lookup of a request works after _getOrCreateRequestConfiguration");
 
 %hh = ( requestTypeId => $rr, requestConfigurationId => $rc, requestConfiguration => 'this-arg-matters-not' );
 
 lives_ok { $tempSP->_getOrCreateRequestConfiguration(\%hh); }
-   "_getOrCreateRequestConfiguration: lookup of existing requestConfiguration suceeds.";
+   "_getOrCreateRequestConfiguration: lookup of existing requestConfigurationId succeeds, ignoring requestConfiguration parameter.";
 
 is_deeply(\%hh, { requestTypeId => $rr, requestConfigurationId => $rc },
-   "_getOrCreateRequestConfiguration: deletes requestType if both are provided.");
+   "_getOrCreateRequestConfiguration: deletes requestTypeConfiguration if both are provided.");
 
 =back
 
