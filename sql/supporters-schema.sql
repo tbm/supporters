@@ -21,6 +21,9 @@ CREATE TABLE "request" (
     "notes" TEXT
     );
 
+CREATE UNIQUE INDEX request__one_request_for_each_type_per_supporter
+   ON request(supporter_id, request_type_id);
+
 DROP TABLE IF EXISTS "request_configuration";
 
 CREATE TABLE "request_configuration" (
