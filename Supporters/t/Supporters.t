@@ -273,7 +273,7 @@ my $tshirtSmallRequestId;
 lives_ok { $tshirtSmallRequestId =
              $sp->addRequest({ supporterId => $drapperId, requestType => "t-shirt-small-only",
                                requestConfiguration => 'Small',
-                               note => 'he probably needs a larger size but this shirt has none'}); }
+                               notes => 'he probably needs a larger size but this shirt has none'}); }
         "addRequest: succeeds with a requestType and requestConfiguration and a note.";
 
 ok( (defined $tshirtSmallRequestId and looks_like_number($tshirtSmallRequestId) and $tshirtSmallRequestId > 0),
