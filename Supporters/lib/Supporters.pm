@@ -853,6 +853,32 @@ use outside of this module.
 
 =over
 
+=item DESTROY
+
+=cut
+
+sub DESTROY {
+  my $self = shift;
+  return unless defined $self;
+
+  # Force rollback if we somehow get destroy'ed while counter is up
+  if (defined $self->{__NESTED_TRANSACTION_COUNTER__} and $self->{__NESTED_TRANSACTION_COUNTER__} > 0) {
+    my $errorStr = "SUPPORTERS DATABASE ERROR: Mismatched begin_work/commit pair in API implementation";
+    if (not defined $self->{dbh}) {
+      $errorStr .= "... and unable to rollback or commit work.  Database may very well be inconsistent!";
+    } else {
+      # Rollback if we didn't call commit enough;  commit if we called commit too often.
+      ($self->{__NESTED_TRANSACTION_COUNTER__} > 0) ? $self->_rollback() : $self->_commit();
+      $self->{dbh}->disconnect();
+    }
+    $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
+    die $errorStr;
+  }
+  delete $self->{__NESTED_TRANSACTION_COUNTER__};
+  $self->{dbh}->disconnect() if defined $self->{dbh} and blessed($self->{dbh}) =~ /DBI/;
+}
+
+
 =item _verifyId()
 
 Parameters:
