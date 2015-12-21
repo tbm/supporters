@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 154;
+use Test::More tests => 158;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -223,6 +223,8 @@ my $tShirt0Data;
 dies_ok { $sp->addRequestConfigurations('t-shirt-1', [ @sizeList, 'Men2XL']) }
   "addRequestConfigurations: dies with duplicate items on configuration list.";
 
+is($sp->{__NESTED_TRANSACTION_COUNTER__}, 0, "addRequestConfigurations: assure proper beginWork/commit matching.");
+
 is_deeply($sp->getRequestConfigurations('t-shirt-1'), undef,
           "addRequestConfigurations/getRequestConfigurations: add fails with undefined configuration list");
 
@@ -231,6 +233,8 @@ lives_ok { $tShirt0Data = $sp->addRequestConfigurations('t-shirt-0', \@sizeList)
 
 is( keys %{$tShirt0Data}, ($tShirt0RequestTypeId),
     "addRequestConfigurations: reuses same requestTypeId on add of configurations");
+
+is($sp->{__NESTED_TRANSACTION_COUNTER__}, 0, "addRequestConfigurations: assure proper beginWork/commit matching.");
 
 my $cnt = 0;
 foreach my $size (@sizeList) {
@@ -255,6 +259,8 @@ dies_ok { $sp->addRequest({ supporterId => 0, requestTypeId => $tShirt0RequestTy
 
 dies_ok { $sp->addRequest({ supporterId => $drapperId, requestTypeId => 0 }); }
         "addRequest: dies if requestTypeId invalid.";
+
+is($sp->{__NESTED_TRANSACTION_COUNTER__}, 0, "addRequest: assure proper beginWork/commit matching.");
 
 my $emailListRequestId;
 
@@ -458,10 +464,11 @@ lives_ok { $ret = $sp->setPreferredEmailAddress($drapperId, 'drapper@example.org
 ok( (defined $ret and looks_like_number($ret) and $ret == $drapperEmailId),
       "setPreferredEmailAddress: ... and returns correct email_address_id on success");
 
+is($sp->{__NESTED_TRANSACTION_COUNTER__}, 0, "setPreferredEmailAddress: assure proper beginWork/commit matching.");
+
 lives_ok { $ret = $sp->getPreferredEmailAddress($drapperId) }
          "getPreferredEmailAddress: lookup of known preferred email address succeeds... ";
 is($ret, 'drapper@example.org', "getPreferredEmailAddress: ....and returns the correct value.");
-
 
 =back
 
