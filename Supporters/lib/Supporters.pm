@@ -449,6 +449,138 @@ sub addRequestConfigurations($$$) {
 }
 ######################################################################
 
+=begin getRequest
+
+Arguments:
+
+=over
+
+=item $supporterId
+
+   Valid supporter_id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item $requestType
+
+   String for the requestType sought.
+
+=item $ignoreFulfilledRequests
+
+   Optional boolean argument.  If true, a request that is found will not be
+   returned if the request has already been fulfilled.  In other words, it
+   forces a return of undef for
+
+=back
+
+Returns:
+
+=over
+
+=item undef
+
+      if the C<$requestType> is not found for C<$supporterId> (or, as above,
+      the C<$requestType> is found but has been fufilled and
+      C<$ignoreFulfilledRequests>.
+
+=item a hash reference
+
+      If found, the has reference will contain at least the following keys:
+
+=over
+
+=item requestType
+
+      Should match the request type in C<$requestType>
+
+=item requestTypeId
+
+      The id from the request_type entry for C<$requestType>
+
+=item requestDate
+
+      The date the request was made, in ISO 8601 format.
+
+=back
+
+
+Optionally, if these values are not null in the database record, the
+following fields may also be included:
+
+=over
+
+
+=item  notes
+
+       Notes made for the request.
+
+=item  requestConfiguration
+
+       any rquest configuration option given with the request.
+
+=back
+
+If the request has been fufilled, the following keys will also ahve values.
+
+=over
+
+=item fulfillDate
+
+      The date the request was fufilled, in ISO 8601 format.
+
+=back
+
+=back
+
+=cut
+
+sub getRequest($$;$) {
+  my($self, $supporterId, $requestType, $ignoreFulfilledRequests) = @_;
+
+  die "getRequest: undefined supporterId" unless defined $supporterId;
+  die "getRequest: supporterId, \"$supporterId\" not found in supporter database"
+    unless $self->_verifyId($supporterId);
+
+  die "getRequest: undefined requestType" unless defined $requestType;
+
+  my $req = $self->dbh()->selectall_hashref("SELECT r.id, r.request_type_id, r.request_configuration_id, r.date_requested, r.notes, rt.type " .
+                                            "FROM request r, request_type rt WHERE r.request_type_id = rt.id AND " .
+                                            "r.supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER') .
+                                            " AND rt.type = " . $self->dbh->quote($requestType),
+                                            'type');
+  return undef unless (defined $req and defined $req->{$requestType} and defined $req->{$requestType}{'id'});
+  my $requestTypeId = $req->{$requestType}{'request_type_id'};
+  my $requestId = $req->{$requestType}{'id'};
+
+  my $rsp = {  requestType   => $requestType,
+               requestTypeId => $requestTypeId,
+               requestId     => $req->{$requestType}{'id'},
+               requestDate   => $req->{$requestType}{'date_requested'},
+               notes         => $req->{$requestType}{'notes'},
+            };
+  my $configs = $self->getRequestConfigurations($requestType);
+  use Data::Dumper;
+  print "CONFIGS:",  Data::Dumper->Dump([$requestType, $configs]);
+  my $configName;
+  foreach my $key (keys %{$configs->{$requestTypeId}}) {
+    print "TEST: SEEING IF $key is our type... $configs->{$requestTypeId}{$key} == $req->{$requestType}{'type'}  ... \n";
+    if ($configs->{$requestTypeId}{$key} == $req->{$requestType}{'request_configuration_id'}) { $configName = $key; last; }
+  }
+  die("getRequest: discovered database integrity error: request_configuration, \"$req->{$requestType}{request_configuration_id} is " .
+      "not valid for requestId, \"$requestId\"") unless defined $configName or (keys %{$configs->{$requestId}} == 0);
+  $rsp->{requestConfiguration} = $configName;
+
+  my $fulfillReq = $self->dbh()->selectall_hashref("SELECT id, request_id, date FROM fulfillment WHERE request_id = " .
+                                                   $self->dbh->quote($requestId, 'SQL_INTEGER'),
+                                                   'request_id');
+  if (defined $fulfillReq and defined $fulfillReq->{$requestId} and defined $fulfillReq->{$requestId}{id}) {
+    return undef if $ignoreFulfilledRequests;
+    $rsp->{fulfillDate} = $fulfillReq->{$requestId}{date};
+  }
+  print "RSP RETURING: ", Data::Dumper->Dump([$rsp]);
+  return $rsp;
+}
+######################################################################
+
 =begin addRequest
 
 Arguments:
