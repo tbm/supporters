@@ -706,7 +706,9 @@ sub fulfillRequest($$) {
   die "fulfillRequest: undefined who" unless defined $params->{who};
   die "fulfillRequest: undefined requestType" unless defined $params->{requestType};
 
-  my $requestId = $self->getRequest($supporterId, $params->{requestType});
+  my $req = $self->getRequest($supporterId, $params->{requestType});
+  return undef if not defined $req;
+  my $requestId = $req->{requestId};
   return undef if not defined $requestId;
 
   my $fulfillLookupSql = "SELECT id, request_id FROM fulfillment WHERE request_id = " .
