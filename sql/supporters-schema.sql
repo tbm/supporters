@@ -72,9 +72,6 @@ CREATE TABLE "supporter_email_address_mapping" (
     PRIMARY KEY(supporter_id, email_address_id)
     );
 
-CREATE UNIQUE INDEX supporter_email_address_mapping__single_prefferred_per_supporter
-   ON supporter_email_address_mapping(supporter_id, preferred);
-   
 DROP TABLE IF EXISTS "address_type";
 
 CREATE TABLE "address_type" (
