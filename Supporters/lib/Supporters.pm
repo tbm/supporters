@@ -29,6 +29,7 @@ our $VERSION = '0.02';
 
 use Scalar::Util qw(looks_like_number blessed);
 use Mail::RFC822::Address;
+use Carp qw(confess);
 
 ######################################################################
 
@@ -70,7 +71,7 @@ sub new ($$) {
   $dbh->{RaiseError} = 0;
   $dbh->{HandleError} = sub {
     $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
-    die $_[0];
+    confess $_[0];
   };
   $self->{__NESTED_TRANSACTION_COUNTER__} = 0;
   return $self;
