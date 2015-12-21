@@ -412,8 +412,8 @@ is(scalar keys %{$tShirtSmallOnlyData->{$tShirtSmallOnlyRequestId}}, 1,
    "addRequest: just one configuration added correctly");
 
 ok( (defined $tShirtSmallOnlyData->{$tShirtSmallOnlyRequestId}{'Small'} and
-       looks_like_number($tShirtSmallOnlyData->{$tShirt0RequestTypeId}{'Small'}) and
-       $tShirtSmallOnlyData->{$tShirt0RequestTypeId}{'Small'} > 0),
+       looks_like_number($tShirtSmallOnlyData->{$tShirtSmallOnlyRequestId}{'Small'}) and
+       $tShirtSmallOnlyData->{$tShirtSmallOnlyRequestId}{'Small'} > 0),
       "addRequest: configuration added correctly");
 
 is undef, $sp->getRequestConfigurations(undef), "getRequestConfigurations: undef type returns undef";
