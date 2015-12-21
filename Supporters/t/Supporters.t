@@ -11,7 +11,7 @@ use Test::Exception;
 use Scalar::Util qw(looks_like_number reftype);
 use POSIX qw(strftime);
 # Yes, this may cause tests to fail if you run them near midnight. :)
-my $today = strftime "%Y-%m-%d", localtime;
+my $today = strftime "%Y-%m-%d", gmtime;
 
 =pod
 
