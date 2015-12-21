@@ -344,15 +344,15 @@ is($sp->getRequestType("does-not-exist"), undef,
      "fulfillRequest: requestType not created when fulfillRequest fails.");
 
 
-my $val2;
+my $lookedUpFulfillmentId;
 
-lives_ok { $val2 = $sp->fulfillRequest( { supporterId => $drapperId,
+lives_ok { $lookedUpFulfillmentId = $sp->fulfillRequest( { supporterId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'peggy',
                                                     how => "left in his office." }); }
      "fulfillRequest: attempt to fulfill an already-fulfill request does not die ...";
 
-is_deeply($val2, $val,
-     "fulfillRequest: ... but, rather, returns the same values from the previous fulfillRequest() call.");
+is($lookedUpFulfillmentId, $fulfillRequestId,
+     "fulfillRequest: ... but, rather, returns the same value from the previous fulfillRequest() call.");
 
 =item getRequest
 

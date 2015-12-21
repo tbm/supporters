@@ -693,7 +693,7 @@ A hash reference, the following keys are considered:
 
 =back
 
-Returns the id value of the request entry.
+Returns the id value of the fulfillment entry.
 
 =cut
 
