@@ -558,11 +558,8 @@ sub getRequest($$;$) {
                notes         => $req->{$requestType}{'notes'},
             };
   my $configs = $self->getRequestConfigurations($requestType);
-  use Data::Dumper;
-  print "CONFIGS:",  Data::Dumper->Dump([$requestType, $configs]);
   my $configName;
   foreach my $key (keys %{$configs->{$requestTypeId}}) {
-    print "TEST: SEEING IF $key is our type... $configs->{$requestTypeId}{$key} == $req->{$requestType}{'type'}  ... \n";
     if ($configs->{$requestTypeId}{$key} == $req->{$requestType}{'request_configuration_id'}) { $configName = $key; last; }
   }
   die("getRequest: discovered database integrity error: request_configuration, \"$req->{$requestType}{request_configuration_id} is " .
@@ -576,7 +573,6 @@ sub getRequest($$;$) {
     return undef if $ignoreFulfilledRequests;
     $rsp->{fulfillDate} = $fulfillReq->{$requestId}{date};
   }
-  print "RSP RETURING: ", Data::Dumper->Dump([$rsp]);
   return $rsp;
 }
 ######################################################################
