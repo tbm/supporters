@@ -314,7 +314,7 @@ dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId, 
 dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,
                                                    requestType => "t-shirt-small-only",
                                                     how => "in-person delivery" }); }
-     "fulfillRequest: who not specified";
+     "fulfillRequest: dies if who not specified";
 
 lives_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'joe',
@@ -329,7 +329,7 @@ lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, date, who, how, requ
 is_deeply($val, { $fulfillRequestId => { id => $fulfillRequestId, date => $today,
                                          how => 'in-person delivery', who => 'joe',
                                          request_id => $tshirtSmallRequestId } },
-          "fulfillRequest: databse etnry from successful return is correct");
+          "fulfillRequest: databse entry from successful return is correct");
 
 ok((defined $val and (keys(%$val) == 0)),
    "_getOrCreateRequestConfiguration: no request_configuration record added for failed attempts");
