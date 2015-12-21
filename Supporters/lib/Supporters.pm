@@ -230,6 +230,68 @@ sub addEmailAddress($$$$) {
 }
 ######################################################################
 
+=begin setPreferredEmailAddress
+
+Arguments:
+
+=over
+
+=item $supporterId
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+
+=item $emailAddress
+
+   Scalar string that contains an email address.  undef is returned if the
+   email address is not already in the database for this supporter.
+
+=back
+
+Returns the email_address_id of the preferred email address.  undef can be
+returned; it means the preferred email address wasn't selected for some reason.
+
+=cut
+
+sub setPreferredEmailAddress($$$) {
+  my($self, $supporterId, $emailAddress) = @_;
+
+  die "setPreferredEmailAddress: invalid supporter id, $supporterId" unless $self->_verifyId($supporterId);
+  die "setPreferredEmailAddress: email address not defined" unless defined $emailAddress;
+  die "setPreferredEmailAddress: invalid email address, $emailAddress"
+    unless Mail::RFC822::Address::valid($emailAddress);
+
+  my $ems = $self->dbh()->selectall_hashref("SELECT ea.email_address, ea.id, sem.preferred " .
+                                            "FROM email_address ea, supporter_email_address_mapping sem " .
+                                            "WHERE ea.id = sem.email_address_id AND ".
+                                            "sem.supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
+                                            'email_address');
+  # Shortcut: it was already set
+  return $ems->{$emailAddress}{id} if (defined $ems->{$emailAddress} and $ems->{$emailAddress}{preferred});
+
+  my $anotherPreferred = 0;
+  my $emailAddressId;
+  # Iterate over email addresses, finding if any were preferred before, and finding outs too.
+  foreach my $em (keys %{$ems}) {
+    $anotherPreferred = 1 if $ems->{$em}{preferred};
+    $emailAddressId = $ems->{$em}{id} if $em eq $emailAddress;
+  }
+  return undef if not defined $emailAddressId;
+
+  $self->_beginWork();
+  if ($anotherPreferred) {
+    $self->dbh->do("UPDATE supporter_email_address_mapping " .
+                     "SET preferred = " . $self->dbh->quote(0, 'SQL_BOOLEAN') . " " .
+                     "WHERE supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'));
+  }
+  $self->dbh->do("UPDATE supporter_email_address_mapping " .
+                 "SET preferred = " . $self->dbh->quote(1, 'SQL_BOOLEAN') . " " .
+                 "WHERE email_address_id = " . $self->dbh->quote($emailAddressId, 'SQL_INTEGER'));
+  return $emailAddressId;
+}
+######################################################################
+
 =begin addPostalAddress
 
 Arguments:
