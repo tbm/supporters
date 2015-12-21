@@ -729,6 +729,8 @@ sub fulfillRequest($$) {
 }
 ######################################################################
 
+=back
+
 =head1 Non-Public Methods
 
 These methods are part of the internal implementation are not recommended for
