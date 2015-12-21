@@ -709,21 +709,21 @@ sub fulfillRequest($$) {
   my $requestId = $self->getRequest($supporterId, $params->{requestType});
   return undef if not defined $requestId;
 
-  my $fulfillLookupSql = "SELECT * FROM fulfillment WHERE request_id = " .
+  my $fulfillLookupSql = "SELECT id, request_id FROM fulfillment WHERE request_id = " .
                         $self->dbh->quote($requestId, 'SQL_INTEGER');
 
   my $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
-  if (not defined $fulfillRecord and not defined $fulfillRecord->{$requestId}) {
+  if (not defined $fulfillRecord or not defined $fulfillRecord->{$requestId}) {
     $self->_beginWork;
-    my $sth->prepare("INSERT INTO fulfillment(request_id, who, how, date) " .
-                                      "VALUES(?         , ?  , ?  , date('now');");
+    my $sth = $self->dbh->prepare("INSERT INTO fulfillment(request_id, who, how, date) " .
+                                                   "VALUES(?         , ?  , ?  , date('now'))");
 
     $sth->execute($requestId, $params->{who}, $params->{how});
     $sth->finish;
     $self->_commit;
-     $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
+    $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
   }
-  return $fulfillRecord->{$requestId};
+  return $fulfillRecord->{$requestId}{id};
 }
 ######################################################################
 
