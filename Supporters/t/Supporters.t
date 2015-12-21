@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 141;
+use Test::More tests => 140;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -330,9 +330,6 @@ is_deeply($val, { $fulfillRequestId => { id => $fulfillRequestId, date => $today
                                          how => 'in-person delivery', who => 'joe',
                                          request_id => $tshirtSmallRequestId } },
           "fulfillRequest: databse entry from successful return is correct");
-
-ok((defined $val and (keys(%$val) == 0)),
-   "_getOrCreateRequestConfiguration: no request_configuration record added for failed attempts");
 
 my $badFR;
 lives_ok { $badFR = $sp->fulfillRequest( { supporterId => $drapperId, who => 'john',
