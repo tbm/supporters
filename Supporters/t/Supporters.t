@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 140;
+use Test::More tests => 154;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -423,6 +423,45 @@ is undef, $sp->getRequestConfigurations('Hae2Ohlu'), "getRequestConfigurations: 
 is_deeply $tShirt0Data,
           $sp->getRequestConfigurations('t-shirt-0'),
           "getRequestConfigurations: lookup of previously added items is same";
+
+=item setPreferredEmailAddress/getPreferredEmailAddress
+
+=cut
+
+dies_ok { $sp->setPreferredEmailAddress(undef, 'drapper@example.org'); }
+        "setPreferredEmailAddress: dies for undefined id";
+dies_ok { $sp->setPreferredEmailAddress("String", 'drapper@example.org'); }
+        "setPreferredEmailAddress: dies for non-numeric id";
+dies_ok { $sp->setPreferredEmailAddress($drapperId, undef) }
+         "setPreferredEmailAddress: email address undefined fails";
+dies_ok { $sp->setPreferredEmailAddress($drapperId, 'drapper@ex@ample.org') }
+         "setPreferredEmailAddress: email address with extra @ fails to add.";
+
+dies_ok { $sp->getPreferredEmailAddress(undef); }
+        "getPreferredEmailAddress: dies for undefined id";
+dies_ok { $sp->getPreferredEmailAddress("String"); }
+        "getPreferredEmailAddress: dies for non-numeric id";
+
+my $ret;
+
+lives_ok { $ret = $sp->setPreferredEmailAddress($drapperId, 'drapper@example.com') }
+         "setPreferredEmailAddress: email address not found in database does not die....";
+is($ret, undef, "setPreferredEmailAddress: ....but returns undef");
+
+lives_ok { $ret = $sp->getPreferredEmailAddress($drapperId) }
+         "getPreferredEmailAddress: no preferred does not die....";
+is($ret, undef, "getPreferredEmailAddress: ....but returns undef");
+
+lives_ok { $ret = $sp->setPreferredEmailAddress($drapperId, 'drapper@example.org') }
+         "setPreferredEmailAddress: setting preferred email address succeeds....";
+
+ok( (defined $ret and looks_like_number($ret) and $ret == $drapperEmailId),
+      "setPreferredEmailAddress: ... and returns correct email_address_id on success");
+
+lives_ok { $ret = $sp->getPreferredEmailAddress($drapperId) }
+         "getPreferredEmailAddress: lookup of known preferred email address succeeds... ";
+is($ret, 'drapper@example.org', "getPreferredEmailAddress: ....and returns the correct value.");
+
 
 =back
 
