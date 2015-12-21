@@ -21,7 +21,6 @@ my $sp = new Supporter($dbhNew, "/usr/bin/ledger");
 
 # Insert t-shirt types and sizes
 
-
 my @sizes = qw/LadiesS LadiesM LadiesL LadiesXL MenS MenM MenL MenXL Men2XL/;
 my $tShirt0 = $sp->addRequestConfigurations("t-shirt-0", \@sizes);
 my $thShirt1 = $sp->addRequestConfigurations("t-shirt-1", \@sizes);
@@ -31,25 +30,11 @@ my $tShirt1RequestTypeId = (keys %{$tShirt0})[0];
 
 my %tShirt0SizeRequestConfigurationIds = %{$tShirt0->{$tShirt0RequestTypeId}};
 
-my $announceEmailListRequestTypeId = $sp->addRequestType("join-announce-email-list");
-
 # Only one email Adress type so far
 my $sthNew = $dbhNew->prepare("INSERT INTO address_type(name) values('paypal_payer')");
 $sthNew->execute();
 my $paypalPayerTypeId = $dbhNew->last_insert_id("","","","");
 $sthNew->finish();
-
-# Legacy fulfillment confirmation
-$sthNew = $dbhNew->prepare("INSERT INTO fulfillment(date, who, how)" .
-                           "values(date('now'), 'bkuhn', 'legacy import of old database; exact details of this fulfillment are unknown')");
-$sthNew->execute();
-my $fulfillmentId = $dbhNew->last_insert_id("","","","");
-$sthNew->finish();
-
-my $sthInsertRequest = $dbhNew->prepare('INSERT INTO request' .
-     '(supporter_id, request_type_id, request_configuration_id, date_requested, fulfillment_id, notes) ' .
-     "values(?, ?, ?, date('now'), ?," .
-     '"import of old database; exact date of this request is unknown")');
 
 my $sthOld = $dbhOld->prepare('SELECT * from supporters order by id;');
 $sthOld->execute();
@@ -58,24 +43,31 @@ while (my $row = $sthOld->fetchrow_hashref) {
   $row->{email_address_type} = 'paypal';
   $row->{email_address} = $row->{paypal_payer};
   my $supporterId = $sp->addSupporter($row);
-  
+
   die("Database conversion failed on id matching: $row->{ledger_entity_id} had ID $row->{id} now has $supporterId")
       unless ($row->{id} == $supporterId);
   if ($row->{want_gift}) {
     die "DB Convert Fail: Unknown shirt size of $row->{shirt_size} when someone wanted a shirt"
       unless defined $tShirt0SizeRequestConfigurationIds{$row->{shirt_size}};
-    $sthInsertRequest->execute($supporterId, $tShirt0RequestTypeId,
-                               $tShirt0SizeRequestConfigurationIds{$row->{shirt_size}},
-                               ($row->{gift_sent} ? $fulfillmentId : undef));
+    my $requestParamaters = { supporterId => $supporterId, requestConfiguration => $row->{shirt_size}, requestType => 't-shirt-0' };
+    $sp->addRequest($requestParamaters);
+    if ($row->{gift_sent}) {
+      $requestParamaters->{who} = 'bkuhn';
+      $requestParamaters->{how} = 'legacy import of old database; exact details of this fulfillment are unknown';
+      $sp->fulfillRequest($requestParamaters);
+    }
   }
   if ($row->{join_list}) {
-    $sthInsertRequest->execute($supporterId, $announceEmailListRequestTypeId, undef,
-                               ($row->{on_announce_mailman_list} ? $fulfillmentId : undef));
+    my $requestParamaters = { supporterId => $supporterId,  requestType => "join-announce-email-list" };
+    $sp->addRequest($requestParamaters);
+    if ($row->{on_announce_mailing_list}) {
+      $requestParamaters->{who} = 'bkuhn';
+      $requestParamaters->{how} = 'legacy import of old database; exact details of this fulfillment are unknown';
+      $sp->fulfillRequest($requestParamaters);
   }
   $sp->addPostalAddress($supporterId, $row->{formatted_address}, 'paypal');
 }
-foreach my $sth (($sthOld, $sthOld, $sthInsertRequest)) {
-  $sth->finish();
+$sthOld->finish();
 }
 foreach my $dbh ($dbhNew, $dbhOld) {
   $dbhNew->disconnect();
