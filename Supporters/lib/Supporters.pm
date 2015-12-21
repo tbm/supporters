@@ -288,7 +288,54 @@ sub setPreferredEmailAddress($$$) {
   $self->dbh->do("UPDATE supporter_email_address_mapping " .
                  "SET preferred = " . $self->dbh->quote(1, 'SQL_BOOLEAN') . " " .
                  "WHERE email_address_id = " . $self->dbh->quote($emailAddressId, 'SQL_INTEGER'));
+  $self->_commit;
   return $emailAddressId;
+}
+######################################################################
+
+=begin getPreferredEmailAddress
+
+Arguments:
+
+=over
+
+=item $supporterId
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+
+=item $emailAddress
+
+   Scalar string that contains an email address.  undef is returned if the
+   email address is not already in the database for this supporter.
+
+=back
+
+Returns the email_address_id of the preferred email address.  undef can be
+returned; it means the preferred email address wasn't selected for some reason.
+
+=cut
+
+sub getPreferredEmailAddress($$) {
+  my($self, $supporterId) = @_;
+
+  die "setPreferredEmailAddress: invalid supporter id, $supporterId" unless $self->_verifyId($supporterId);
+
+  my $ems = $self->dbh()->selectall_hashref("SELECT email_address FROM email_address em, supporter_email_address_mapping sem " .
+                                            "WHERE preferred AND sem.email_address_id = em.id AND " .
+                                            "sem.supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
+                                            'email_address');
+  my $rowCount = scalar keys %{$ems};
+  die "setPreferredEmailAddress: DATABASE INTEGRITY ERROR: more than one email address is preferred for supporter, \"$supporterId\""
+    if $rowCount > 1;
+
+  if ($rowCount != 1) {
+    return undef;
+  } else {
+    my ($emailAddress) = keys %$ems;
+    return $emailAddress;
+  }
 }
 ######################################################################
 
