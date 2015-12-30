@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 185;
+use Test::More tests => 189;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -513,40 +513,54 @@ is($ret, 'drapper@example.org', "getPreferredEmailAddress: ....and returns the c
 
 =cut
 
-my $lookupDonorId;
+my @lookupDonorIds;
 
-dies_ok { $lookupDonorId = $sp->findDonor({}); }
+dies_ok { @lookupDonorIds = $sp->findDonor({}); }
         "findDonor: no search criteria dies";
 
-lives_ok { $lookupDonorId = $sp->findDonor({ledgerEntityId => "NotFound" }); }
+lives_ok { @lookupDonorIds = $sp->findDonor({ledgerEntityId => "NotFound" }); }
         "findDonor: 1 lookup of known missing succeeds ...";
 
-is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+is(scalar(@lookupDonorIds), 0, "findDonor: ... but finds nothing.");
 
-lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => "nothingthere" }); }
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => "nothingthere" }); }
         "findDonor: 2 lookup of known missing succeeds ...";
 
-is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+is(scalar(@lookupDonorIds), 0, "findDonor: ... but finds nothing.");
 
-lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'drapper@example.org', ledgerEntityId => "NOTFOUND" }); }
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'drapper@example.org', ledgerEntityId => "NOTFOUND" }); }
        "findDonor: 1 and'ed criteria succeeds   ...";
 
-is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+is(scalar(@lookupDonorIds), 0, "findDonor: ... but finds nothing.");
 
-lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'NOTFOUND', ledgerEntityId => "Whitman-Dick" }); }
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'NOTFOUND', ledgerEntityId => "Whitman-Dick" }); }
        "findDonor: 2 and'ed criteria succeeds   ...";
 
-is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+is(scalar(@lookupDonorIds), 0, "findDonor: ... but finds nothing.");
 
-lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'drapper@example.org', ledgerEntityId => "Whitman-Dick" }); }
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'drapper@example.org', ledgerEntityId => "Whitman-Dick" }); }
        "findDonor: 1 valid multiple criteria succeeds   ...";
 
-is($lookupDonorId, $drapperId, "findDonor: ... and finds right entry.");
+is_deeply(\@lookupDonorIds, [$drapperId], "findDonor: ... and finds right entry.");
 
-   lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'drapper@example.com', ledgerEntityId => "Whitman-Dick" }); }
-       "findDonor: 1 valid multiple criteria succeeds   ...";
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'everyone@example.net', ledgerEntityId => "Whitman-Dick" }); }
+       "findDonor: 2 valid multiple criteria succeeds   ...";
 
-is($lookupDonorId, $drapperId, "findDonor: ... and finds right entry.");
+is_deeply(\@lookupDonorIds, [$drapperId], "findDonor: ... and finds right entry.");
+
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'everyone@example.net', ledgerEntityId => "Olson-Margaret" }); }
+       "findDonor: 3 valid multiple criteria succeeds   ...";
+
+is_deeply(\@lookupDonorIds, [$olsonId], "findDonor: ... and finds right entry.");
+
+lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'everyone@example.net'}); }
+       "findDonor: single criteria find expecting multiple records succeeds...";
+
+my(%vals);
+@vals{@lookupDonorIds} = @lookupDonorIds;
+
+is_deeply(\%vals, { $olsonId => $olsonId, $drapperId => $drapperId }, "findDonor: ... and finds the right entires.");
+
 
 
 =item Internal methods used only by the module itself.
