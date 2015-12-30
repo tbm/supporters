@@ -249,15 +249,15 @@ foreach my $size (@sizeList) {
 
 =cut
 
-dies_ok { $sp->addRequest({}); }  "addRequest: dies if supporterId not specified.";
+dies_ok { $sp->addRequest({}); }  "addRequest: dies if donorId not specified.";
 
-dies_ok { $sp->addRequest({ supporterId => $drapperId }); }
+dies_ok { $sp->addRequest({ donorId => $drapperId }); }
         "addRequest: dies if requestTypeId / requestType not specified.";
 
-dies_ok { $sp->addRequest({ supporterId => 0, requestTypeId => $tShirt0RequestTypeId }); }
-        "addRequest: dies if supporterId invalid.";
+dies_ok { $sp->addRequest({ donorId => 0, requestTypeId => $tShirt0RequestTypeId }); }
+        "addRequest: dies if donorId invalid.";
 
-dies_ok { $sp->addRequest({ supporterId => $drapperId, requestTypeId => 0 }); }
+dies_ok { $sp->addRequest({ donorId => $drapperId, requestTypeId => 0 }); }
         "addRequest: dies if requestTypeId invalid.";
 
 is($sp->{__NESTED_TRANSACTION_COUNTER__}, 0, "addRequest: assure proper beginWork/commit matching.");
@@ -265,7 +265,7 @@ is($sp->{__NESTED_TRANSACTION_COUNTER__}, 0, "addRequest: assure proper beginWor
 my $emailListRequestId;
 
 lives_ok { $emailListRequestId =
-             $sp->addRequest({ supporterId => $drapperId, requestType => "join-announce-email-list" }); }
+             $sp->addRequest({ donorId => $drapperId, requestType => "join-announce-email-list" }); }
         "addRequest: succeeds with a requestType but no configuration parameter.";
 
 ok( (defined $emailListRequestId and looks_like_number($emailListRequestId) and $emailListRequestId > 0),
@@ -278,7 +278,7 @@ ok((defined $joinEmailListRequestId and looks_like_number($joinEmailListRequestI
 my $tshirtSmallRequestId;
 
 lives_ok { $tshirtSmallRequestId =
-             $sp->addRequest({ supporterId => $drapperId, requestType => "t-shirt-small-only",
+             $sp->addRequest({ donorId => $drapperId, requestType => "t-shirt-small-only",
                                requestConfiguration => 'Small',
                                notes => 'he probably needs a larger size but this shirt has none'}); }
         "addRequest: succeeds with a requestType and requestConfiguration and a note.";
@@ -288,7 +288,7 @@ ok( (defined $tshirtSmallRequestId and looks_like_number($tshirtSmallRequestId) 
 
 my $tShirt0RequestId;
 lives_ok { $tShirt0RequestId =
-             $sp->addRequest({ supporterId => $drapperId, requestTypeId => $tShirt0RequestTypeId,
+             $sp->addRequest({ donorId => $drapperId, requestTypeId => $tShirt0RequestTypeId,
                                requestConfigurationId => $tShirt0Data->{$tShirt0RequestTypeId}{'MenL'} }); }
         "addRequest: succeeds with a requestTypeId and requestConfigurationId with no a note.";
 
@@ -306,23 +306,23 @@ my $fulfillRequestId;
 
 dies_ok { $fulfillRequestId = $sp->fulfillRequest( { requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
-     "fulfillRequest: dies if supporterId not specified";
+     "fulfillRequest: dies if donorId not specified";
 
-dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId + 1000,
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { donorId => $drapperId + 1000,
                                             requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
-     "fulfillRequest: dies if supporterId not found in database";
+     "fulfillRequest: dies if donorId not found in database";
 
-dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,  who => 'joe',
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { donorId => $drapperId,  who => 'joe',
                                                     how => "in-person delivery" }); }
      "fulfillRequest: dies if requestType not specified";
 
-dies_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,
+dies_ok { $fulfillRequestId = $sp->fulfillRequest( { donorId => $drapperId,
                                                    requestType => "t-shirt-small-only",
                                                     how => "in-person delivery" }); }
      "fulfillRequest: dies if who not specified";
 
-lives_ok { $fulfillRequestId = $sp->fulfillRequest( { supporterId => $drapperId,
+lives_ok { $fulfillRequestId = $sp->fulfillRequest( { donorId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
      "fulfillRequest: succeeds for existing request";
@@ -338,7 +338,7 @@ is_deeply($val, { $fulfillRequestId => { id => $fulfillRequestId, date => $today
           "fulfillRequest: databse entry from successful return is correct");
 
 my $badFR;
-lives_ok { $badFR = $sp->fulfillRequest( { supporterId => $drapperId, who => 'john',
+lives_ok { $badFR = $sp->fulfillRequest( { donorId => $drapperId, who => 'john',
                                                    requestType => "does-not-exist",
                                                     how => "in-person delivery" }); }
      "fulfillRequest: attempt to fulfill a request never made does not die...";
@@ -352,7 +352,7 @@ is($sp->getRequestType("does-not-exist"), undef,
 
 my $lookedUpFulfillmentId;
 
-lives_ok { $lookedUpFulfillmentId = $sp->fulfillRequest( { supporterId => $drapperId,
+lives_ok { $lookedUpFulfillmentId = $sp->fulfillRequest( { donorId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'peggy',
                                                     how => "left in his office." }); }
      "fulfillRequest: attempt to fulfill an already-fulfill request does not die ...";
@@ -364,9 +364,9 @@ is($lookedUpFulfillmentId, $fulfillRequestId,
 
 =cut
 
-dies_ok { $sp->getRequest(undef, undef); }  "getRequest: dies if supporterId not specified.";
+dies_ok { $sp->getRequest(undef, undef); }  "getRequest: dies if donorId not specified.";
 
-dies_ok { $sp->getRequest(0, "t-shirt-small-only"); } "getRequest: dies if supporterId invalid.";
+dies_ok { $sp->getRequest(0, "t-shirt-small-only"); } "getRequest: dies if donorId invalid.";
 
 dies_ok { $sp->getRequest($drapperId, undef); }
         "getRequest: dies if requestType not specified.";

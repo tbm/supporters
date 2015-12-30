@@ -237,7 +237,7 @@ Arguments:
 
 =over
 
-=item $supporterId
+=item $donorId
 
    Valid supporter id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
@@ -256,9 +256,9 @@ returned; it means the preferred email address wasn't selected for some reason.
 =cut
 
 sub setPreferredEmailAddress($$$) {
-  my($self, $supporterId, $emailAddress) = @_;
+  my($self, $donorId, $emailAddress) = @_;
 
-  die "setPreferredEmailAddress: invalid supporter id, $supporterId" unless $self->_verifyId($supporterId);
+  die "setPreferredEmailAddress: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
   die "setPreferredEmailAddress: email address not defined" unless defined $emailAddress;
   die "setPreferredEmailAddress: invalid email address, $emailAddress"
     unless Mail::RFC822::Address::valid($emailAddress);
@@ -266,7 +266,7 @@ sub setPreferredEmailAddress($$$) {
   my $ems = $self->dbh()->selectall_hashref("SELECT ea.email_address, ea.id, sem.preferred " .
                                             "FROM email_address ea, donor_email_address_mapping sem " .
                                             "WHERE ea.id = sem.email_address_id AND ".
-                                            "sem.donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
+                                            "sem.donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'),
                                             'email_address');
   # Shortcut: it was already set
   return $ems->{$emailAddress}{id} if (defined $ems->{$emailAddress} and $ems->{$emailAddress}{preferred});
@@ -284,7 +284,7 @@ sub setPreferredEmailAddress($$$) {
   if ($anotherPreferred) {
     $self->dbh->do("UPDATE donor_email_address_mapping " .
                      "SET preferred = " . $self->dbh->quote(0, 'SQL_BOOLEAN') . " " .
-                     "WHERE donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'));
+                     "WHERE donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'));
   }
   $self->dbh->do("UPDATE donor_email_address_mapping " .
                  "SET preferred = " . $self->dbh->quote(1, 'SQL_BOOLEAN') . " " .
@@ -300,7 +300,7 @@ Arguments:
 
 =over
 
-=item $supporterId
+=item $donorId
 
    Valid supporter id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
@@ -319,16 +319,16 @@ returned; it means the preferred email address wasn't selected for some reason.
 =cut
 
 sub getPreferredEmailAddress($$) {
-  my($self, $supporterId) = @_;
+  my($self, $donorId) = @_;
 
-  die "setPreferredEmailAddress: invalid supporter id, $supporterId" unless $self->_verifyId($supporterId);
+  die "setPreferredEmailAddress: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
 
   my $ems = $self->dbh()->selectall_hashref("SELECT email_address FROM email_address em, donor_email_address_mapping sem " .
                                             "WHERE preferred AND sem.email_address_id = em.id AND " .
-                                            "sem.donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
+                                            "sem.donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'),
                                             'email_address');
   my $rowCount = scalar keys %{$ems};
-  die "setPreferredEmailAddress: DATABASE INTEGRITY ERROR: more than one email address is preferred for supporter, \"$supporterId\""
+  die "setPreferredEmailAddress: DATABASE INTEGRITY ERROR: more than one email address is preferred for supporter, \"$donorId\""
     if $rowCount > 1;
 
   if ($rowCount != 1) {
@@ -566,7 +566,7 @@ Arguments:
 
 =over
 
-=item $supporterId
+=item $donorId
 
    Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
@@ -589,7 +589,7 @@ Returns:
 
 =item undef
 
-      if the C<$requestType> is not found for C<$supporterId> (or, as above,
+      if the C<$requestType> is not found for C<$donorId> (or, as above,
       the C<$requestType> is found but has been fufilled and
       C<$ignoreFulfilledRequests>.
 
@@ -645,17 +645,17 @@ If the request has been fufilled, the following keys will also ahve values.
 =cut
 
 sub getRequest($$;$) {
-  my($self, $supporterId, $requestType, $ignoreFulfilledRequests) = @_;
+  my($self, $donorId, $requestType, $ignoreFulfilledRequests) = @_;
 
-  die "getRequest: undefined supporterId" unless defined $supporterId;
-  die "getRequest: supporterId, \"$supporterId\" not found in supporter database"
-    unless $self->_verifyId($supporterId);
+  die "getRequest: undefined donorId" unless defined $donorId;
+  die "getRequest: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
 
   die "getRequest: undefined requestType" unless defined $requestType;
 
   my $req = $self->dbh()->selectall_hashref("SELECT r.id, r.request_type_id, r.request_configuration_id, r.date_requested, r.notes, rt.type " .
                                             "FROM request r, request_type rt WHERE r.request_type_id = rt.id AND " .
-                                            "r.donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER') .
+                                            "r.donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER') .
                                             " AND rt.type = " . $self->dbh->quote($requestType),
                                             'type');
   return undef unless (defined $req and defined $req->{$requestType} and defined $req->{$requestType}{'id'});
@@ -700,7 +700,7 @@ A hash reference, the following keys are considered:
 
 =over
 
-=item supporterId
+=item donorId
 
    Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
@@ -739,10 +739,10 @@ Returns the id value of the request entry.
 
 sub addRequest($$) {
   my($self, $params) = @_;
-  die "addRequest: undefined supporterId" unless defined $params->{supporterId};
-  my $supporterId = $params->{supporterId};
-  die "addRequest: supporterId, \"$supporterId\" not found in supporter database"
-    unless $self->_verifyId($supporterId);
+  die "addRequest: undefined donorId" unless defined $params->{donorId};
+  my $donorId = $params->{donorId};
+  die "addRequest: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
 
   $self->_beginWork;
   eval {
@@ -764,7 +764,7 @@ sub addRequest($$) {
 
   my $sth = $self->dbh->prepare("INSERT INTO request(donor_id, request_type_id, request_configuration_id, notes, date_requested) " .
                                              "VALUES(?,            ?,               ?,                        ?,      date('now'))");
-  $sth->execute($supporterId, $params->{requestTypeId}, $params->{requestConfigurationId}, $params->{notes});
+  $sth->execute($donorId, $params->{requestTypeId}, $params->{requestConfigurationId}, $params->{notes});
   my $id = $self->dbh->last_insert_id("","","","");
   $self->_commit;
   return $id;
@@ -783,7 +783,7 @@ A hash reference, the following keys are considered:
 
 =over
 
-=item supporterId
+=item donorId
 
    Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
@@ -793,7 +793,7 @@ A hash reference, the following keys are considered:
    requestType of the request to be fulfilled.  die() will occur if this is
    undefined.  undef is returned if there is no unfulfilled request of
    requestType in the database for supporter identified by
-   C<$params->{supporterId}>
+   C<$params->{donorId}>
 
 =item who
 
@@ -815,14 +815,14 @@ Returns the id value of the fulfillment entry.
 
 sub fulfillRequest($$) {
   my($self, $params) = @_;
-  die "fulfillRequest: undefined supporterId" unless defined $params->{supporterId};
-  my $supporterId = $params->{supporterId};
-  die "fulfillRequest: supporterId, \"$supporterId\" not found in supporter database"
-    unless $self->_verifyId($supporterId);
+  die "fulfillRequest: undefined donorId" unless defined $params->{donorId};
+  my $donorId = $params->{donorId};
+  die "fulfillRequest: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
   die "fulfillRequest: undefined who" unless defined $params->{who};
   die "fulfillRequest: undefined requestType" unless defined $params->{requestType};
 
-  my $req = $self->getRequest($supporterId, $params->{requestType});
+  my $req = $self->getRequest($donorId, $params->{requestType});
   return undef if not defined $req;
   my $requestId = $req->{requestId};
   return undef if not defined $requestId;
