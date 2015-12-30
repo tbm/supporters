@@ -381,6 +381,25 @@ for it.
 
 =cut
 
+sub getLedgerEntityId($$) {
+  my($self, $donorId) = @_;
+
+  die "getLedgerEntityId: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
+
+  my $lei = $self->dbh()->selectall_hashref("SELECT ledger_entity_id FROM donor WHERE id = " .
+                                            $self->dbh->quote($donorId, 'SQL_INTEGER'),
+                                            'ledger_entity_id');
+  my $rowCount = scalar keys %{$lei};
+  die "setPreferredEmailAddress: DATABASE INTEGRITY ERROR: more than one email address is preferred for supporter, \"$donorId\""
+    if $rowCount > 1;
+
+  if ($rowCount == 1) {
+    my ($ledgerEntityId) = keys %$lei;
+    return $ledgerEntityId;
+  } else {
+    die "getLedgerEntityId: DATABASE INTEGRITY ERROR: $donorId was valid but non-1 row count returned";
+  }
+}
 ######################################################################
 
 =begin addPostalAddress
