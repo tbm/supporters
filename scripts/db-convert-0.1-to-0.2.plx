@@ -49,7 +49,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   $row->{email_address_type} = 'paypal';
   $row->{email_address} = $row->{paypal_payer};
   my $donorId = $sp->addSupporter($row);
-
+  print STDERR "Processing $donorId from $row->{id}, $row->{ledger_entity_id}\n ..." if ($VERBOSE);
   die("Database conversion failed on id matching: $row->{ledger_entity_id} had ID $row->{id} now has $donorId")
       unless ($row->{id} == $donorId);
   if ($row->{want_gift}) {
