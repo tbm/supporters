@@ -23,7 +23,7 @@ my $dbhNew = DBI->connect("dbi:SQLite:dbname=$NEW_SUPPORTERS_SQLITE_DB_FILE", ""
                                { RaiseError => 1, sqlite_unicode => 1 })
   or die $DBI::errstr;
 
-my $sp = new Supporter($dbhNew, "/usr/bin/ledger");
+my $sp = new Supporters($dbhNew, "/usr/bin/ledger");
 
 # Insert t-shirt types and sizes
 
