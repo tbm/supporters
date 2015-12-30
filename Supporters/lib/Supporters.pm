@@ -975,6 +975,40 @@ sub _lookupRequestTypeById($$) {
     return undef;
   }
 }
+######################################################################
+
+=item _lookupEmailAddressId()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=item $emailAdress: A scalar string argument that is the email_adress
+
+
+=back
+
+Returns: scalar, which is the email_address.id found iff. the C<$emailAddress> is valid and
+already in the supporter database's email_address table.
+
+=cut
+
+
+sub _lookupEmailAddressId($$) {
+  my($self, $emailAddress) = @_;
+
+  die "_lookupEmailAddressId() called with undef" unless defined $emailAddress;
+
+  my $val = $self->dbh()->selectall_hashref("SELECT id, email_address FROM email_address WHERE email_address = " .
+                                            $self->dbh->quote($emailAddress), 'email_address');
+  if (defined $val and defined $val->{$emailAddress}) {
+    return $val->{$emailAddress}{id};
+  } else {
+    return undef;
+  }
+}
 
 =item _getOrCreateRequestType
 

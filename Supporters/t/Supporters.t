@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 173;
+use Test::More tests => 176;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -538,6 +538,17 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
 
+=item _lookupEmailAddressId
+
+=cut
+
+dies_ok { $sp->_lookupEmailAddressId(undef); } "_lookupEmailAddressId: dies for undefined email_address";
+
+is($sp->_lookupEmailAddressId('drapper@example.org'), $drapperEmailId,
+    "_lookupEmailAddressId: returns email Id for known item");
+
+is($sp->_lookupEmailAddressId('drapper@example.com'), undef,
+    "_lookupEmailAddressId: returns undef for unknown item.");
 
 $sp = undef;
 
