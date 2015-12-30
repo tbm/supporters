@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 193;
+use Test::More tests => 198;
 use Test::Exception;
 use Sub::Override;
 
@@ -52,10 +52,25 @@ dies_ok { $sp = new Supporters(undef, "test"); }
 dies_ok { $sp = new Supporters(bless({}, "Not::A::Real::Module"), "test"); }
         "new: dies when dbh is blessed into another module.";
 
-$sp = new Supporters($dbh, "testcmd");
+dies_ok { $sp = new Supporters($dbh, "testcmd"); }
+        "new: dies when if the command is a string.";
+
+dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {}); }
+        "new: dies when programTypeSearch is an empty hash.";
+
+dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {monthly => 'test', annual => 'test', dummy => 'test' }); }
+        "new: dies when programTypeSearch has stray value.";
+
+dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {monthly => 'test' }); }
+        "new: dies when programTypeSearch key annual is missing .";
+
+dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {annual => 'test' }); }
+        "new: dies when programTypeSearch key monthly is missing .";
+
+$sp = new Supporters($dbh, [ "testcmd" ]);
 
 is($dbh, $sp->dbh(), "new: verify dbh set");
-is("testcmd", $sp->ledgerCmd(), "new: verify ledgerCmd set");
+is_deeply($sp->ledgerCmd(),  ["testcmd" ], "new: verify ledgerCmd set");
 
 
 =pod
@@ -625,7 +640,7 @@ $sp = undef;
 sub ResetDB($) {
   $_[0]->disconnect() if defined $_[0];
   my $tempDBH = get_test_dbh();
-  my $tempSP = new Supporters($tempDBH, "testcmd");
+  my $tempSP = new Supporters($tempDBH, [ "testcmd" ]);
   return ($tempDBH, $tempSP);
 }
 

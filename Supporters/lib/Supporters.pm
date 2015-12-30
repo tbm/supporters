@@ -29,7 +29,7 @@ our @EXPORT = qw(
 
 our $VERSION = '0.02';
 
-use Scalar::Util qw(looks_like_number blessed);
+use Scalar::Util qw(looks_like_number blessed reftype);
 use Mail::RFC822::Address;
 use Carp qw(confess);
 
@@ -51,22 +51,40 @@ Arguments:
 
 =item $ledgerCmd
 
-   Scalar string that contains the main ledger command (without arguments) to
-   run for looking up Supporter donation data.
+   A list reference that contains the main ledger command with any necessary
+   arguments, for looking up donation data.  The options should be presented
+   such that the output is in the form:
+         ProgramTag  Date   Entity   Amount
+
+=item $programTypeSearch
+
+   This hash should have two keys: "monthly" and "annual".  The values of the
+   hash should be a regular expression that matches the ProgramTag lines for
+   categorization of the donations in annual or monthly buckets.
+
 
 =back
 
 =cut
 
-sub new ($$) {
+sub new ($$;$) {
   my $package = shift;
-  my($dbh, $ledgerCmd) = @_;
+  my($dbh, $ledgerCmd, $programTypeSearch) = @_;
+
+  die "new: second argument must be a list ref for the ledger command line"
+    unless (defined $ledgerCmd and ref $ledgerCmd and (reftype($ledgerCmd) eq 'ARRAY'));
+
+  die "new: keys annual and monthly must be the only keys in this hash"
+      if defined $programTypeSearch and (not (defined $programTypeSearch->{monthly} and defined $programTypeSearch->{annual}
+      and scalar(keys(%$programTypeSearch) == 2)));
+
+  die "new: first argument must be a database handle"
+    unless (defined $dbh and blessed($dbh) =~ /DBI/);
 
   my $self = bless({ dbh => $dbh, ledgerCmd => $ledgerCmd },
                    $package);
 
-  die "new: first argument must be a database handle"
-    unless (defined $dbh and blessed($dbh) =~ /DBI/);
+  $self->{programTypeSearch} = $programTypeSearch if defined $programTypeSearch;
 
   # Turn off AutoCommit, and create our own handler that resets the
   # begin_work/commit reference counter.
