@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 160;
+use Test::More tests => 173;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -481,6 +481,46 @@ lives_ok { $ret = $sp->getPreferredEmailAddress($drapperId) }
 is($ret, 'drapper@example.org', "getPreferredEmailAddress: ....and returns the correct value.");
 
 =back
+
+=item findDonor
+
+=cut
+
+my $lookupDonorId;
+
+dies_ok { $lookupDonorId = $sp->findDonor({}); }
+        "findDonor: no search criteria dies";
+
+lives_ok { $lookupDonorId = $sp->findDonor({ledgerEntityId => "NotFound" }); }
+        "findDonor: 1 lookup of known missing succeeds ...";
+
+is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+
+lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => "nothingthere" }); }
+        "findDonor: 2 lookup of known missing succeeds ...";
+
+is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+
+lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'drapper@example.org', ledgerEntityId => "NOTFOUND" }); }
+       "findDonor: 1 and'ed criteria succeeds   ...";
+
+is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+
+lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'NOTFOUND', ledgerEntityId => "Whitman-Dick" }); }
+       "findDonor: 2 and'ed criteria succeeds   ...";
+
+is($lookupDonorId, undef, "findDonor: ... but finds nothing.");
+
+lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'drapper@example.org', ledgerEntityId => "Whitman-Dick" }); }
+       "findDonor: 1 valid multiple criteria succeeds   ...";
+
+is($lookupDonorId, $drapperId, "findDonor: ... and finds right entry.");
+
+   lives_ok { $lookupDonorId = $sp->findDonor({emailAddress => 'drapper@example.com', ledgerEntityId => "Whitman-Dick" }); }
+       "findDonor: 1 valid multiple criteria succeeds   ...";
+
+is($lookupDonorId, $drapperId, "findDonor: ... and finds right entry.");
+
 
 =item Internal methods used only by the module itself.
 
