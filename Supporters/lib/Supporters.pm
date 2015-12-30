@@ -359,6 +359,28 @@ sub getPreferredEmailAddress($$) {
     return $emailAddress;
   }
 }
+
+######################################################################
+
+=begin getLedgerEntityId
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns the ledger_entity_id of the donor.  Since the method die()s for an
+invalid donor id, undef should never be returned and callers need not test
+for it.
+
+=cut
+
 ######################################################################
 
 =begin addPostalAddress

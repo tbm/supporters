@@ -8,8 +8,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 189;
+use Test::More tests => 193;
 use Test::Exception;
+use Sub::Override;
 
 use Scalar::Util qw(looks_like_number reftype);
 use POSIX qw(strftime);
@@ -104,6 +105,26 @@ ok((defined $val and defined $val->{$olsonId}{email_address_id} and $val->{$olso
    "addSuporter: email address mapping is created on addSupporter() w/ email address included");
 
 my $olsonFirstEmailId = $val->{$olsonId}{email_address_id};
+
+=item getLedgerEntityId
+
+=cut
+
+dies_ok { my $ledgerId = $sp->getLedgerEntityId(0); }
+        "getLedgerEntityId: fails when rows are not returned but _verifyId() somehow passed";
+
+# Replace _verifyId() to always return true
+
+my $overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+dies_ok { my $ledgerId = $sp->getLedgerEntityId(0); }
+        "getLedgerEntityId: fails when rows are not returned but _verifyId() somehow passed";
+$overrideSub->restore;
+
+my $olsonLedgerEntity;
+lives_ok { $olsonLedgerEntity = $sp->getLedgerEntityId($olsonId); }
+  "getLedgerEntityId: lives when valid id is given...";
+
+is($olsonLedgerEntity, "Olson-Margaret",  "getLedgerEntityId: ...and return value is correct.");
 
 =item addEmailAddress
 
@@ -736,12 +757,16 @@ dies_ok { $tempSP->addSupporter({ display_name => "Roger Sterling",
                                   email_address_type => 'home' }) }
         "addSupporter: dies when email_address table does not exist & email adress given";
 
+
 $tempDBH->disconnect; $tempDBH = reopen_test_dbh();
 
 $val = $tempDBH->selectall_hashref("SELECT id FROM donor;", 'id');
 
 ok( (defined $val and reftype $val eq "HASH" and keys(%{$val}) == 0),
     "addSupporter: fails if email_address given but email cannot be inserted");
+
+$tempDBH->disconnect; $tempDBH = reopen_test_dbh();
+
 
 
 =back
