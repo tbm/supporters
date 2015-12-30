@@ -7,7 +7,7 @@ use DBI;
 use Encode qw(encode decode);
 use Supporters;
 
-if (@ARGV != 2 or @ARGV !=3) {
+if (@ARGV != 2 and @ARGV !=3) {
   print STDERR "usage: $0 <OLD_SUPPORTERS_SQLITE_DB_FILE> <NEW_SUPPORTERS_SQLITE_DB_FILE> <VERBOSITY_LEVEL>\n";
   exit 1;
 }
