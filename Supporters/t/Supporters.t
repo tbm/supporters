@@ -387,8 +387,8 @@ is($tt->{requestConfiguration}, 'Small', "getRequest: configuration is correct."
 is($tt->{notes}, 'he probably needs a larger size but this shirt has none',
    "getRequest: notes are correct.");
 
-lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestType => 't-shirt-0' } ); }
-         "getRequest: succeeds with valid parameters.";
+lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestTypeId => $tShirt0RequestTypeId } ); }
+         "getRequest: succeeds with valid parameters, using requestTypeId.";
 
 is($tt->{requestType}, 't-shirt-0', "getRequest: requestType is correct.");
 is($tt->{requestDate}, $today, "getRequest: request date is today.");
