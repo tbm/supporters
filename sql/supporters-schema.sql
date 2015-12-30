@@ -18,7 +18,6 @@ CREATE TABLE "request" (
     "request_type_id" integer NOT NULL,
     "request_configuration_id" integer,
     "date_requested" date NOT NULL,
-    "fulfillment_id" integer,
     "notes" TEXT
     );
 
