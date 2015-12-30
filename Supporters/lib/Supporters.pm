@@ -201,9 +201,19 @@ sub addEmailAddress($$$$) {
     unless defined $emailAddressType and Mail::RFC822::Address::valid($emailAddress);
 
   my $existingEmail = $self->_lookupEmailAddress($emailAddress);
-  die "addEmailAddress: attempt to add email address that exists, using a different type!"
-    if defined $existingEmail and $existingEmail->{type} ne $emailAddressType;
 
+  if (defined $existingEmail) {
+    die "addEmailAddress: attempt to add email address that exists, using a different type!"
+      if $existingEmail->{type} ne $emailAddressType;
+
+    my $val = $self->dbh()->selectall_hashref("SELECT email_address_id, donor_id " .
+                                              "FROM donor_email_address_mapping WHERE " .
+                                              "donor_id = " . $self->dbh->quote($id, 'SQL_INTEGER') . " AND " .
+                                              "email_address_id = " . $self->dbh->quote($existingEmail->{id}, 'SQL_INTEGER'),
+                                              'donor_id');
+    return $val->{$id}{email_address_id}
+      if (defined $val and defined $val->{$id} and defined $val->{$id}{email_address_id});
+  }
   my($sth, $addressId);
 
   $self->_beginWork();
