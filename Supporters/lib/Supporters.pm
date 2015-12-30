@@ -963,14 +963,8 @@ sub _getOrCreateRequestType($$) {
     $params->{requestTypeId} = $self->addRequestType($params->{requestType});
   } else {
     my $id = $params->{requestTypeId};
-    die "_getOrCreateRequestType(): called with a non-numeric requestTypeId"
-      unless defined $id and looks_like_number($id);
-
-    my $val = $self->dbh()->selectall_hashref("SELECT id FROM request_type WHERE id = " .
-                                              $self->dbh->quote($id, 'SQL_INTEGER'), 'id');
-
-    die "_getOrCreateRequestType(): given requestTypeId, $id, is invalid"
-      unless (defined $val and defined $val->{$id});
+    die "_getOrCreateRequestType(): invalid requestTypeId, \"$id\""
+      unless $self->_verifyRequestTypeId($id);
   }
   delete $params->{requestType};
 }
