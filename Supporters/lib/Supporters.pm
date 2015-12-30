@@ -850,7 +850,8 @@ sub fulfillRequest($$) {
   die "fulfillRequest: donorId, \"$donorId\" not found in supporter database"
     unless $self->_verifyId($donorId);
   die "fulfillRequest: undefined who" unless defined $params->{who};
-  die "fulfillRequest: undefined requestType" unless defined $params->{requestType};
+  die "fulfillRequest: both requestType and requestTypeId undefined"
+    unless defined $params->{requestType} or defined $params->{requestTypeId};
 
   my $req = $self->getRequest($params);
   return undef if not defined $req;

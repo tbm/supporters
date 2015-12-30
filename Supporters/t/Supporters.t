@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 158;
+use Test::More tests => 160;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -359,6 +359,16 @@ lives_ok { $lookedUpFulfillmentId = $sp->fulfillRequest( { donorId => $drapperId
 
 is($lookedUpFulfillmentId, $fulfillRequestId,
      "fulfillRequest: ... but, rather, returns the same value from the previous fulfillRequest() call.");
+
+
+my $newFRID;
+lives_ok { $newFRID = $sp->fulfillRequest( { donorId => $drapperId,
+                                            requestTypeId => $tShirt0RequestTypeId, who => 'john',
+                                                    how => "mailed" }); }
+     "fulfillRequest: succeeds for existing request, using requestTypeId";
+
+ok( (defined $newFRID and looks_like_number($newFRID) and $newFRID > 0 and ($newFRID != $fulfillRequestId)),
+    "fulfillRequest: id returned on successful fulfillRequest() is a number and is not the one returned by previous");
 
 =item getRequest
 
