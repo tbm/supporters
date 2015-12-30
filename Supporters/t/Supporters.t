@@ -654,7 +654,6 @@ ok( (not $tempSP->_lookupRequestTypeById($rr + 1)),
 is($tempSP->_lookupRequestTypeById($rr), "test-request",
     "_lookupRequestTypeById: returns proper result for id known to be in database");
 
-
 =item _getOrCreateRequestConfiguration
 
 =cut
