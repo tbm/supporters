@@ -532,20 +532,20 @@ lives_ok { $tempSP->_getOrCreateRequestType(\%hh); }
 is_deeply(\%hh, { requestTypeId => $rr },
    "_getOrCreateRequestType: deletes requestType if both are provided.");
 
-dies_ok { $tempSP->_verifyRequestTypeId(undef); }
-        "_verifyRequestTypeId: dies for undefined requestTypeId";
+dies_ok { $tempSP->_lookupRequestTypeById(undef); }
+        "_lookupRequestTypeById: dies for undefined requestTypeId";
 
-dies_ok { $tempSP->_verifyRequestTypeId("NoStringsPlease"); }
-        "_verifyRequestTypeId: dies for a string requestTypeId";
+dies_ok { $tempSP->_lookupRequestTypeById("NoStringsPlease"); }
+        "_lookupRequestTypeById: dies for a string requestTypeId";
 
-ok( (not $tempSP->_verifyRequestTypeId(0)), "_verifyRequestTypeId: returns false for id lookup for 0");
+ok( (not $tempSP->_lookupRequestTypeById(0)), "_lookupRequestTypeById: returns false for id lookup for 0");
 
 # Assumption here: that id number one more than the last added would never be in db.
-ok( (not $tempSP->_verifyRequestTypeId($rr + 1)),
-    "_verifyRequestTypeId: returns false for id one greater than last added");
+ok( (not $tempSP->_lookupRequestTypeById($rr + 1)),
+    "_lookupRequestTypeById: returns false for id one greater than last added");
 
-ok( ($tempSP->_verifyRequestTypeId($rr)),
-    "_verifyRequestTypeId: returns true for id known to be in database");
+is($tempSP->_lookupRequestTypeById($rr), "test-request",
+    "_lookupRequestTypeById: returns proper result for id known to be in database");
 
 
 =item _getOrCreateRequestConfiguration

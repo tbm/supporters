@@ -910,7 +910,7 @@ sub _verifyId($$) {
 
 }
 
-=item _verifyRequestTypeId()
+=item _lookupRequestTypeById()
 
 Parameters:
 
@@ -923,22 +923,26 @@ Parameters:
 
 =back
 
-Returns: scalar boolean, which is true iff. the $requestTypeId is valid and
+Returns: scalar, which is the request_type found iff. the C<$requestTypeId> is valid and
 already in the supporter database's request_type table.
 
+Die if the C<$requestTypeId> isn't a number.
 
 =cut
 
 
-sub _verifyRequestTypeId($$) {
+sub _lookupRequestTypeById($$) {
   my($self, $requestTypeId) = @_;
 
   die "_verifyRequestTypeId() called with a non-numeric id" unless defined $requestTypeId and looks_like_number($requestTypeId);
 
-  my $val = $self->dbh()->selectall_hashref("SELECT id FROM request_type WHERE id = " .
+  my $val = $self->dbh()->selectall_hashref("SELECT id, type FROM request_type WHERE id = " .
                                             $self->dbh->quote($requestTypeId, 'SQL_INTEGER'), 'id');
-  return (defined $val and defined $val->{$requestTypeId});
-
+  if (defined $val and defined $val->{$requestTypeId}) {
+    return $val->{$requestTypeId}{type};
+  } else {
+    return undef;
+  }
 }
 
 =item _getOrCreateRequestType
