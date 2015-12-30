@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 182;
+use Test::More tests => 185;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -100,6 +100,8 @@ my $val = $sp->dbh()->selectall_hashref("SELECT donor_id, email_address_id " .
 ok((defined $val and defined $val->{$olsonId}{email_address_id} and $val->{$olsonId}{email_address_id} > 0),
    "addSuporter: email address mapping is created on addSupporter() w/ email address included");
 
+my $olsonFirstEmailId = $val->{$olsonId}{email_address_id};
+
 =item addEmailAddress
 
 =cut
@@ -127,6 +129,15 @@ $val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE na
 
 ok((not defined $val or not defined $val->{'name'}),
    "addEmailAddress: type is not added with email address is bad");
+
+my $sameOlsonId;
+dies_ok { $sameOlsonId = $sp->addEmailAddress($olsonId, 'olson@example.net', 'paypal') }
+         "addEmailAddress: fails adding existing email address with mismatched type.";
+
+lives_ok { $sameOlsonId = $sp->addEmailAddress($olsonId, 'olson@example.net', 'home') }
+         "addEmailAddress: succeeds when adding email that already exists...";
+
+is($sameOlsonId, $olsonFirstEmailId, "addEmailAddress: ... and returns same id.");
 
 my $drapperEmailId;
 
