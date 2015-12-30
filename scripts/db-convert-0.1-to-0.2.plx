@@ -42,14 +42,14 @@ $sthOld->execute();
 while (my $row = $sthOld->fetchrow_hashref) {
   $row->{email_address_type} = 'paypal';
   $row->{email_address} = $row->{paypal_payer};
-  my $supporterId = $sp->addSupporter($row);
+  my $donorId = $sp->addSupporter($row);
 
-  die("Database conversion failed on id matching: $row->{ledger_entity_id} had ID $row->{id} now has $supporterId")
-      unless ($row->{id} == $supporterId);
+  die("Database conversion failed on id matching: $row->{ledger_entity_id} had ID $row->{id} now has $donorId")
+      unless ($row->{id} == $donorId);
   if ($row->{want_gift}) {
     die "DB Convert Fail: Unknown shirt size of $row->{shirt_size} when someone wanted a shirt"
       unless defined $tShirt0SizeRequestConfigurationIds{$row->{shirt_size}};
-    my $requestParamaters = { supporterId => $supporterId, requestConfiguration => $row->{shirt_size}, requestType => 't-shirt-0' };
+    my $requestParamaters = { donorId => $donorId, requestConfiguration => $row->{shirt_size}, requestType => 't-shirt-0' };
     $sp->addRequest($requestParamaters);
     if ($row->{gift_sent}) {
       $requestParamaters->{who} = 'bkuhn';
@@ -58,14 +58,14 @@ while (my $row = $sthOld->fetchrow_hashref) {
     }
   }
   if ($row->{join_list}) {
-    my $requestParamaters = { supporterId => $supporterId,  requestType => "join-announce-email-list" };
+    my $requestParamaters = { donorId => $donorId,  requestType => "join-announce-email-list" };
     $sp->addRequest($requestParamaters);
     if ($row->{on_announce_mailing_list}) {
       $requestParamaters->{who} = 'bkuhn';
       $requestParamaters->{how} = 'legacy import of old database; exact details of this fulfillment are unknown';
       $sp->fulfillRequest($requestParamaters);
   }
-  $sp->addPostalAddress($supporterId, $row->{formatted_address}, 'paypal');
+  $sp->addPostalAddress($donorId, $row->{formatted_address}, 'paypal');
 }
 $sthOld->finish();
 }
