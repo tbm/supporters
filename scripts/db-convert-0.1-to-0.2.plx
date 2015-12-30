@@ -7,6 +7,11 @@ use DBI;
 use Encode qw(encode decode);
 use Supporters;
 
+if (@ARGV != 2) {
+  print STDERR "usage: $0 <OLD_SUPPORTERS_SQLITE_DB_FILE> <NEW_SUPPORTERS_SQLITE_DB_FILE>\n";
+  exit 1;
+}
+
 my($OLD_SUPPORTERS_SQLITE_DB_FILE, $NEW_SUPPORTERS_SQLITE_DB_FILE) = @ARGV;
 
 my $dbhOld = DBI->connect("dbi:SQLite:dbname=$OLD_SUPPORTERS_SQLITE_DB_FILE", "", "",
