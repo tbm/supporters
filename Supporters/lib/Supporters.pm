@@ -893,6 +893,70 @@ sub fulfillRequest($$) {
   }
   return $fulfillRecord->{$requestId}{id};
 }
+
+######################################################################
+
+=begin findDonor
+
+Arguments:
+
+=over
+
+=item $parmas
+
+A hash reference, the following keys are considered, and are "anded" together
+-- in that the donor sought must have all these criteria to be found.
+
+=over
+
+=item emailAddress
+
+   A string containing an email_address from email_address table.
+
+=item ledgerEntityId
+
+   A string containing a ledger_entity_id from the donor table.
+   undefined.  undef is returned if there is no unfulfilled request of
+   requestType in the database for supporter identified by
+   C<$params->{donorId}>
+
+=back
+
+=back
+
+Returns a list of donorIds that meets the criteria, or none if not found.
+
+=cut
+
+sub findDonor($$) {
+  my($self, $params) = @_;
+  die "findDonor: no search criteria given"
+    unless defined $params->{ledgerEntityId} or defined $params->{emailAddress};
+
+  my @donorIds;
+  if (not defined $params->{emailAddress}) {
+    my $ledgerEntityId = $params->{ledgerEntityId};
+    # Simple case: just lookup without a join.
+    my $val = $self->dbh()->selectall_hashref("SELECT id, ledger_entity_id from donor where ledger_entity_id = " .
+                                              $self->dbh->quote($ledgerEntityId),
+                                              "ledger_entity_id");
+    # As Connor MacLeod said,  "There can be only one!"
+    #  (because of  "ledger_entity_id" varchar(300) NOT NULL UNIQUE,)
+    push(@donorIds, $val->{$ledgerEntityId}{id})
+      if (defined $val and defined $val->{$ledgerEntityId} and defined $val->{$ledgerEntityId}{id});
+  } else {
+    my $sql = "SELECT d.id from donor d, email_address ea, donor_email_address_mapping eam " .
+              "WHERE eam.email_address_id = ea.id AND d.id = eam.donor_id AND " .
+              "ea.email_address = " . $self->dbh->quote($params->{emailAddress});
+
+    $sql .= " AND d.ledger_entity_id = " . $self->dbh->quote($params->{ledgerEntityId})
+      if (defined $params->{ledgerEntityId});
+
+    my $val = $self->dbh()->selectall_hashref($sql, 'id');
+    push(@donorIds, keys %{$val}) if (defined $val);
+  }
+  return(@donorIds);
+}
 ######################################################################
 
 =back
