@@ -18,6 +18,11 @@ either pay for hosting or devote some amount of staff time its maintenance.
 Conservancy could afford neither, but this weekend-hack version of a database
 suits our needs (at least for now).
 
+License Information
+-------------------
+
+See the file [LICENSE.md](LICENSE.md) for license information.
+
 Common Tasks
 ------------
 
