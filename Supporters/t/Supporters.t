@@ -538,16 +538,17 @@ dies_ok { $sp->_verifyId("String") } "_verifyId: dies for non-numeric id";
 # This is a hacky way to test this; but should work
 ok(not ($sp->_verifyId($drapperId + 10)), "_verifyId: non-existent id is not found");
 
-=item _lookupEmailAddressId
+=item _lookupEmailAddress
 
 =cut
 
-dies_ok { $sp->_lookupEmailAddressId(undef); } "_lookupEmailAddressId: dies for undefined email_address";
+dies_ok { $sp->_lookupEmailAddress(undef); } "_lookupEmailAddressId: dies for undefined email_address";
 
-is($sp->_lookupEmailAddressId('drapper@example.org'), $drapperEmailId,
+is_deeply($sp->_lookupEmailAddress('drapper@example.org'),
+          { emailAddress => 'drapper@example.org', id => $drapperEmailId, type => 'work', dateEncountered => $today },
     "_lookupEmailAddressId: returns email Id for known item");
 
-is($sp->_lookupEmailAddressId('drapper@example.com'), undef,
+is($sp->_lookupEmailAddress('drapper@example.com'), undef,
     "_lookupEmailAddressId: returns undef for unknown item.");
 
 $sp = undef;

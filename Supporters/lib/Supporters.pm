@@ -977,7 +977,7 @@ sub _lookupRequestTypeById($$) {
 }
 ######################################################################
 
-=item _lookupEmailAddressId()
+=item _lookupEmailAddress()
 
 Parameters:
 
@@ -990,21 +990,36 @@ Parameters:
 
 =back
 
-Returns: scalar, which is the email_address.id found iff. the C<$emailAddress> is valid and
-already in the supporter database's email_address table.
+Returns: undef if the email address is not found, otherwise a hash with the following values:
+
+=over
+
+=item emailAddress: The email address as given
+
+=item id: The email_adress.id
+
+=item type: The email_adress type
+
+=item dateEncountered: The date_encountered of this email address.
+
+=back
 
 =cut
 
 
-sub _lookupEmailAddressId($$) {
+sub _lookupEmailAddress($$) {
   my($self, $emailAddress) = @_;
 
   die "_lookupEmailAddressId() called with undef" unless defined $emailAddress;
 
-  my $val = $self->dbh()->selectall_hashref("SELECT id, email_address FROM email_address WHERE email_address = " .
-                                            $self->dbh->quote($emailAddress), 'email_address');
+  my $val = $self->dbh()->selectall_hashref("SELECT ea.id, ea.email_address, at.name, ea.date_encountered " .
+                                            "FROM email_address ea, address_type at " .
+                                            "WHERE ea.type_id = at.id AND " .
+                                            "email_address = " . $self->dbh->quote($emailAddress),
+                                            'email_address');
   if (defined $val and defined $val->{$emailAddress}) {
-    return $val->{$emailAddress}{id};
+    return { id => $val->{$emailAddress}{id}, emailAddress => $val->{$emailAddress}{email_address},
+             type => $val->{$emailAddress}{name},  dateEncountered => $val->{$emailAddress}{date_encountered}};
   } else {
     return undef;
   }
