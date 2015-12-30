@@ -968,7 +968,7 @@ sub _getOrCreateRequestType($$) {
   } else {
     my $id = $params->{requestTypeId};
     die "_getOrCreateRequestType(): invalid requestTypeId, \"$id\""
-      unless $self->_verifyRequestTypeId($id);
+      unless defined $self->_lookupRequestTypeById($id);
   }
   delete $params->{requestType};
 }
