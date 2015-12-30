@@ -70,11 +70,11 @@ while (my $row = $sthOld->fetchrow_hashref) {
       $requestParamaters->{who} = 'bkuhn';
       $requestParamaters->{how} = 'legacy import of old database; exact details of this fulfillment are unknown';
       $sp->fulfillRequest($requestParamaters);
+    }
   }
   $sp->addPostalAddress($donorId, $row->{formatted_address}, 'paypal');
 }
 $sthOld->finish();
-}
 foreach my $dbh ($dbhNew, $dbhOld) {
   $dbhNew->disconnect();
 }
