@@ -66,7 +66,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
   if ($row->{join_list}) {
     my $requestParamaters = { donorId => $donorId,  requestType => "join-announce-email-list" };
     $sp->addRequest($requestParamaters);
-    if ($row->{on_announce_mailing_list}) {
+    if ($row->{on_announce_mailman_list}) {
       $requestParamaters->{who} = 'bkuhn';
       $requestParamaters->{how} = 'legacy import of old database; exact details of this fulfillment are unknown';
       $sp->fulfillRequest($requestParamaters);
