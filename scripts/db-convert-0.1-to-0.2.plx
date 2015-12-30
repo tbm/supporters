@@ -72,7 +72,7 @@ while (my $row = $sthOld->fetchrow_hashref) {
       $sp->fulfillRequest($requestParamaters);
     }
   }
-  $sp->addPostalAddress($donorId, $row->{formatted_address}, 'paypal');
+  $sp->addPostalAddress($donorId, $row->{formatted_address}, 'paypal') if defined $row->{formatted_address};
 }
 $sthOld->finish();
 foreach my $dbh ($dbhNew, $dbhOld) {
