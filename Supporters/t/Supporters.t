@@ -92,10 +92,10 @@ lives_ok { $olsonId = $sp->addSupporter({ display_name => "Peggy Olson",
 ok( (looks_like_number($olsonId) and $olsonId > $drapperId),
    "addSupporter: add succeeded with email address added.");
 
-my $val = $sp->dbh()->selectall_hashref("SELECT supporter_id, email_address_id " .
-                                        "FROM supporter_email_address_mapping  " .
-                                        "WHERE supporter_id = " . $sp->dbh->quote($olsonId, 'SQL_INTEGER'),
-                                        'supporter_id');
+my $val = $sp->dbh()->selectall_hashref("SELECT donor_id, email_address_id " .
+                                        "FROM donor_email_address_mapping  " .
+                                        "WHERE donor_id = " . $sp->dbh->quote($olsonId, 'SQL_INTEGER'),
+                                        'donor_id');
 
 ok((defined $val and defined $val->{$olsonId}{email_address_id} and $val->{$olsonId}{email_address_id} > 0),
    "addSuporter: email address mapping is created on addSupporter() w/ email address included");
@@ -629,7 +629,7 @@ dies_ok { $tempSP->addSupporter({ display_name => "Roger Sterling",
 
 $tempDBH->disconnect; $tempDBH = reopen_test_dbh();
 
-$val = $tempDBH->selectall_hashref("SELECT id FROM supporter;", 'id');
+$val = $tempDBH->selectall_hashref("SELECT id FROM donor;", 'id');
 
 ok( (defined $val and reftype $val eq "HASH" and keys(%{$val}) == 0),
     "addSupporter: fails if email_address given but email cannot be inserted");

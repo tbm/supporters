@@ -1,19 +1,20 @@
 -- Conservancy Supporter Database, Version 0.2
 
-DROP TABLE IF EXISTS "supporter";
+DROP TABLE IF EXISTS "donor";
 
-CREATE TABLE "supporter" (
+CREATE TABLE "donor" (
     "id" integer NOT NULL PRIMARY KEY,
     "ledger_entity_id" varchar(300) NOT NULL UNIQUE,
     "display_name" varchar(300),
-    "public_ack"   bool NOT NULL
+    "public_ack"   bool,
+    "is_supporter" bool NOT NULL
 );
 
 DROP TABLE IF EXISTS "request";
 
 CREATE TABLE "request" (
     "id" integer NOT NULL PRIMARY KEY,
-    "supporter_id" integer NOT NULL,
+    "donor_id" integer NOT NULL,
     "request_type_id" integer NOT NULL,
     "request_configuration_id" integer,
     "date_requested" date NOT NULL,
@@ -21,8 +22,8 @@ CREATE TABLE "request" (
     "notes" TEXT
     );
 
-CREATE UNIQUE INDEX request__one_request_for_each_type_per_supporter
-   ON request(supporter_id, request_type_id);
+CREATE UNIQUE INDEX request__one_request_for_each_type_per_donor
+   ON request(donor_id, request_type_id);
 
 DROP TABLE IF EXISTS "request_configuration";
 
@@ -63,13 +64,13 @@ CREATE TABLE "email_address" (
     "date_encountered" date NOT NULL
     );
 
-DROP TABLE IF EXISTS "supporter_email_address_mapping";
+DROP TABLE IF EXISTS "donor_email_address_mapping";
 
-CREATE TABLE "supporter_email_address_mapping" (
-    "supporter_id" integer NOT NULL,
+CREATE TABLE "donor_email_address_mapping" (
+    "donor_id" integer NOT NULL,
     "email_address_id" integer NOT NULL,
     "preferred" bool,
-    PRIMARY KEY(supporter_id, email_address_id)
+    PRIMARY KEY(donor_id, email_address_id)
     );
 
 DROP TABLE IF EXISTS "address_type";
@@ -88,15 +89,14 @@ CREATE TABLE "postal_address" (
     "date_encountered" date NOT NULL
     );
 
-DROP TABLE IF EXISTS "supporter_postal_address_mapping";
+DROP TABLE IF EXISTS "donor_postal_address_mapping";
 
-CREATE TABLE "supporter_postal_address_mapping" (
-    "supporter_id" integer NOT NULL,
+CREATE TABLE "donor_postal_address_mapping" (
+    "donor_id" integer NOT NULL,
     "postal_address_id" integer NOT NULL,
     "preferred" bool,
-    PRIMARY KEY(supporter_id, postal_address_id)
+    PRIMARY KEY(donor_id, postal_address_id)
     );
 
-CREATE UNIQUE INDEX supporter_postal_address_mapping_single_prefferred_per_supporter
-   ON supporter_postal_address_mapping(supporter_id, preferred);
-   
+CREATE UNIQUE INDEX donor_postal_address_mapping_single_prefferred_per_donor
+   ON donor_postal_address_mapping(donor_id, preferred);

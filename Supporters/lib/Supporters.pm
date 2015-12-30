@@ -113,8 +113,9 @@ sub addSupporter ($$) {
   }
   $self->_beginWork;
   my $sth = $self->dbh->prepare(
-                      "INSERT INTO supporter(ledger_entity_id, display_name, public_ack)" .
-                                    " values(?,                ?,            ?)");
+                      "INSERT INTO     donor(ledger_entity_id, display_name, public_ack, is_supporter)" .
+                                    " values(?,                ?,            ?, " .
+                                    $self->dbh->quote(1, 'SQL_BOOLEAN') . ')');
 
   $sth->execute($sp->{ledger_entity_id}, $sp->{display_name}, $sp->{public_ack});
   my $id = $self->dbh->last_insert_id("","","","");
@@ -218,9 +219,9 @@ sub addEmailAddress($$$$) {
   my $addressId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
 
-  $sth = $self->dbh->prepare("INSERT INTO supporter_email_address_mapping" .
-                                      "(supporter_id, email_address_id) " .
-                                "VALUES(           ?, ?)");
+  $sth = $self->dbh->prepare("INSERT INTO donor_email_address_mapping" .
+                                      "(donor_id, email_address_id) " .
+                                "VALUES(       ?, ?)");
   $sth->execute($id, $addressId);
   $sth->finish();
 
@@ -263,9 +264,9 @@ sub setPreferredEmailAddress($$$) {
     unless Mail::RFC822::Address::valid($emailAddress);
 
   my $ems = $self->dbh()->selectall_hashref("SELECT ea.email_address, ea.id, sem.preferred " .
-                                            "FROM email_address ea, supporter_email_address_mapping sem " .
+                                            "FROM email_address ea, donor_email_address_mapping sem " .
                                             "WHERE ea.id = sem.email_address_id AND ".
-                                            "sem.supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
+                                            "sem.donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
                                             'email_address');
   # Shortcut: it was already set
   return $ems->{$emailAddress}{id} if (defined $ems->{$emailAddress} and $ems->{$emailAddress}{preferred});
@@ -281,11 +282,11 @@ sub setPreferredEmailAddress($$$) {
 
   $self->_beginWork();
   if ($anotherPreferred) {
-    $self->dbh->do("UPDATE supporter_email_address_mapping " .
+    $self->dbh->do("UPDATE donor_email_address_mapping " .
                      "SET preferred = " . $self->dbh->quote(0, 'SQL_BOOLEAN') . " " .
-                     "WHERE supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'));
+                     "WHERE donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'));
   }
-  $self->dbh->do("UPDATE supporter_email_address_mapping " .
+  $self->dbh->do("UPDATE donor_email_address_mapping " .
                  "SET preferred = " . $self->dbh->quote(1, 'SQL_BOOLEAN') . " " .
                  "WHERE email_address_id = " . $self->dbh->quote($emailAddressId, 'SQL_INTEGER'));
   $self->_commit;
@@ -322,9 +323,9 @@ sub getPreferredEmailAddress($$) {
 
   die "setPreferredEmailAddress: invalid supporter id, $supporterId" unless $self->_verifyId($supporterId);
 
-  my $ems = $self->dbh()->selectall_hashref("SELECT email_address FROM email_address em, supporter_email_address_mapping sem " .
+  my $ems = $self->dbh()->selectall_hashref("SELECT email_address FROM email_address em, donor_email_address_mapping sem " .
                                             "WHERE preferred AND sem.email_address_id = em.id AND " .
-                                            "sem.supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
+                                            "sem.donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER'),
                                             'email_address');
   my $rowCount = scalar keys %{$ems};
   die "setPreferredEmailAddress: DATABASE INTEGRITY ERROR: more than one email address is preferred for supporter, \"$supporterId\""
@@ -391,9 +392,9 @@ sub addPostalAddress($$$$) {
   my $addressId = $self->dbh->last_insert_id("","","","");
   $sth->finish();
 
-  $sth = $self->dbh->prepare("INSERT INTO supporter_postal_address_mapping" .
-                                      "(supporter_id, postal_address_id) " .
-                                "VALUES(           ?, ?)");
+  $sth = $self->dbh->prepare("INSERT INTO donor_postal_address_mapping" .
+                                      "(donor_id, postal_address_id) " .
+                                "VALUES(       ?, ?)");
   $sth->execute($id, $addressId);
   $sth->finish();
 
@@ -567,7 +568,7 @@ Arguments:
 
 =item $supporterId
 
-   Valid supporter_id number currently in the database.  die() will occur if
+   Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
 
 =item $requestType
@@ -654,7 +655,7 @@ sub getRequest($$;$) {
 
   my $req = $self->dbh()->selectall_hashref("SELECT r.id, r.request_type_id, r.request_configuration_id, r.date_requested, r.notes, rt.type " .
                                             "FROM request r, request_type rt WHERE r.request_type_id = rt.id AND " .
-                                            "r.supporter_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER') .
+                                            "r.donor_id = " . $self->dbh->quote($supporterId, 'SQL_INTEGER') .
                                             " AND rt.type = " . $self->dbh->quote($requestType),
                                             'type');
   return undef unless (defined $req and defined $req->{$requestType} and defined $req->{$requestType}{'id'});
@@ -701,7 +702,7 @@ A hash reference, the following keys are considered:
 
 =item supporterId
 
-   Valid supporter_id number currently in the database.  die() will occur if
+   Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
 
 =item requestTypeId
@@ -761,7 +762,7 @@ sub addRequest($$) {
   # $params->{requestConfigurationId} can be undef, which is permitted in the
   # database schema.
 
-  my $sth = $self->dbh->prepare("INSERT INTO request(supporter_id, request_type_id, request_configuration_id, notes, date_requested) " .
+  my $sth = $self->dbh->prepare("INSERT INTO request(donor_id, request_type_id, request_configuration_id, notes, date_requested) " .
                                              "VALUES(?,            ?,               ?,                        ?,      date('now'))");
   $sth->execute($supporterId, $params->{requestTypeId}, $params->{requestConfigurationId}, $params->{notes});
   my $id = $self->dbh->last_insert_id("","","","");
@@ -784,7 +785,7 @@ A hash reference, the following keys are considered:
 
 =item supporterId
 
-   Valid supporter_id number currently in the database.  die() will occur if
+   Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
 
 =item requestType
@@ -903,7 +904,7 @@ sub _verifyId($$) {
 
   die "_verifyId() called with a non-numeric id" unless defined $id and looks_like_number($id);
 
-  my $val = $self->dbh()->selectall_hashref("SELECT id FROM supporter WHERE id = " .
+  my $val = $self->dbh()->selectall_hashref("SELECT id FROM donor WHERE id = " .
                                             $self->dbh->quote($id, 'SQL_INTEGER'), 'id');
   return (defined $val and defined $val->{$id});
 
@@ -1152,8 +1153,8 @@ License: AGPLv3-or-later
   sub Supporter_FullLookupUsingId($$) {
   my($dbh, $id) = @_;
 
-  my $sth = $dbh->prepare('SELECT m.supporter_id ' .
-                          'FROM email_address e, supporter_email_address_mapping m  ' .
+  my $sth = $dbh->prepare('SELECT m.donor_id ' .
+                          'FROM email_address e, donor_email_address_mapping m  ' .
                           'WHERE e.email_address = ? and e.id = m.email_address_id');
   $sth->execute($email);
 }
@@ -1161,14 +1162,14 @@ License: AGPLv3-or-later
 sub Supporter_LookupByEmail($$) {
   my($dbh, $email) = @_;
 
-  my $sth = $dbh->prepare('SELECT m.supporter_id ' .
-                          'FROM email_address e, supporter_email_address_mapping m  ' .
+  my $sth = $dbh->prepare('SELECT m.donor_id ' .
+                          'FROM email_address e, donor_email_address_mapping m  ' .
                           'WHERE e.email_address = ? and e.id = m.email_address_id');
   $sth->execute($email);
   my $supporter = $sth->fetchrow_hashref();
 
   if (defined $supporter) {
-    return Supporter_FullLookupUsingId($dbh, $supporter->{'m.supporter_id'});
+    return Supporter_FullLookupUsingId($dbh, $supporter->{'m.donor_id'});
   } else {
     return undef;
   }
