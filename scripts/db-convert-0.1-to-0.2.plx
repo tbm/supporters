@@ -7,12 +7,13 @@ use DBI;
 use Encode qw(encode decode);
 use Supporters;
 
-if (@ARGV != 2) {
-  print STDERR "usage: $0 <OLD_SUPPORTERS_SQLITE_DB_FILE> <NEW_SUPPORTERS_SQLITE_DB_FILE>\n";
+if (@ARGV != 2 or @ARGV !=3) {
+  print STDERR "usage: $0 <OLD_SUPPORTERS_SQLITE_DB_FILE> <NEW_SUPPORTERS_SQLITE_DB_FILE> <VERBOSITY_LEVEL>\n";
   exit 1;
 }
 
-my($OLD_SUPPORTERS_SQLITE_DB_FILE, $NEW_SUPPORTERS_SQLITE_DB_FILE) = @ARGV;
+my($OLD_SUPPORTERS_SQLITE_DB_FILE, $NEW_SUPPORTERS_SQLITE_DB_FILE, $VERBOSE) = @ARGV;
+$VERBOSE = 0 if not defined $VERBOSE;
 
 my $dbhOld = DBI->connect("dbi:SQLite:dbname=$OLD_SUPPORTERS_SQLITE_DB_FILE", "", "",
                                { RaiseError => 1, sqlite_unicode => 1 })
