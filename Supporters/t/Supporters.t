@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 176;
+use Test::More tests => 182;
 use Test::Exception;
 
 use Scalar::Util qw(looks_like_number reftype);
@@ -131,8 +131,24 @@ ok((not defined $val or not defined $val->{'name'}),
 my $drapperEmailId;
 
 lives_ok { $drapperEmailId = $sp->addEmailAddress($drapperId, 'drapper@example.org', 'work') }
-         "addEmailAdress: inserting a valid email address works";
+         "addEmailAddress: inserting a valid email address works";
 ok((looks_like_number($drapperEmailId) and $drapperEmailId > 0), "addEmailAddress: id returned is sane.");
+
+my $olsonEmailId2;
+
+dies_ok { $olsonEmailId2 = $sp->addEmailAddress($olsonId, 'drapper@example.org', 'paypal') }
+         "addEmailAddress: fails when adding the same email address for someone else, but as a different type";
+
+my $drapperEmailId2;
+lives_ok { $drapperEmailId2 = $sp->addEmailAddress($drapperId, 'everyone@example.net', 'paypal') }
+         "addEmailAddress: inserting a second valid email address works";
+ok((looks_like_number($drapperEmailId2) and $drapperEmailId2 > 0 and $drapperEmailId != $drapperEmailId2),
+   "addEmailAddress: id returned is sane and is not same as previous id.");
+
+lives_ok { $olsonEmailId2 = $sp->addEmailAddress($olsonId, 'everyone@example.net', 'paypal') }
+         "addEmailAddress: binding known email address to another person works...";
+ok((looks_like_number($olsonEmailId2) and $olsonEmailId2 > 0 and $olsonEmailId2 == $drapperEmailId2),
+   "addEmailAddress: ... and id returned is sane and is same.");
 
 =item addAddressType
 
@@ -546,7 +562,11 @@ dies_ok { $sp->_lookupEmailAddress(undef); } "_lookupEmailAddressId: dies for un
 
 is_deeply($sp->_lookupEmailAddress('drapper@example.org'),
           { emailAddress => 'drapper@example.org', id => $drapperEmailId, type => 'work', dateEncountered => $today },
-    "_lookupEmailAddressId: returns email Id for known item");
+    "_lookupEmailAddressId: 1 returns email Id for known item");
+
+is_deeply($sp->_lookupEmailAddress('everyone@example.net'),
+          { emailAddress => 'everyone@example.net', id => $olsonEmailId2, type => 'paypal', dateEncountered => $today },
+    "_lookupEmailAddressId: 2 returns email id for known item");
 
 is($sp->_lookupEmailAddress('drapper@example.com'), undef,
     "_lookupEmailAddressId: returns undef for unknown item.");

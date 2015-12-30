@@ -200,28 +200,37 @@ sub addEmailAddress($$$$) {
   die "addEmailAddress: invalid email address, $emailAddressType"
     unless defined $emailAddressType and Mail::RFC822::Address::valid($emailAddress);
 
+  my $existingEmail = $self->_lookupEmailAddress($emailAddress);
+  die "addEmailAddress: attempt to add email address that exists, using a different type!"
+    if defined $existingEmail and $existingEmail->{type} ne $emailAddressType;
+
+  my($sth, $addressId);
+
   $self->_beginWork();
 
-  my $addressTypeId;
-  eval {
-    $addressTypeId = $self->addAddressType($emailAddressType);
-  };
-  if ($@ or not defined $addressTypeId) {
-    my $err = $@;
-    $err = "addEmailAddress: unable to addAddressType"  if (not defined $err);
-    $self->_rollback();
-    die $@ if $@;
+  if (defined $existingEmail) {
+    $addressId = $existingEmail->{id};
+  } else {
+    my $addressTypeId;
+    eval {
+      $addressTypeId = $self->addAddressType($emailAddressType);
+    };
+    if ($@ or not defined $addressTypeId) {
+      my $err = $@;
+      $err = "addEmailAddress: unable to addAddressType"  if (not defined $err);
+      $self->_rollback();
+      die $@ if $@;
+    }
+    $sth = $self->dbh->prepare("INSERT INTO email_address(email_address, type_id, date_encountered)" .
+                                  "VALUES(                    ?,            ?,       date('now'))");
+
+    $sth->execute($emailAddress, $addressTypeId);
+    $addressId = $self->dbh->last_insert_id("","","","");
+    $sth->finish();
   }
-  my $sth = $self->dbh->prepare("INSERT INTO email_address(email_address, type_id, date_encountered)" .
-                                "VALUES(                    ?,            ?,       date('now'))");
-
-  $sth->execute($emailAddress, $addressTypeId);
-  my $addressId = $self->dbh->last_insert_id("","","","");
-  $sth->finish();
-
   $sth = $self->dbh->prepare("INSERT INTO donor_email_address_mapping" .
-                                      "(donor_id, email_address_id) " .
-                                "VALUES(       ?, ?)");
+                             "(donor_id, email_address_id) " .
+                             "VALUES(       ?, ?)");
   $sth->execute($id, $addressId);
   $sth->finish();
 
