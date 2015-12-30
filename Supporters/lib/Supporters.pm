@@ -564,22 +564,36 @@ sub addRequestConfigurations($$$) {
 
 Arguments:
 
+=item $parmas
+
+A hash reference, the following keys are considered:
+
 =over
 
-=item $donorId
+=item donorId
 
    Valid donor_id number currently in the database.  die() will occur if
    the id number is not in the database already as a supporter id.
 
-=item $requestType
+=item requestTypeId
 
-   String for the requestType sought.
+   Numeric id of a request_type entry.  This must be a valid id in the
+   request_type table, otherwise the method  L<die>()s.
 
-=item $ignoreFulfilledRequests
+   requestType is ignored if this parameter is set.
+
+=item requestType
+
+   If requestTypeId is not given, requestType will be used.  The type is
+   added to the request_type table if it is not present, so be careful.
+
+=item ignoreFulfilledRequests
 
    Optional boolean argument.  If true, a request that is found will not be
    returned if the request has already been fulfilled.  In other words, it
    forces a return of undef for
+
+=back
 
 =back
 
@@ -645,21 +659,37 @@ If the request has been fufilled, the following keys will also ahve values.
 =cut
 
 sub getRequest($$;$) {
-  my($self, $donorId, $requestType, $ignoreFulfilledRequests) = @_;
+  my($self, $params) = @_;
+  my($donorId, $requestType, $requestTypeId, $ignoreFulfilledRequests) =
+    ($params->{donorId}, $params->{requestType}, $params->{requestTypeId}, $params->{ignoreFulfilledRequests});
 
   die "getRequest: undefined donorId" unless defined $donorId;
   die "getRequest: donorId, \"$donorId\" not found in supporter database"
     unless $self->_verifyId($donorId);
 
-  die "getRequest: undefined requestType" unless defined $requestType;
-
+  my $requestTypeClause = "";
+  if (defined $requestTypeId) {
+    $requestType = $self->_lookupRequestTypeById($requestTypeId);
+    die "getRequest: invalid requestTypeId, \"$requestTypeId\"" unless defined $requestType;
+    $requestTypeClause = " AND rt.id = " . $self->dbh->quote($requestTypeId, 'SQL_INTEGER');
+  } elsif (defined $requestType) {
+    $requestTypeClause = " AND rt.type = " . $self->dbh->quote($requestType);
+  } else {
+    die "getRequest: undefined requestType" unless defined $requestType;
+  }
   my $req = $self->dbh()->selectall_hashref("SELECT r.id, r.request_type_id, r.request_configuration_id, r.date_requested, r.notes, rt.type " .
                                             "FROM request r, request_type rt WHERE r.request_type_id = rt.id AND " .
                                             "r.donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER') .
-                                            " AND rt.type = " . $self->dbh->quote($requestType),
+                                            $requestTypeClause,
                                             'type');
+  if (defined $requestTypeId) {
+    die "getRequest: given requestTypeId, \"$requestTypeId\" was not the one found in the database $req->{$requestType}{'request_type_id'}"
+      unless $req->{$requestType}{'request_type_id'} == $requestTypeId;
+  } else {
+    $requestTypeId = $req->{$requestType}{'request_type_id'};
+  }
   return undef unless (defined $req and defined $req->{$requestType} and defined $req->{$requestType}{'id'});
-  my $requestTypeId = $req->{$requestType}{'request_type_id'};
+
   my $requestId = $req->{$requestType}{'id'};
 
   my $rsp = {  requestType   => $requestType,
@@ -822,7 +852,7 @@ sub fulfillRequest($$) {
   die "fulfillRequest: undefined who" unless defined $params->{who};
   die "fulfillRequest: undefined requestType" unless defined $params->{requestType};
 
-  my $req = $self->getRequest($donorId, $params->{requestType});
+  my $req = $self->getRequest($params);
   return undef if not defined $req;
   my $requestId = $req->{requestId};
   return undef if not defined $requestId;
