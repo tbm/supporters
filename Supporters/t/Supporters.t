@@ -1,6 +1,9 @@
 # Supporters.t                                            -*- Perl -*-
 #   Basic unit tests for Supporters.pm
-#########################
+#
+# License: AGPLv3-or-later
+#  Copyright info in COPYRIGHT.md, License details in LICENSE.md with this package.
+###############################################################################
 
 use strict;
 use warnings;

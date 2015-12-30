@@ -1,3 +1,5 @@
+# License: AGPLv3-or-later
+#  Copyright info in COPYRIGHT.md, License details in LICENSE.md with this package.
 package Supporters;
 
 use 5.020002;
