@@ -378,7 +378,7 @@ lives_ok { $tt = $sp->getRequest({ donorId => $drapperId, requestType => 'this-o
 is($tt, undef, "getRequest: returns undef for valid supporter and on-existent request.");
 
 lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestType => 't-shirt-small-only' }); }
-         "getRequest: succeeds with valid parameters.";
+         "getRequest: succeeds with valid parameters, using requestType.";
 
 is($tt->{requestType}, 't-shirt-small-only', "getRequest: requestType is correct.");
 is($tt->{fulfillDate}, $today, "getRequest: fulfilled request is today.");
