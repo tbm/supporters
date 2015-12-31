@@ -1286,7 +1286,7 @@ sub supporterExpirationDate($$) {
 
   } elsif ($type eq 'Annual') {
     my($earliest, $total) = (undef, 0.00);
-    foreach my $date (sort { $a cmp $ b} keys %{$self->{ledgerData}{$entityId}{donations}}) {
+    foreach my $date (sort { $b cmp $a} keys %{$self->{ledgerData}{$entityId}{donations}}) {
       next if $date =~ /^__/;
       $total += $self->{ledgerData}{$entityId}{donations}{$date};
       unless ($total < 120.00) {

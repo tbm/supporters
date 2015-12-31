@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 260;
+use Test::More tests => 264;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -46,10 +46,12 @@ Supporters:Annual 2015-05-04 Whitman-Dick \$-5.00
 Supporters:Monthly 2015-05-25 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-01-15 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-03-17 Olson-Margaret \$-10.00
+Supporters:Annual 2015-12-04 Harris-Joan \$-120.00
 Supporters:Monthly 2015-04-20 Olson-Margaret \$-10.00
 Supporters:Match Pledge 2015-02-26 Whitman-Dick \$-300.00
 Supporters:Monthly 2015-02-16 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-06-30 Olson-Margaret \$-10.00
+Supporters:Annual 2015-03-04 Harris-Joan \$-120.00
 FAKE_LEDGER_TEST_DATA_END
 
 =item Public-facing methods of the module, as follows:
@@ -145,6 +147,14 @@ lives_ok { $sterlingId = $sp->addSupporter({ display_name => "Roger Sterling",
 
 ok( (looks_like_number($sterlingId) and $sterlingId > $olsonId),
    "addSupporter: ... and return value is sane.");
+
+my $harrisId;
+
+lives_ok { $harrisId = $sp->addSupporter({ ledger_entity_id => 'Harris-Joan' }) }
+         "addSupporter: set up one more in db (use this one for future test types on addSupporter)...";
+ok( (looks_like_number($harrisId) and $harrisId > $sterlingId),
+   "addSupporter: ... and return value is sane.");
+
 
 =item getPublicAck
 
@@ -698,7 +708,7 @@ lives_ok { @lookupDonorIds = $sp->findDonor({}); }
 my(%vals);
 @vals{@lookupDonorIds} = @lookupDonorIds;
 
-is_deeply(\%vals, { $campbellId => $campbellId, $sterlingId => $sterlingId,
+is_deeply(\%vals, { $campbellId => $campbellId, $sterlingId => $sterlingId, $harrisId => $harrisId,
                     $olsonId => $olsonId, $drapperId => $drapperId },
           "findDonor: ... and returns all donorIds.");
 
@@ -801,6 +811,10 @@ is($date, '2015-08-29', "supporterExpirationDate(): ...and returned value is cor
 lives_ok { $date = $sp->supporterExpirationDate($sterlingId) } "supporterExpirationDate(): check for never donation success...";
 
 is($date, undef, "supporterExpirationDate(): ...and returned undef.");
+
+lives_ok { $date = $sp->supporterExpirationDate($harrisId) } "supporterExpirationDate(): same donation amount in year...";
+
+is($date, '2016-12-04', "supporterExpirationDate(): ...returns the latter date.");
 
 $dbh->do("UPDATE donor SET is_supporter = 0 WHERE id = " . $sp->dbh->quote($campbellId));
 
