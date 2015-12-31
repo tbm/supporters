@@ -29,3 +29,5 @@ Common Tasks
 These are recipes for some common tasks that one might want to complete on
 the command line with the Supporters database.
 
+* Add a Supporter from the command line:
+        ./scripts/add-supporter.plx <DBFILE>
