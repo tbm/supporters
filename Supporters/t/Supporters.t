@@ -42,14 +42,14 @@ my $dbh = get_test_dbh();
 my($fakeLedgerFH, $fakeLedgerFile) = tempfile("fakeledgerXXXXXXXX", UNLINK => 1);
 
 print $fakeLedgerFH <<FAKE_LEDGER_TEST_DATA_END;
-Supporters:Match Pledge 2015-05-04 Whitman-Dick $-500.00
-Supporters:Monthly 2015-05-25 Olson-Margaret $-10.00
-Supporters:Monthly 2015-01-15 Olson-Margaret $-10.00
-Supporters:Monthly 2015-03-17 Olson-Margaret $-10.00
-Supporters:Monthly 2015-04-20 Olson-Margaret $-10.00
-Supporters:Annual 2015-02-26 Whitman-Dick $-30.00
-Supporters:Monthly 2015-02-16 Olson-Margaret $-10.00
-Supporters:Monthly 2015-06-30 Olson-Margaret $-10.00
+Supporters:Match Pledge 2015-05-04 Whitman-Dick \$-500.00
+Supporters:Monthly 2015-05-25 Olson-Margaret \$-10.00
+Supporters:Monthly 2015-01-15 Olson-Margaret \$-10.00
+Supporters:Monthly 2015-03-17 Olson-Margaret \$-10.00
+Supporters:Monthly 2015-04-20 Olson-Margaret \$-10.00
+Supporters:Annual 2015-02-26 Whitman-Dick \$-30.00
+Supporters:Monthly 2015-02-16 Olson-Margaret \$-10.00
+Supporters:Monthly 2015-06-30 Olson-Margaret \$-10.00
 FAKE_LEDGER_TEST_DATA_END
 
 =item Public-facing methods of the module, as follows:
