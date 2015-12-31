@@ -753,7 +753,7 @@ lives_ok { $date = $sp->donorLastGave($drapperId) } "donorLastGave(): check for 
 
 is($date, '2015-05-04',  "donorLastGave(): ...and returned value is correct. ");
 
-lives_ok { $date = $sp->donorLastGave($drapperId) } "donorLastGave(): check for known monthly donor success...";
+lives_ok { $date = $sp->donorLastGave($olsonId) } "donorLastGave(): check for known monthly donor success...";
 
 is($date, '2015-06-30', "donorLastGave(): ...and returned value is correct. ");
 
