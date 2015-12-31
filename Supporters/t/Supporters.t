@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 242;
+use Test::More tests => 241;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -262,13 +262,6 @@ is($olsonLedgerEntity, "Olson-Margaret",  "getLedgerEntityId: ...and return valu
 dies_ok { $sp->setPublicAck(0); }        "setPublicAck: fails supporterId invalid";
 dies_ok { $sp->setPublicAck("String"); } "setPublicAck: fails supporterId is string";
 dies_ok {  $sp->setPublicAck(undef); }   "setPublicAck: fails supporterId is undef";
-
-# Replace _verifyId() to always return true
-
-$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
-dies_ok { $publicAckVal = $sp->setPublicAck(0); }
-        "setPublicAck: fails when rows are not returned but _verifyId() somehow passed";
-$overrideSub->restore;
 
 is($sp->getPublicAck($olsonId), 0, "setPublicAck: 1 failed calls changed nothing.");
 is($sp->getPublicAck($drapperId), 1, "setPublicAck: 1 failed calls changed nothing.");
