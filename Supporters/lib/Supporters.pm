@@ -491,6 +491,44 @@ sub getDisplayName($$$) {
   return $_[0]->_getDonorField("display_name", $_[1]);
 }
 ######################################################################
+sub _setDonorField($$$) {
+  my($self, $field, $donorId, $value, $type) = @_;
+
+  die "set$field: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
+
+  $self->_beginWork();
+  $self->dbh->do("UPDATE donor " .
+                     "SET $field = " . $self->dbh->quote($value, $type) . " " .
+                     "WHERE id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'));
+  $self->_commit;
+  return $value;
+}
+######################################################################
+
+=begin setPublicAck
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=item $publicAck
+
+   Can be true, false, or undef and will update public acknowledgement bit
+   accordingly for donor identified with C<$donorId>.
+
+=back
+
+=cut
+
+sub setPublicAck($$$) {
+  return $_[0]->_setDonorField('public_ack', $_[1], $_[2], 'SQL_BOOLEAN');
+}
+######################################################################
 
 =begin addPostalAddress
 
