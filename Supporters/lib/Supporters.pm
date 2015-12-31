@@ -378,6 +378,26 @@ sub getPreferredEmailAddress($$) {
   }
 }
 ######################################################################
+sub _getDonorField($$$) {
+  my($self, $field, $donorId) = @_;
+
+  die "get$field: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
+
+  my $results = $self->dbh()->selectall_hashref("SELECT id, $field FROM donor WHERE id = " .
+                                                $self->dbh->quote($donorId, 'SQL_INTEGER'),
+                                                'id');
+  my $rowCount = scalar keys %{$results};
+  die "get$field: DATABASE INTEGRITY ERROR: more than one row found when looking up supporter, \"$donorId\""
+    if $rowCount > 1;
+
+  if ($rowCount == 1) {
+    my ($val) = $results->{$donorId}{$field};
+    return $val;
+  } else {
+    die "get$field: DATABASE INTEGRITY ERROR: $donorId was valid but non-1 row count returned";
+  }
+}
+######################################################################
 
 =begin getLedgerEntityId
 
@@ -398,24 +418,8 @@ for it.
 
 =cut
 
-sub getLedgerEntityId($$) {
-  my($self, $donorId) = @_;
-
-  die "getLedgerEntityId: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
-
-  my $lei = $self->dbh()->selectall_hashref("SELECT ledger_entity_id FROM donor WHERE id = " .
-                                            $self->dbh->quote($donorId, 'SQL_INTEGER'),
-                                            'ledger_entity_id');
-  my $rowCount = scalar keys %{$lei};
-  die "setPreferredEmailAddress: DATABASE INTEGRITY ERROR: more than one email address is preferred for supporter, \"$donorId\""
-    if $rowCount > 1;
-
-  if ($rowCount == 1) {
-    my ($ledgerEntityId) = keys %$lei;
-    return $ledgerEntityId;
-  } else {
-    die "getLedgerEntityId: DATABASE INTEGRITY ERROR: $donorId was valid but non-1 row count returned";
-  }
+sub getLedgerEntityId ($$) {
+  return $_[0]->_getDonorField("ledger_entity_id", $_[1]);
 }
 ######################################################################
 
@@ -438,9 +442,8 @@ so callers must check for undef.
 
 =cut
 
-sub getPublicAck($$) {
-  my($self, $donorId) = @_;
-
+sub getPublicAck($$$) {
+  return $_[0]->_getDonorField("public_ack", $_[1]);
 }
 ######################################################################
 
