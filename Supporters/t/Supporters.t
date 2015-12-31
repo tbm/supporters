@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 215;
+use Test::More tests => 223;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -97,11 +97,11 @@ is_deeply($sp->ledgerCmd(),  ["testcmd" ], "new: verify ledgerCmd set");
 dies_ok { $sp->addSupporter({}) }
         "addSupporter: ledger_entity_id required";
 
-my $id1;
-lives_ok { $id1 = $sp->addSupporter({ ledger_entity_id => "Campbell-Peter" }); }
+my $campbellId;
+lives_ok { $campbellId = $sp->addSupporter({ ledger_entity_id => "Campbell-Peter" }); }
          "addSupporter: add works for minimal acceptable settings";
 
-ok( (looks_like_number($id1) and $id1 > 0),
+ok( (looks_like_number($campbellId) and $campbellId > 0),
    "addSupporter: add works for minimal acceptable settings");
 
 dies_ok  { $sp->addSupporter({ public_ack => 1, ledger_entity_id => "Whitman-Dick" }) }
@@ -112,7 +112,7 @@ lives_ok { $drapperId = $sp->addSupporter({ display_name => "Donald Drapper",
                                public_ack => 1, ledger_entity_id => "Whitman-Dick" }); }
          "addSupporter: public_ack set to true with a display_name given";
 
-ok( (looks_like_number($drapperId) and $drapperId > $id1),
+ok( (looks_like_number($drapperId) and $drapperId > $campbellId),
    "addSupporter: add works with public_ack set to true and a display_name given");
 
 my $olsonId;
@@ -175,6 +175,37 @@ lives_ok { $publicAckVal = $sp->getPublicAck($sterlingId); }
   "getPublicAck: lives when valid id is given for someone who is undecided...";
 
 is($publicAckVal, undef, "getPublicAck: ...and return value is correct.");
+
+=item getDisplayName
+
+=cut
+
+my $displayNameVal;
+
+dies_ok { $displayNameVal = $sp->getDisplayName(0); }
+        "getDisplayName: fails when rows are not returned but _verifyId() somehow passed";
+
+# Replace _verifyId() to always return true
+
+$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+dies_ok { $displayNameVal = $sp->getDisplayName(0); }
+        "getDisplayName: fails when rows are not returned but _verifyId() somehow passed";
+$overrideSub->restore;
+
+lives_ok { $displayNameVal = $sp->getDisplayName($olsonId); }
+  "getDisplayName: lives when valid id is given for someone who does not want it...";
+
+is($displayNameVal, "Peggy Olson", "getDisplayName: ...and return value is correct.");
+
+lives_ok { $displayNameVal = $sp->getDisplayName($drapperId); }
+  "getDisplayName: lives when valid id is given for someone who wants it...";
+
+is($displayNameVal, "Donald Drapper", "getDisplayName: ...and return value is correct.");
+
+lives_ok { $displayNameVal = $sp->getDisplayName($campbellId); }
+  "getDisplayName: lives when valid id is given for someone who is undecided...";
+
+is($displayNameVal, undef, "getDisplayName: ...and return value is correct.");
 
 
 =item getLedgerEntityId

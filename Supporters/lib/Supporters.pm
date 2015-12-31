@@ -445,6 +445,29 @@ sub getPublicAck($$$) {
 }
 ######################################################################
 
+=begin getDisplayName
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns the string of the display name for the donor.  undef can be returned
+if the donor has not specified, so callers must check for undef.
+
+=cut
+
+sub getDisplayName($$$) {
+  return $_[0]->_getDonorField("display_name", $_[1]);
+}
+######################################################################
+
 =begin addPostalAddress
 
 Arguments:
