@@ -82,13 +82,12 @@ dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {monthly => 'test' }); }
 dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {annual => 'test' }); }
         "new: dies when programTypeSearch key monthly is missing .";
 
-$sp = new Supporters($dbh, [ "testcmd" ]);
+my $cmd =  [ "/bin/cat", $fakeLedgerFile ];
+
+$sp = new Supporters($dbh, $cmd);
 
 is($dbh, $sp->dbh(), "new: verify dbh set");
-is_deeply($sp->ledgerCmd(),  ["testcmd" ], "new: verify ledgerCmd set");
-
-
-=pod
+is_deeply($sp->ledgerCmd(),  $cmd, "new: verify ledgerCmd set");
 
 =item addSupporter
 
