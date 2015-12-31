@@ -1130,6 +1130,49 @@ sub findDonor($$) {
 }
 ######################################################################
 
+=begin donorLastGave
+
+Arguments:
+
+=over
+
+=item $self
+
+Current object.
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns an ISO 8601 formatted date of their last donation.  undef will be
+returned if the donor has never given (which should rarely be the case, but
+it could happen).
+
+=cut
+
+sub donorLastGave($$) {
+  my($self, $donorId) = @_;
+
+  confess "lastGave: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  $self->_readLedgerData() if not defined $self->{ledgerData};
+
+  my $ledgerEntityId = $self->getLedgerEntityId($donorId);
+
+  if (not defined $self->{ledgerData}{$ledgerEntityId} or
+      not defined $self->{ledgerData}{$ledgerEntityId}{__LAST_GAVE__} or
+      $self->{ledgerData}{$ledgerEntityId}{__LAST_GAVE__} eq '1975-01-01') {
+    return undef;
+  } else {
+    return $self->{ledgerData}{$ledgerEntityId}{__LAST_GAVE__};
+  }
+}
+######################################################################
+
 =back
 
 =head1 Non-Public Methods
@@ -1138,6 +1181,54 @@ These methods are part of the internal implementation are not recommended for
 use outside of this module.
 
 =over
+
+=item _readLedgerData
+
+=cut
+
+sub _readLedgerData($) {
+  my($self) = @_;
+
+  my @cmd = @{$self->{ledgerCmd}};
+  my %amountTable;
+
+  open(ALL, "-|", @cmd) or confess "unable to run command ledger command: @cmd: $!";
+  while (my $line = <ALL>) {
+    next if $line =~ /^\s*$/;
+    die "Invalid line in @cmd output:\n    $line"
+      unless $line =~ /^\s*([^\d]+)\s+([\d\-]+)\s+(\S+)\s+\$\s*(\-?\s*[\d,\.]+)\s*$/;
+    my($type, $date, $entityId, $amount) = ($1, $2, $3, $4);
+    if (defined $self->{programTypeSearch}) {
+      if ($type =~ /$self->{programTypeSearch}{annual}/) {
+        $type = 'Annual';
+      } elsif ($type =~ /$self->{programTypeSearch}{monthly}/) {
+        $type = 'Monthly';
+      }
+    }
+    die "Unknown type $type for $entityId from $line" if $type !~ /^(Monthly|Annual)$/ and defined $self->{programTypeSearch};
+    $amount =~ s/,//; $amount = abs($amount);
+    if (defined $amountTable{$entityId}{donations}{$date}) {
+      $amountTable{$entityId}{donations}{$date} += $amount;
+    }  else {
+      $amountTable{$entityId}{donations}{$date} = $amount;
+    }
+    unless (defined $amountTable{$entityId}{__TOTAL__}) {
+      $amountTable{$entityId}{__TOTAL__} = 0.00;
+      $amountTable{$entityId}{__LAST_GAVE__} = '1975-01-01';
+      $amountTable{$entityId}{__FIRST_GAVE__} = '9999-12-31';
+    }
+    $amountTable{$entityId}{__TOTAL__} += $amount;
+    if ($date gt $amountTable{$entityId}{__LAST_GAVE__}) {
+      # Consider the "type" of the donor to be whatever type they were at last donation
+      $amountTable{$entityId}{__TYPE__} = $type;
+      $amountTable{$entityId}{__LAST_GAVE__} = $date;
+    }
+    $amountTable{$entityId}{__FIRST_GAVE__} = $date
+      if $date lt $amountTable{$entityId}{__FIRST_GAVE__};
+  }
+  close ALL; die "error($?) running command, @cmd: $!" unless $? == 0;
+  $self->{ledgerData} = \%amountTable;
+}
 
 =item DESTROY
 
