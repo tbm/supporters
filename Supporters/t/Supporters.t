@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 229;
+use Test::More tests => 242;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -254,6 +254,37 @@ lives_ok { $olsonLedgerEntity = $sp->getLedgerEntityId($olsonId); }
   "getLedgerEntityId: lives when valid id is given...";
 
 is($olsonLedgerEntity, "Olson-Margaret",  "getLedgerEntityId: ...and return value is correct.");
+
+=item setPublicAck
+
+=cut
+
+dies_ok { $sp->setPublicAck(0); }        "setPublicAck: fails supporterId invalid";
+dies_ok { $sp->setPublicAck("String"); } "setPublicAck: fails supporterId is string";
+dies_ok {  $sp->setPublicAck(undef); }   "setPublicAck: fails supporterId is undef";
+
+# Replace _verifyId() to always return true
+
+$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+dies_ok { $publicAckVal = $sp->setPublicAck(0); }
+        "setPublicAck: fails when rows are not returned but _verifyId() somehow passed";
+$overrideSub->restore;
+
+is($sp->getPublicAck($olsonId), 0, "setPublicAck: 1 failed calls changed nothing.");
+is($sp->getPublicAck($drapperId), 1, "setPublicAck: 1 failed calls changed nothing.");
+is($sp->getPublicAck($sterlingId), undef, "setPublicAck: 1 failed calls changed nothing.");
+
+lives_ok { $sp->setPublicAck($olsonId, undef); }
+  "setPublicAck: lives when valid id is given for undefining...";
+is($sp->getPublicAck($olsonId), undef, "setPublicAck: ...and suceeds in changing value.");
+
+lives_ok { $sp->setPublicAck($drapperId, 0); }
+  "setPublicAck: lives when valid id is given for off...";
+is($sp->getPublicAck($drapperId), 0, "setPublicAck: ...and suceeds in changing value.");
+
+lives_ok { $sp->setPublicAck($sterlingId, 1); }
+  "setPublicAck: lives when valid id is given for on...";
+is($sp->getPublicAck($sterlingId), 1, "setPublicAck: ...and suceeds in changing value.");
 
 =item addEmailAddress
 
