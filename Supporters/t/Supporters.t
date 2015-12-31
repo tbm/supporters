@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 241;
+use Test::More tests => 248;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -756,6 +756,24 @@ is($date, '2015-05-04',  "donorLastGave(): ...and returned value is correct. ");
 lives_ok { $date = $sp->donorLastGave($olsonId) } "donorLastGave(): check for known monthly donor success...";
 
 is($date, '2015-06-30', "donorLastGave(): ...and returned value is correct. ");
+
+=item donorFirstGave
+
+=cut
+
+dies_ok { $sp->donorFirstGave(undef); } "donorFirstGave(): dies with undefined donorId";
+dies_ok { $sp->donorFirstGave("str"); } "donorFirstGave(): dies with non-numeric donorId";
+dies_ok { $sp->donorFirstGave(0);     } "donorFirstGave(): dies with non-existent id";
+
+lives_ok { $date = $sp->donorFirstGave($drapperId) } "donorFirstGave(): check for known annual donor success...";
+
+is($date, '2015-02-26',  "donorFirstGave(): ...and returned value is correct. ");
+
+lives_ok { $date = $sp->donorFirstGave($olsonId) } "donorFirstGave(): check for known monthly donor success...";
+
+is($date, '2015-01-15', "donorFirstGave(): ...and returned value is correct. ");
+
+=back
 
 =item Internal methods used only by the module itself.
 

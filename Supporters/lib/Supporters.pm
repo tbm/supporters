@@ -1173,6 +1173,49 @@ sub donorLastGave($$) {
 }
 ######################################################################
 
+=begin donorFirstGave
+
+Arguments:
+
+=over
+
+=item $self
+
+Current object.
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns an ISO 8601 formatted date of their first donation.  undef will be
+returned if the donor has never given (which should rarely be the case, but
+it could happen).
+
+=cut
+
+sub donorFirstGave($$) {
+  my($self, $donorId) = @_;
+
+  confess "donorFirstGave: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  $self->_readLedgerData() if not defined $self->{ledgerData};
+
+  my $ledgerEntityId = $self->getLedgerEntityId($donorId);
+
+  if (not defined $self->{ledgerData}{$ledgerEntityId} or
+      not defined $self->{ledgerData}{$ledgerEntityId}{__FIRST_GAVE__} or
+      $self->{ledgerData}{$ledgerEntityId}{__FIRST_GAVE__} eq '9999-12-31') {
+    return undef;
+  } else {
+    return $self->{ledgerData}{$ledgerEntityId}{__FIRST_GAVE__};
+  }
+}
+######################################################################
+
 =back
 
 =head1 Non-Public Methods
