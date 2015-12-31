@@ -155,7 +155,7 @@ dies_ok { my $ledgerId = $sp->getPublicAck(0); }
 
 # Replace _verifyId() to always return true
 
-$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+my $overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
 dies_ok { my $ledgerId = $sp->getPublicAck(0); }
         "getPublicAck: fails when rows are not returned but _verifyId() somehow passed";
 $overrideSub->restore;
@@ -186,7 +186,7 @@ dies_ok { my $ledgerId = $sp->getLedgerEntityId(0); }
 
 # Replace _verifyId() to always return true
 
-my $overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
 dies_ok { my $ledgerId = $sp->getLedgerEntityId(0); }
         "getLedgerEntityId: fails when rows are not returned but _verifyId() somehow passed";
 $overrideSub->restore;
