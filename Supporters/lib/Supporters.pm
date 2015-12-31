@@ -1480,30 +1480,3 @@ License: AGPLv3-or-later
 # Local variables:
 # compile-command: "perl -c Supporters.pm"
 # End:
-
-
-  sub Supporter_FullLookupUsingId($$) {
-  my($dbh, $id) = @_;
-
-  my $sth = $dbh->prepare('SELECT m.donor_id ' .
-                          'FROM email_address e, donor_email_address_mapping m  ' .
-                          'WHERE e.email_address = ? and e.id = m.email_address_id');
-  $sth->execute($email);
-}
-###############################################################################
-sub Supporter_LookupByEmail($$) {
-  my($dbh, $email) = @_;
-
-  my $sth = $dbh->prepare('SELECT m.donor_id ' .
-                          'FROM email_address e, donor_email_address_mapping m  ' .
-                          'WHERE e.email_address = ? and e.id = m.email_address_id');
-  $sth->execute($email);
-  my $supporter = $sth->fetchrow_hashref();
-
-  if (defined $supporter) {
-    return Supporter_FullLookupUsingId($dbh, $supporter->{'m.donor_id'});
-  } else {
-    return undef;
-  }
-
-  
