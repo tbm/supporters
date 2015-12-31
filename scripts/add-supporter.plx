@@ -57,9 +57,9 @@ my $wantList = <STDIN>;
 chomp $wantList;
 
 print "postal Address (. to end):\n";
-my $postal;
+my $postal = "";
 while (my $line = <STDIN>) {
-  last if /^\s*\.\s*$/;
+  last if $line =~ /^\s*\.\s*$/;
   $postal .= $line;
 }
 
