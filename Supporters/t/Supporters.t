@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 248;
+use Test::More tests => 259;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -42,12 +42,12 @@ my $dbh = get_test_dbh();
 my($fakeLedgerFH, $fakeLedgerFile) = tempfile("fakeledgerXXXXXXXX", UNLINK => 1);
 
 print $fakeLedgerFH <<FAKE_LEDGER_TEST_DATA_END;
-Supporters:Match Pledge 2015-05-04 Whitman-Dick \$-500.00
+Supporters:Annual 2015-05-04 Whitman-Dick \$-5.00
 Supporters:Monthly 2015-05-25 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-01-15 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-03-17 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-04-20 Olson-Margaret \$-10.00
-Supporters:Annual 2015-02-26 Whitman-Dick \$-30.00
+Supporters:Match Pledge 2015-02-26 Whitman-Dick \$-300.00
 Supporters:Monthly 2015-02-16 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-06-30 Olson-Margaret \$-10.00
 FAKE_LEDGER_TEST_DATA_END
@@ -84,7 +84,8 @@ dies_ok { $sp = new Supporters($dbh, [ "testcmd" ], {annual => 'test' }); }
 
 my $cmd =  [ "/bin/cat", $fakeLedgerFile ];
 
-$sp = new Supporters($dbh, $cmd);
+$sp = new Supporters($dbh, $cmd, { monthly => '^Supporters:Monthly',
+                                  annual => '^Supporters:(?:Annual|Match Pledge)'});
 
 is($dbh, $sp->dbh(), "new: verify dbh set");
 is_deeply($sp->ledgerCmd(),  $cmd, "new: verify ledgerCmd set");
@@ -772,6 +773,33 @@ is($date, '2015-02-26',  "donorFirstGave(): ...and returned value is correct. ")
 lives_ok { $date = $sp->donorFirstGave($olsonId) } "donorFirstGave(): check for known monthly donor success...";
 
 is($date, '2015-01-15', "donorFirstGave(): ...and returned value is correct. ");
+
+
+=item supporterExpirationDate
+
+=cut
+
+dies_ok { $sp->supporterExpirationDate(undef); } "supporterExpirationDate(): dies with undefined donorId";
+dies_ok { $sp->supporterExpirationDate("str"); } "supporterExpirationDate(): dies with non-numeric donorId";
+dies_ok { $sp->supporterExpirationDate(0);     } "supporterExpirationDate(): dies with non-existent id";
+
+lives_ok { $date = $sp->supporterExpirationDate($drapperId) } "supporterExpirationDate(): check for known annual donor success...";
+
+is($date, '2016-02-26',  "supporterExpirationDate(): ...and returned value is correct. ");
+
+lives_ok { $date = $sp->supporterExpirationDate($olsonId) } "supporterExpirationDate(): check for known monthly donor success...";
+
+is($date, '2015-08-29', "supporterExpirationDate(): ...and returned value is correct. ");
+
+lives_ok { $date = $sp->supporterExpirationDate($sterlingId) } "supporterExpirationDate(): check for never donation success...";
+
+is($date, undef, "supporterExpirationDate(): ...and returned undef.");
+
+$dbh->do("UPDATE donor SET is_supporter = 0 WHERE id = " . $sp->dbh->quote($campbellId));
+
+lives_ok { $date = $sp->supporterExpirationDate($campbellId) } "supporterExpirationDate(): check for no supporter success...";
+
+is($date, undef, "supporterExpirationDate(): ...and returned undef.");
 
 =back
 

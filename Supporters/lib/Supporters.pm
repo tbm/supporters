@@ -30,8 +30,11 @@ our @EXPORT = qw(
 our $VERSION = '0.02';
 
 use Scalar::Util qw(looks_like_number blessed reftype);
+use List::Util qw(maxstr);
+
 use Mail::RFC822::Address;
 use Carp qw(confess);
+use Date::Manip::DM5;
 
 ######################################################################
 
@@ -1213,6 +1216,85 @@ sub donorFirstGave($$) {
   } else {
     return $self->{ledgerData}{$ledgerEntityId}{__FIRST_GAVE__};
   }
+}
+
+=begin supporterExpirationDate
+
+Arguments:
+
+=over
+
+=item $self
+
+Current object.
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns an ISO 8601 of the expriation date for the supporter identified by
+donorId.  Returns undef if the donor is not a supporter or if the donor has
+given no donations at all.
+
+Formula for expiration dates currently is as follows:
+
+For annuals, consider donations in the last year only.  The expiration date
+is one year from the last donation if the total in the last year >= $120.00
+
+For monthlies, see if they gave $10 or more in the last 60 days.  If they
+did, their expiration is 60 days from then.
+
+=cut
+
+
+my $ONE_YEAR_AGO = UnixDate(DateCalc(ParseDate("today"), "- 1 year"), '%Y-%m-%d');
+my $SIXTY_DAYS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 60 days"), '%Y-%m-%d');
+
+sub supporterExpirationDate($$) {
+  my($self, $donorId) = @_;
+
+  confess "donorFirstGave: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  return undef unless $self->isSupporter($donorId);
+  $self->_readLedgerData() if not defined $self->{ledgerData};
+
+
+  my $entityId = $self->getLedgerEntityId($donorId);
+
+  return undef unless defined $self->{ledgerData}{$entityId};
+
+  my $expirationDate;
+
+  my $type = $self->{ledgerData}{$entityId}{__TYPE__};
+  if ($type eq 'Monthly') {
+    my(@tenOrMore);
+    foreach my $date (keys %{$self->{ledgerData}{$entityId}{donations}}) {
+      next if $date =~ /^__/;
+      push(@tenOrMore, $date) unless ($self->{ledgerData}{$entityId}{donations}{$date} < 10.00);
+    }
+    $expirationDate = UnixDate(DateCalc(maxstr(@tenOrMore), "+ 60 days"), '%Y-%m-%d')
+      if (scalar(@tenOrMore) > 0);
+
+  } elsif ($type eq 'Annual') {
+    my($earliest, $total) = (undef, 0.00);
+    foreach my $date (sort { $a cmp $ b} keys %{$self->{ledgerData}{$entityId}{donations}}) {
+      next if $date =~ /^__/;
+      $total += $self->{ledgerData}{$entityId}{donations}{$date};
+      unless ($total < 120.00) {
+        $earliest = $date;
+        last;
+      }
+    }
+    $expirationDate = UnixDate(DateCalc($earliest, "+ 1 year"), '%Y-%m-%d')
+      if defined $earliest;
+  } else {
+    confess "supporterExpirationDate: does not function on  $type";
+  }
+  return $expirationDate;
 }
 ######################################################################
 
