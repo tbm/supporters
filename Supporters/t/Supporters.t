@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 227;
+use Test::More tests => 229;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -150,8 +150,14 @@ ok( (looks_like_number($sterlingId) and $sterlingId > $olsonId),
 
 =cut
 
-dies_ok { my $ledgerId = $sp->getPublicAck(0); }
-        "getPublicAck: fails when rows are not returned but _verifyId() somehow passed";
+my $publicAckVal;
+
+dies_ok { $publicAckVal = $sp->getPublicAck(0); }
+        "getPublicAck: fails supporterId invalid";
+dies_ok { $publicAckVal = $sp->getPublicAck("String"); }
+        "getPublicAck: fails supporterId is string";
+dies_ok { $publicAckVal = $sp->getPublicAck(undef); }
+        "getPublicAck: fails supporterId is undef";
 
 # Replace _verifyId() to always return true
 
@@ -160,7 +166,6 @@ dies_ok { my $ledgerId = $sp->getPublicAck(0); }
         "getPublicAck: fails when rows are not returned but _verifyId() somehow passed";
 $overrideSub->restore;
 
-my $publicAckVal;
 lives_ok { $publicAckVal = $sp->getPublicAck($olsonId); }
   "getPublicAck: lives when valid id is given for someone who does not want it...";
 
