@@ -8,9 +8,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 198;
+use Test::More tests => 205;
 use Test::Exception;
 use Sub::Override;
+use File::Temp qw/tempfile/;
 
 use Scalar::Util qw(looks_like_number reftype);
 use POSIX qw(strftime);
@@ -36,6 +37,20 @@ require 't/CreateTestDB.pl';
 
 my $dbh = get_test_dbh();
 
+# Set up test data for ledger-related tests
+
+my($fakeLedgerFH, $fakeLedgerFile) = tempfile("fakeledgerXXXXXXXX", UNLINK => 1);
+
+print $fakeLedgerFH <<FAKE_LEDGER_TEST_DATA_END;
+Supporters:Match Pledge 2015-05-04 Whitman-Dick $-500.00
+Supporters:Monthly 2015-05-25 Olson-Margaret $-10.00
+Supporters:Monthly 2015-01-15 Olson-Margaret $-10.00
+Supporters:Monthly 2015-03-17 Olson-Margaret $-10.00
+Supporters:Monthly 2015-04-20 Olson-Margaret $-10.00
+Supporters:Annual 2015-02-26 Whitman-Dick $-30.00
+Supporters:Monthly 2015-02-16 Olson-Margaret $-10.00
+Supporters:Monthly 2015-06-30 Olson-Margaret $-10.00
+FAKE_LEDGER_TEST_DATA_END
 
 =item Public-facing methods of the module, as follows:
 
@@ -602,6 +617,24 @@ is_deeply(\%vals, { $olsonId => $olsonId, $drapperId => $drapperId }, "findDonor
 
 
 
+=item lastGave
+
+=cut
+
+dies_ok { $sp->donorLastGave(undef); } "donorLastGave(): dies with undefined donorId";
+dies_ok { $sp->donorLastGave("str"); } "donorLastGave(): dies with non-numeric donorId";
+dies_ok { $sp->donorLastGave(0);     } "donorLastGave(): dies with non-existent id";
+
+my $date;
+
+lives_ok { $date = $sp->donorLastGave($drapperId) } "donorLastGave(): check for known annual donor success...";
+
+is($date, '2015-05-04',  "donorLastGave(): ...and returned value is correct. ");
+
+lives_ok { $date = $sp->donorLastGave($drapperId) } "donorLastGave(): check for known monthly donor success...";
+
+is($date, '2015-06-30', "donorLastGave(): ...and returned value is correct. ");
+
 =item Internal methods used only by the module itself.
 
 =over
@@ -789,7 +822,6 @@ $tempDBH->disconnect; $tempDBH = reopen_test_dbh();
 =cut
 
 $tempDBH->disconnect;
-
 1;
 ###############################################################################
 #
