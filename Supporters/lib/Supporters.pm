@@ -445,6 +445,30 @@ sub getPublicAck($$$) {
 }
 ######################################################################
 
+=begin isSupporter
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns the a boolean indicating whether or not the donor is a Supporter (as
+opposed to an ordinary donor).  undef will not be returned
+
+
+=cut
+
+sub isSupporter($$$) {
+  return $_[0]->_getDonorField("is_supporter", $_[1]);
+}
+######################################################################
+
 =begin getDisplayName
 
 Arguments:

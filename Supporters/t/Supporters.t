@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 223;
+use Test::More tests => 227;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -175,6 +175,28 @@ lives_ok { $publicAckVal = $sp->getPublicAck($sterlingId); }
   "getPublicAck: lives when valid id is given for someone who is undecided...";
 
 is($publicAckVal, undef, "getPublicAck: ...and return value is correct.");
+
+
+=item isSupporter
+
+=cut
+
+my $isSupporter;
+
+dies_ok { $isSupporter = $sp->isSupporter(0); }
+        "isSupporter: fails when rows are not returned but _verifyId() somehow passed";
+
+# Replace _verifyId() to always return true
+
+$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+dies_ok { my $ledgerId = $sp->isSupporter(0); }
+        "isSupporter: fails when rows are not returned but _verifyId() somehow passed";
+$overrideSub->restore;
+
+lives_ok { $isSupporter = $sp->isSupporter($olsonId); }
+  "isSupporter: lives when valid id...";
+
+is($isSupporter, 1, "isSupporter: ...and return value is correct.");
 
 =item getDisplayName
 
