@@ -271,6 +271,46 @@ sub addEmailAddress($$$$) {
 }
 ######################################################################
 
+=begin getEmailAddresses
+
+Arguments:
+
+=over
+
+=item $id
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=back
+
+Returns a hashes, where the keys are the emailAddreses and values a hash with two keys:
+
+=over
+
+=item date_encountered
+
+=item name
+
+=back
+
+=cut
+
+sub getEmailAddresses($$) {
+  my($self, $id) = @_;
+
+  die "getEmailAddresses: invalid id, $id" unless $self->_verifyId($id);
+
+  my $val = $self->dbh()->selectall_hashref("SELECT ea.email_address, at.name, ea.date_encountered " .
+                                            "FROM donor_email_address_mapping map, address_type at, email_address ea " .
+                                            "WHERE at.id = ea.type_id AND ea.id = map.email_address_id AND " .
+                                            "map.donor_id = " . $self->dbh->quote($id, 'SQL_INTEGER'),
+                                            'email_address');
+  foreach my $key (keys %{$val}) { delete $val->{$key}{email_address}; }
+  return %{$val};
+}
+######################################################################
+
 =begin setPreferredEmailAddress
 
 Arguments:

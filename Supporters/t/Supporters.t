@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 264;
+use Test::More tests => 275;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -654,6 +654,7 @@ is_deeply $tShirt0Data,
           $sp->getRequestConfigurations('t-shirt-0'),
           "getRequestConfigurations: lookup of previously added items is same";
 
+
 =item setPreferredEmailAddress/getPreferredEmailAddress
 
 =cut
@@ -694,7 +695,48 @@ lives_ok { $ret = $sp->getPreferredEmailAddress($drapperId) }
          "getPreferredEmailAddress: lookup of known preferred email address succeeds... ";
 is($ret, 'drapper@example.org', "getPreferredEmailAddress: ....and returns the correct value.");
 
-=back
+=item getEmailAddresses
+
+=cut
+
+my %emailAddresses;
+
+dies_ok { %emailAddresses = $sp->getEmailAddresses(0); }
+        "getEmailAddresses: fails with 0 donorId";
+
+dies_ok { %emailAddresses = $sp->getEmailAddresses("String"); }
+        "getEmailAddresses: fails with string donorId";
+
+dies_ok { %emailAddresses = $sp->getEmailAddresses(undef); }
+        "getEmailAddresses: fails with string donorId";
+
+lives_ok { %emailAddresses = $sp->getEmailAddresses($olsonId); }
+         "getEmailAddresses: 1 lookup of addresses succeeds...";
+
+is_deeply(\%emailAddresses, {'everyone@example.net' => { 'date_encountered' => $today, 'name' => 'paypal' },
+                            'olson@example.net' => { 'date_encountered' => '2015-12-31', 'name' => 'home' }},
+          "getEmailAddresses: ... and returns correct results.");
+
+lives_ok { %emailAddresses = $sp->getEmailAddresses($drapperId); }
+         "getEmailAddresses: 2 lookup of addresses succeeds...";
+
+is_deeply(\%emailAddresses, {'everyone@example.net' => { 'date_encountered' => $today, 'name' => 'paypal' },
+                            'drapper@example.org' => { 'date_encountered' => '2015-12-31', 'name' => 'work' }},
+          "getEmailAddresses: ... and returns correct results.");
+
+lives_ok { %emailAddresses = $sp->getEmailAddresses($sterlingId); }
+         "getEmailAddresses: 3 lookup of addresses succeeds...";
+
+is_deeply(\%emailAddresses, {'sterlingjr@example.com' => { 'name' => 'home', 'date_encountered' => $today }},
+          "getEmailAddresses: ... and returns correct results.");
+
+lives_ok { %emailAddresses = $sp->getEmailAddresses($campbellId); }
+         "getEmailAddresses:  lookup of *empty* addresses succeeds...";
+
+is_deeply(\%emailAddresses, {},
+          "getEmailAddresses: ... and returns correct results.");
+
+
 
 =item findDonor
 
