@@ -791,6 +791,11 @@ lives_ok { $date = $sp->donorFirstGave($olsonId) } "donorFirstGave(): check for 
 
 is($date, '2015-01-15', "donorFirstGave(): ...and returned value is correct. ");
 
+=item donorDonationOnDate
+
+# FIXME: way to lookup donation on a date.
+
+=cut
 
 =item supporterExpirationDate
 
