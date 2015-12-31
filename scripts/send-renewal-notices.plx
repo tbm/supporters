@@ -49,6 +49,7 @@ foreach my $supporterId (@supporterIds) {
     push(@message, $line);
   }
   close MESSAGE;
+  my $emailTo = join(' ', keys %emails);
   open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
     die "unable to run sendmail: $!";
 
