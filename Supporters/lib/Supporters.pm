@@ -1081,6 +1081,8 @@ Arguments:
 A hash reference, the following keys are considered, and are "anded" together
 -- in that the donor sought must have all these criteria to be found.
 
+If no criteria are given, all donors are returned.
+
 =over
 
 =item emailAddress
@@ -1104,8 +1106,11 @@ Returns a list of donorIds that meets the criteria, or none if not found.
 
 sub findDonor($$) {
   my($self, $params) = @_;
-  die "findDonor: no search criteria given"
-    unless defined $params->{ledgerEntityId} or defined $params->{emailAddress};
+
+  unless (defined $params->{ledgerEntityId} or defined $params->{emailAddress}) {
+    my $rr = $self->dbh()->selectall_hashref("SELECT id FROM donor", 'id');
+    return keys %$rr;
+  }
 
   my @donorIds;
   if (not defined $params->{emailAddress}) {

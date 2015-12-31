@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 259;
+use Test::More tests => 260;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -692,8 +692,15 @@ is($ret, 'drapper@example.org', "getPreferredEmailAddress: ....and returns the c
 
 my @lookupDonorIds;
 
-dies_ok { @lookupDonorIds = $sp->findDonor({}); }
-        "findDonor: no search criteria dies";
+lives_ok { @lookupDonorIds = $sp->findDonor({}); }
+        "findDonor: no search criteria succeeds and...";
+
+my(%vals);
+@vals{@lookupDonorIds} = @lookupDonorIds;
+
+is_deeply(\%vals, { $campbellId => $campbellId, $sterlingId => $sterlingId,
+                    $olsonId => $olsonId, $drapperId => $drapperId },
+          "findDonor: ... and returns all donorIds.");
 
 lives_ok { @lookupDonorIds = $sp->findDonor({ledgerEntityId => "NotFound" }); }
         "findDonor: 1 lookup of known missing succeeds ...";
@@ -733,7 +740,7 @@ is_deeply(\@lookupDonorIds, [$olsonId], "findDonor: ... and finds right entry.")
 lives_ok { @lookupDonorIds = $sp->findDonor({emailAddress => 'everyone@example.net'}); }
        "findDonor: single criteria find expecting multiple records succeeds...";
 
-my(%vals);
+%vals = ();
 @vals{@lookupDonorIds} = @lookupDonorIds;
 
 is_deeply(\%vals, { $olsonId => $olsonId, $drapperId => $drapperId }, "findDonor: ... and finds the right entires.");
