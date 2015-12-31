@@ -31,3 +31,6 @@ the command line with the Supporters database.
 
 * Add a Supporter from the command line:
         ./scripts/add-supporter.plx <DBFILE>
+
+* Add an email address, or change the preferred email address:
+        ./scripts/add-email-address.plx <DBFILE>
