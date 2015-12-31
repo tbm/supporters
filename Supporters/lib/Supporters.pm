@@ -377,7 +377,6 @@ sub getPreferredEmailAddress($$) {
     return $emailAddress;
   }
 }
-
 ######################################################################
 
 =begin getLedgerEntityId
@@ -417,6 +416,31 @@ sub getLedgerEntityId($$) {
   } else {
     die "getLedgerEntityId: DATABASE INTEGRITY ERROR: $donorId was valid but non-1 row count returned";
   }
+}
+######################################################################
+
+=begin getPublicAck
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid donor id number currently in the database.  die() will occur if
+   the id number is not in the database already as a donor id.
+
+=back
+
+Returns the a boolean indicating whether or not the donor seeks to be
+publicly acknowledged.  undef can be returned if the donor has not specified,
+so callers must check for undef.
+
+=cut
+
+sub getPublicAck($$) {
+  my($self, $donorId) = @_;
+
 }
 ######################################################################
 

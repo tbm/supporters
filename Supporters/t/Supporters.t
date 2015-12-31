@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 205;
+use Test::More tests => 215;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -135,6 +135,47 @@ ok((defined $val and defined $val->{$olsonId}{email_address_id} and $val->{$olso
    "addSuporter: email address mapping is created on addSupporter() w/ email address included");
 
 my $olsonFirstEmailId = $val->{$olsonId}{email_address_id};
+
+my $sterlingId;
+lives_ok { $sterlingId = $sp->addSupporter({ display_name => "Roger Sterling",
+                                  ledger_entity_id => "Sterling-Roger",
+                                  email_address => 'sterlingjr@example.com',
+                                  email_address_type => 'home' }) }
+         "addSupporter: succeeds with no public_ack setting specified...";
+
+ok( (looks_like_number($sterlingId) and $sterlingId > $olsonId),
+   "addSupporter: ... and return value is sane.");
+
+=item getPublicAck
+
+=cut
+
+dies_ok { my $ledgerId = $sp->getPublicAck(0); }
+        "getPublicAck: fails when rows are not returned but _verifyId() somehow passed";
+
+# Replace _verifyId() to always return true
+
+$overrideSub = Sub::Override->new( 'Supporters::_verifyId' => sub ($$) { return 1;} );
+dies_ok { my $ledgerId = $sp->getPublicAck(0); }
+        "getPublicAck: fails when rows are not returned but _verifyId() somehow passed";
+$overrideSub->restore;
+
+my $publicAckVal;
+lives_ok { $publicAckVal = $sp->getPublicAck($olsonId); }
+  "getPublicAck: lives when valid id is given for someone who does not want it...";
+
+is($publicAckVal, 0, "getPublicAck: ...and return value is correct.");
+
+lives_ok { $publicAckVal = $sp->getPublicAck($drapperId); }
+  "getPublicAck: lives when valid id is given for someone who wants it...";
+
+is($publicAckVal, 1, "getPublicAck: ...and return value is correct.");
+
+lives_ok { $publicAckVal = $sp->getPublicAck($sterlingId); }
+  "getPublicAck: lives when valid id is given for someone who is undecided...";
+
+is($publicAckVal, undef, "getPublicAck: ...and return value is correct.");
+
 
 =item getLedgerEntityId
 
