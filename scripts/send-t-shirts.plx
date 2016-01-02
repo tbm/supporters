@@ -7,6 +7,8 @@ use autodie qw(open close);
 use DBI;
 use Encode qw(encode decode);
 
+use Supporters;
+
 my $LEDGER_CMD = "/usr/local/bin/ledger";
 
 if (@ARGV != 4 and @ARGV != 5) {
