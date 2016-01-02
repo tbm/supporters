@@ -59,8 +59,8 @@ foreach my $id (sort keys %idsSent) {
     print STDERR $out;
     next;
   }
-  print "WOULD CALL: $sp->fulfillRequest($id, requestType => $request->{requestType},
-                      who => $WHO, how => $HOW);\n";
+  $sp->fulfillRequest({ donorId => $id, requestType => $request->{requestType},
+                      who => $WHO, how => $HOW});
 
   my $emailTo = $sp->getPreferredEmailAddress($id);
   if (not defined $emailTo) {
