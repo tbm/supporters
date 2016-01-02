@@ -34,7 +34,7 @@ while (my $line = <TEX_FILE>) {
     die "id $id, and/or size $size not defined" unless defined $id and defined $size;
     $idsSent{$id} = $size;
   } else {
-    warn "skipping line $line";
+    print STDERR "skipping line $line" if ($VERBOSE >= 2);
   }
 }
 
