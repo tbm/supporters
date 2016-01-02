@@ -68,16 +68,16 @@ foreach my $id (sort keys %idsSent) {
     $emailTo = $addr[0];
   }
   my $fromAddress = 'info@sfconservancy.org';
-  open(SENDMAIL, "|/usr/lib/sendmail -f \"$fromAddress\" -oi -oem -- $emailTo") or
+  open(SENDMAIL, "|/usr/lib/sendmail -f \"$fromAddress\" -oi -oem -- $emailTo $fromAddress") or
       die "unable to run sendmail: $!";
   print SENDMAIL <<DATA;
 To: $emailTo
 From: "Software Freedom Conservancy" <$fromAddress>
-Subject: $idsSent{$id} Conservancy T-Shirt sent via post.
+Subject: $idsSent{$id} Conservancy T-Shirt sent via post last month.
 
 The t-shirt of size $idsSent{$id} that you requested as a Conservancy
-Supporter was sent to you via the post today.  Please ping us if you don't
-receive your shirt within two weeks.
+Supporter was sent to you via the post today.  Please ping us if you
+do not receive your t-shirt within two weeks.
 
 Thank you again so much for supporting Conservancy.  When your shirt arrives,
 we'd really appreciate if you'd post pictures of the shirt on social media
