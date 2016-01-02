@@ -92,6 +92,8 @@ Distinguished Technologist, Software Freedom Conservancy
 DATA
   close SENDMAIL;
   die "Unable to send email to $id: $!" unless $? == 0;
+
+  print STDERR "Emailed $emailTo for $id sending of $request->{requestConfiguration} size t-shirt and marked it fulfilled in database\n" if ($VERBOSE);
 }
 ###############################################################################
 #
