@@ -45,7 +45,7 @@ foreach my $id (sort keys %idsSent) {
   foreach my $type (qw/t-shirt-0 t-shirt-1/) {
     $request = $sp->getRequest({ donorId => $id, requestType => 't-shirt-0', ignoreFulfilledRequests => 1 });
     if (defined $request and defined $request->{requestType}) {
-      if ($request->{requstConfiguration} ne $idsSent{$id}) {
+      if ($request->{requestConfiguration} ne $idsSent{$id}) {
         my $out = "WARNING: not fufilling $id request for $request->{requstConfiguration} because we sent wrong size of $idsSent{$id}!\n";
         print $out;
         print STDERR $out;
