@@ -31,8 +31,25 @@ my(@supporterIds) = $sp->findDonor({});
 
 foreach my $supporterId (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
-  next unless ( (not defined $expiresOn) or $expiresOn lt $TODAY);
+  my $isLapsed = ( (not defined $expiresOn) or $expiresOn lt $TODAY);
 
+  my $request = $sp->getRequest({ donorId => $supporterId, requestType => $REQUEST_NAME});
+
+  if (defined $request) {
+    if (defined $request->{fulfillDate}) {
+      print STDERR "$supporterId lapsed on $expiresOn but recorded as renewed on $request->{fulfillDate}\n"
+        if ($isLapsed and $VERBOSE);
+    } elsif (not $isLapsed) {
+      $sp->fulfillRequest({donorId => $supporterId, requestType => $REQUEST_NAME,
+                           who => $supporterId, how => "apparent renewal not noticed during import"});
+      print STDERR "$supporterId now expires on $expiresOn, recording rewnewal of type $REQUEST_NAME\n"
+        if $VERBOSE;
+    } else {
+      print STDERR "$supporterId received this renewal notice already on $request->{requestDate}\n"
+        if $VERBOSE;
+    }
+    next;
+  }
   my %emails;
   my $email = $sp->getPreferredEmailAddress($supporterId);
   if (defined $email) {
