@@ -53,7 +53,8 @@ foreach my $supporterId (@supporterIds) {
   open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
     die "unable to run sendmail: $!";
 
-  print "To: ", join(', ', keys %emails), "\n";
+  print STDERR "Sending to $supporterId at $emailTo\n";
+  print SENDMAIL "To: ", join(', ', keys %emails), "\n";
   print SENDMAIL @message;
 
   close SENDMAIL;
