@@ -63,7 +63,8 @@ my $sp = new Supporters($dbh, [ "none" ]);
 my(@supporterIds) = $sp->findDonor({});
 
 my $overallCount = 0;
-my $lineCount = 0;
+my %labelsLines;
+my %boxLines;
 
 foreach my $id (@supporterIds) {
   my $sizeNeeded;
@@ -88,20 +89,31 @@ foreach my $id (@supporterIds) {
     next;
   }
   $overallCount++;
-  if ($lineCount++ > 40) {
-    print LIST "\n\n", '\end{tabular}',"\n\\pagebreak\n\\begin{tabular}{|l|l|l|l|l|} \\hline\n";
-    $lineCount = 0;
-  }
-  print LABELS '\mlabel{}{',
-    join(' \\\\ ', split('\n', $latexPostal)), "}\n";
+  $labelsLines{$sizeNeeded} = "" unless defined $labelsLines{$sizeNeeded};
+  $boxLines{$sizeNeeded} = [] unless defined $boxLines{$sizeNeeded};
+  $labelsLines{$sizeNeeded} .= '\mlabel{}{TO: \\\\ ' . join(' \\\\ ', split('\n', $latexPostal)) . "}\n";
   my $shortLatexPostal = latex_encode(sprintf('%-30.30s', $postalAddresses[0]));
-  
-  print LIST '{ $\Box$} &', sprintf("%-3d  & %5s & %-30s  & %s ",
-                                    $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
-                                    encode('UTF-8', $sizeNeeded),
-                                    $shortLatexPostal),
-                                      '\\\\ \hline', "\n";
+  push(@{$boxLines{$sizeNeeded}}, '{ $\Box$} &' . sprintf("%-3d  & %5s & %-30s  & %s ",
+                                                  $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
+                                                  encode('UTF-8', $sizeNeeded),
+                                                  $shortLatexPostal) .
+                                                    '\\\\ \hline' . "\n");
 }
+
+my $lineCount = 0;
+foreach my $size (sort { $a cmp $b } keys %boxLines) {
+  foreach my $line (@{$boxLines{$size}}) {
+    if ($lineCount++ > 40) {
+      $lineCount = 0;
+      print LIST "\n\n", '\end{tabular}',"\n\\pagebreak\n\\begin{tabular}{|l|l|l|l|l|} \\hline\n";
+    }
+    print LIST $line;
+  }
+  print LABELS $labelsLines{$size};
+  delete $labelsLines{$size};
+}
+die "error: parallel hashes had different keys?" unless scalar(keys %labelsLines) <= 0;
+
 print LIST "\n\n", '\end{tabular}',"\n";
 print LIST "FINAL INVENTORY EXPECTED\n\\begin{tabular}{|l|l|} \\hline\n";
 print STDERR "Total Shirts: $overallCount\n" if $VERBOSE;
