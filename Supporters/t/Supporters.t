@@ -845,6 +845,9 @@ foreach my $arg (qw/startDate endDate/) {
   dies_ok { $sp->donorTotalGaveInPeriod(donorId => $drapperId, $arg => '2015-1-5'); }
     "donorTotalGaveInPeriod():  dies with non ISO-8601 string in $arg";
 }
+dies_ok { $sp->donorTotalGaveInPeriod(donorId => $drapperId, wrong => ''); }
+  "donorTotalGaveInPeriod(): dies if given an argument that is not recognized";
+
 my $amount;
 
 lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $drapperId) }
