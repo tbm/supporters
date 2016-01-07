@@ -833,6 +833,37 @@ lives_ok { $date = $sp->donorFirstGave($olsonId) } "donorFirstGave(): check for 
 
 is($date, '2015-01-15', "donorFirstGave(): ...and returned value is correct. ");
 
+=item donorTotalGaveInPeriod
+
+=cut
+
+dies_ok { $sp->donorTotalGaveInPeriod(donorId => undef); } "donorTotalGaveInPeriod(): dies with undefined donorId";
+dies_ok { $sp->donorTotalGaveInPeriod(donorId => "str"); } "donorTotalGaveInPeriod(): dies with non-numeric donorId";
+dies_ok { $sp->donorTotalGaveInPeriod(donorId => 0);     } "donorTotalGaveInPeriod(): dies with non-existent id";
+
+my $amount;
+
+lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $drapperId) }
+   "donorTotalGaveInPeriod(): total for a donor with no period named succeeds...";
+
+is($amount, 305.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
+
+lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $olsonId, startDate => '2015-02-17',
+                                               endDate => '2015-06-29') }
+         "donorTotalGaveInPeriod(): check for total with both start and end date succeeds...";
+
+is($amount, 30.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
+
+lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $harrisId, startDate => '2015-12-04'); }
+         "donorTotalGaveInPeriod(): check for total with just a start date succeeds...";
+
+is($amount, 120.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
+
+lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $olsonId, endDate => '2015-02-17'); }
+         "donorTotalGaveInPeriod(): check for total with just a end date succeeds...";
+
+is($amount, 10.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
+
 =item donorDonationOnDate
 
 # FIXME: way to lookup donation on a date.
