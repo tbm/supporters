@@ -1263,6 +1263,87 @@ sub donorFirstGave($$) {
   }
 }
 
+######################################################################
+
+=begin donorTotalGaveInPeriod
+
+Arguments:
+
+=over
+
+=item $self
+
+Current object.
+
+=item a list of arguments, which must be even and will be interpreted as a
+ hash, with the following keys relevant:
+
+=item donorId
+
+   This mandatory key must have a value of a Valid donor id number currently
+   in the database.  die() will occur if the id number is not in the database
+   already as a donor id.
+
+=item startDate
+
+   This optional key, if given, must contain an ISO 8601 formatted date for the start
+   date of the period.  die() may occur if not in ISO-8601 format.
+
+=item endDate
+
+   This optional key, if given, must contain an ISO 8601 formatted date for the start
+   date of the period.  die() may occur if not in ISO-8601 format.
+
+=back
+
+All other hash keys given generate a die().
+
+=back
+
+=cut
+
+sub donorTotalGaveInPeriod($$) {
+  my $self = shift @_;
+
+  confess "donorTotalGaveInPeriod: arguments not in hash format" unless (scalar(@_) % 2) == 0;
+  my(%args) = @_;
+
+  my $donorId = $args{donorId};  delete $args{donorId};
+
+  confess "donorTotalGaveInPeriod: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  # FIXME: Does not handle address before the Common Era
+  my $startDate = '0000-01-01';
+  if (defined $args{startDate}) { $startDate = $args{startDate}; delete $args{startDate}; }
+
+  # FIXME: Year 10,000 problem!
+
+  my $endDate = '9999-12-31';
+  if (defined $args{endDate}) { $endDate = $args{endDate}; delete $args{endDate}; }
+
+  my(@argKeys) = keys %args;
+  confess("Unknown arugments: ".  join(", ", @argKeys)) if @argKeys > 0;
+
+  foreach my $date ($startDate, $endDate) {
+    confess "donorTotalGaveInPeriod: invalid date in argument list, \"$date\""
+      unless $date =~ /^\d{4,4}-\d{2,2}-\d{2,2}/;
+    # FIXME: check better for ISO-8601.
+  }
+  $self->_readLedgerData() if not defined $self->{ledgerData};
+
+  my $entityId = $self->getLedgerEntityId($donorId);
+  my $amount = 0.00;
+
+  foreach my $date (keys %{$self->{ledgerData}{$entityId}{donations}}) {
+    next if $date =~ /^__/;
+    $amount += $self->{ledgerData}{$entityId}{donations}{$date}
+      if $date ge $startDate and $date le $endDate;
+  }
+  return $amount;
+}
+######################################################################
+
 =begin supporterExpirationDate
 
 Arguments:
