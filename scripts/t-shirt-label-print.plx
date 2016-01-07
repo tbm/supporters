@@ -62,6 +62,9 @@ my $sp = new Supporters($dbh, [ "none" ]);
 
 my(@supporterIds) = $sp->findDonor({});
 
+my $overallCount = 0;
+my $lineCount = 0;
+
 foreach my $id (@supporterIds) {
   my $sizeNeeded;
   foreach my $type (qw/t-shirt-0 t-shirt-1/) {
@@ -80,15 +83,20 @@ foreach my $id (@supporterIds) {
   }
 
   { no strict;  no warnings; $sizeCounts{$sizeNeeded}--; }
-  if ($sizeCounts{$sizeNeeded} < 1) {
+  if ($sizeCounts{$sizeNeeded} < 0) {
     print STDERR "Skipping $id request for $sizeNeeded because we are out.\n" if $VERBOSE;
     next;
   }
+  $overallCount++;
+  if ($lineCount++ > 40) {
+    print LIST "\n\n", '\end{tabular}',"\n\\pagebreak\n\\begin{tabular}{|l|l|l|l|l|} \\hline\n";
+    $lineCount = 0;
+  }
   print LABELS '\mlabel{}{',
     join(' \\\\ ', split('\n', $latexPostal)), "}\n";
-  my $shortLatexPostal = latex_encode(sprintf('%-40.40s', $postalAddresses[0]));
+  my $shortLatexPostal = latex_encode(sprintf('%-30.30s', $postalAddresses[0]));
   
-  print LIST '{ $\Box$} &', sprintf("%-3d  & %5s & %-30s  & %-40.40s ",
+  print LIST '{ $\Box$} &', sprintf("%-3d  & %5s & %-30s  & %s ",
                                     $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
                                     encode('UTF-8', $sizeNeeded),
                                     $shortLatexPostal),
@@ -96,11 +104,24 @@ foreach my $id (@supporterIds) {
 }
 print LIST "\n\n", '\end{tabular}',"\n";
 print LIST "FINAL INVENTORY EXPECTED\n\\begin{tabular}{|l|l|} \\hline\n";
+print STDERR "Total Shirts: $overallCount\n" if $VERBOSE;
 
-foreach my $size (keys %sizeCounts) {
+my %needList;
+foreach my $size (sort keys %sizeCounts) {
+  if ($sizeCounts{$size} < 0) {
+    $needList{$size} = abs($sizeCounts{$size});
+    $sizeCounts{$size} = 0;
+  }
   print LIST "$size & $sizeCounts{$size}\\\\\n";
 }
-print LIST "\n\n", '\end{tabular}',"\n", '\end{document}', "\n";
+if (scalar(keys %needList) > 0) {
+  print LIST "\\hline \n\n", '\end{tabular}',"\n\n\\bigskip\n\n";
+  print LIST "T-SHIRTS NEEDED\n\\begin{tabular}{|l|l|} \\hline\n";
+  foreach my $size (sort keys %needList) {
+    print LIST "$size & $needList{$size}\\\\\n";
+  }
+}
+print LIST "\\hline \n\n", '\end{tabular}',"\n\n\nOVERALL SENDING COUNT: $overallCount", '\end{document}', "\n";
 close LIST;
 close LABELS;
 
