@@ -841,6 +841,10 @@ dies_ok { $sp->donorTotalGaveInPeriod(donorId => undef); } "donorTotalGaveInPeri
 dies_ok { $sp->donorTotalGaveInPeriod(donorId => "str"); } "donorTotalGaveInPeriod(): dies with non-numeric donorId";
 dies_ok { $sp->donorTotalGaveInPeriod(donorId => 0);     } "donorTotalGaveInPeriod(): dies with non-existent id";
 
+foreach my $arg (qw/startDate endDate/) {
+  dies_ok { $sp->donorTotalGaveInPeriod(donorId => $drapperId, $arg => '2015-1-5'); }
+    "donorTotalGaveInPeriod():  dies with non ISO-8601 string in $arg";
+}
 my $amount;
 
 lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $drapperId) }
