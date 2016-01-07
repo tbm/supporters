@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 275;
+use Test::More tests => 289;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
