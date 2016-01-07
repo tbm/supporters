@@ -714,14 +714,14 @@ lives_ok { %emailAddresses = $sp->getEmailAddresses($olsonId); }
          "getEmailAddresses: 1 lookup of addresses succeeds...";
 
 is_deeply(\%emailAddresses, {'everyone@example.net' => { 'date_encountered' => $today, 'name' => 'paypal' },
-                            'olson@example.net' => { 'date_encountered' => '2015-12-31', 'name' => 'home' }},
+                            'olson@example.net' => { 'date_encountered' => $today, 'name' => 'home' }},
           "getEmailAddresses: ... and returns correct results.");
 
 lives_ok { %emailAddresses = $sp->getEmailAddresses($drapperId); }
          "getEmailAddresses: 2 lookup of addresses succeeds...";
 
 is_deeply(\%emailAddresses, {'everyone@example.net' => { 'date_encountered' => $today, 'name' => 'paypal' },
-                            'drapper@example.org' => { 'date_encountered' => '2015-12-31', 'name' => 'work' }},
+                            'drapper@example.org' => { 'date_encountered' => $today, 'name' => 'work' }},
           "getEmailAddresses: ... and returns correct results.");
 
 lives_ok { %emailAddresses = $sp->getEmailAddresses($sterlingId); }
