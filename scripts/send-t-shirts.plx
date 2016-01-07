@@ -73,11 +73,12 @@ foreach my $id (sort keys %idsSent) {
   print SENDMAIL <<DATA;
 To: $emailTo
 From: "Software Freedom Conservancy" <$fromAddress>
-Subject: $idsSent{$id} Conservancy T-Shirt sent via post last month.
+Subject: $idsSent{$id} Conservancy T-Shirt sent via post yesterday.
 
 The t-shirt of size $idsSent{$id} that you requested as a Conservancy
-Supporter was sent to you via the post today.  Please ping us if you
-do not receive your t-shirt within two weeks.
+Supporter was sent to you via the post yesterday.  Please ping us if you do
+not receive your t-shirt within two weeks in the USA, or three weeks outside
+of the USA.
 
 Thank you again so much for supporting Conservancy.  When your shirt arrives,
 we'd really appreciate if you'd post pictures of the shirt on social media
@@ -87,8 +88,9 @@ https://sfconservancy.org/supporter/ .
 
 Sincerely,
 -- 
-Bradley M. Kuhn
-Distinguished Technologist, Software Freedom Conservancy
+Karen M. Sandler, Executive Director, Software Freedom Conservancy
+    and
+Bradley M. Kuhn, Distinguished Technologist, Software Freedom Conservancy
 DATA
   close SENDMAIL;
   die "Unable to send email to $id: $!" unless $? == 0;
