@@ -856,7 +856,7 @@ lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $olsonId, startDate 
                                                endDate => '2015-06-29') }
          "donorTotalGaveInPeriod(): check for total with both start and end date succeeds...";
 
-is($amount, 20.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
+is($amount, 30.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
 
 lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $harrisId, startDate => '2015-12-04'); }
          "donorTotalGaveInPeriod(): check for total with just a start date succeeds...";
@@ -866,7 +866,7 @@ is($amount, 120.00,  "donorTotalGaveInPeriod(): ...and returned value is correct
 lives_ok { $amount = $sp->donorTotalGaveInPeriod(donorId => $olsonId, endDate => '2015-02-16'); }
          "donorTotalGaveInPeriod(): check for total with just a end date succeeds...";
 
-is($amount, 10.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
+is($amount, 20.00,  "donorTotalGaveInPeriod(): ...and returned value is correct. ");
 
 =item donorDonationOnDate
 
