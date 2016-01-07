@@ -92,7 +92,7 @@ foreach my $id (@supporterIds) {
   $labelsLines{$sizeNeeded} = "" unless defined $labelsLines{$sizeNeeded};
   $boxLines{$sizeNeeded} = [] unless defined $boxLines{$sizeNeeded};
   $labelsLines{$sizeNeeded} .= '\mlabel{}{TO: \\\\ ' . join(' \\\\ ', split('\n', $latexPostal)) . "}\n";
-  my $shortLatexPostal = latex_encode(sprintf('%-30.30s', $postalAddresses[0]));
+  my $shortLatexPostal = latex_encode(sprintf('%-30.30s', join(" ", reverse split('\n', $postalAddresses[0]))));
   push(@{$boxLines{$sizeNeeded}}, '{ $\Box$} &' . sprintf("%-3d  & %5s & %-30s  & %s ",
                                                   $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
                                                   encode('UTF-8', $sizeNeeded),
