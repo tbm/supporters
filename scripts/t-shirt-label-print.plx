@@ -13,12 +13,12 @@ use Supporters;
 
 my $LEDGER_CMD = "/usr/local/bin/ledger";
 
-if (@ARGV != 3 and @ARGV != 4) {
-  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <SIZE_COUNTS> <OUTPUT_DIRECTORY> <VERBOSE>\n";
+if (@ARGV != 4 and @ARGV != 5) {
+  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <GIVING_LIMIT> <SIZE_COUNTS> <OUTPUT_DIRECTORY> <VERBOSE>\n";
   exit 1;
 }
 
-my($SUPPORTERS_SQLITE_DB_FILE, $SIZE_COUNTS, $OUTPUT_DIRECTORY, $VERBOSE) = @ARGV;
+my($SUPPORTERS_SQLITE_DB_FILE, $GIVING_LIMIT, $SIZE_COUNTS, $OUTPUT_DIRECTORY, $VERBOSE) = @ARGV;
 $VERBOSE = 0 if not defined $VERBOSE;
 
 open(SIZE_COUNTS, "<", $SIZE_COUNTS);
@@ -75,6 +75,13 @@ foreach my $id (@supporterIds) {
     }
   }
   next if not defined $sizeNeeded;   # If we don't need a size, we don't have a request.
+
+  my $amount = $sp->donorTotalGaveInPeriod(donorId => $id);
+  if ($amount < $GIVING_LIMIT) {
+    print "Skipping $id request for $sizeNeeded because donor only gave $amount and giving limit is $GIVING\n" if $VERBOSE;
+    next;
+  }
+
   my(@postalAddresses) = $sp->getPostalAddresses($id);
   my $latexPostal = latex_encode($postalAddresses[0]);
   if ($latexPostal =~ /unmatched/) {
