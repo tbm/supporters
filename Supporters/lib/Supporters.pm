@@ -637,6 +637,43 @@ sub addPostalAddress($$$$) {
 }
 ######################################################################
 
+=begin getPostalAddresses
+
+Arguments:
+
+=over
+
+=item $id
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item $formattedPostalAddress
+
+   Scalar string that contains a multi-line, fully formatted, postal address.
+
+=back
+
+Returns the id value of the postal_address table entry.
+
+=cut
+
+sub getPostalAddresses($) {
+  my($self, $id) = @_;
+
+  die "addPostalAddress: invalid id, $id" unless $self->_verifyId($id);
+
+  my $val = $self->dbh()->selectall_hashref("SELECT pa.formatted_address, at.name, pa.date_encountered " .
+                                            "FROM donor_postal_address_mapping map, address_type at, postal_address pa " .
+                                            "WHERE at.id = pa.type_id AND pa.id = map.postal_address_id AND " .
+                                            "map.donor_id = " . $self->dbh->quote($id, 'SQL_INTEGER'),
+                                            'formatted_address');
+  foreach my $key (keys %{$val}) { delete $val->{$key}{formatted_address}; }
+  return %{$val};
+
+}
+######################################################################
+
 =begin getRequestType
 
 Arguments:

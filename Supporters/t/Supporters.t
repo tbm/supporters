@@ -745,7 +745,7 @@ lives_ok { %emailAddresses = $sp->getEmailAddresses($campbellId); }
 is_deeply(\%emailAddresses, {},
           "getEmailAddresses: ... and returns correct results.");
 
-
+# FIXME: getPostalAddresses needs unit tests.
 
 =item findDonor
 
