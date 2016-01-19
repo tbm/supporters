@@ -620,6 +620,11 @@ is($tt->{requestConfiguration}, 'Small', "getRequest: configuration is correct."
 is($tt->{notes}, 'he probably needs a larger size but this shirt has none',
    "getRequest: notes are correct.");
 
+lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestType => 't-shirt-small-only', ignoreFulfilledRequests => 1}); }
+         "getRequest: succeeds for lookup criteria that are known to return nothing ....";
+
+is($tt, undef, 'getRequest: .... and undef is indeed returned');
+
 lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestTypeId => $tShirt0RequestTypeId } ); }
          "getRequest: succeeds with valid parameters, using requestTypeId.";
 
