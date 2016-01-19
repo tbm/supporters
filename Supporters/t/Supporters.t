@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 289;
+use Test::More tests => 313;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -510,6 +510,84 @@ lives_ok { $tShirt0RequestId =
 ok( (defined $tShirt0RequestId and looks_like_number($tShirt0RequestId) and $tShirt0RequestId > 0),
     "addRequest: another successful call returns an integer id.");
 
+=item holdRequest
+
+=cut
+
+my $holdRequestId;
+my $newHoldId;
+
+dies_ok { $holdRequestId = $sp->holdRequest(requestType => "t-shirt-0", who => 'joe',
+                                                    why => "will see him soon and give t-shirt in person" ); }
+     "holdRequest: dies if donorId not specified";
+
+dies_ok { $holdRequestId = $sp->holdRequest(donorId => $drapperId + 1000,
+                                            requestType => "t-shirt-0", who => 'joe',
+                                            why => "will see him soon and give t-shirt in person"); }
+     "holdRequest: dies if donorId not found in database";
+
+dies_ok { $holdRequestId = $sp->holdRequest(donorId => $drapperId,  who => 'joe',
+                                                    why => "in-person delivery" ); }
+     "holdRequest: dies if requestType not specified";
+
+dies_ok { $holdRequestId = $sp->holdRequest( { donorId => $drapperId,
+                                                   requestType => "t-shirt-0",
+                                                    why => "in-person delivery" }); }
+     "holdRequest: dies if who not specified";
+
+lives_ok { $holdRequestId = $sp->holdRequest( { donorId => $drapperId,
+                                            requestType => "t-shirt-0", who => 'joe',
+                                                    why => "in-person delivery" }); }
+     "holdRequest: succeeds for existing request...";
+
+ok( (defined $holdRequestId and looks_like_number($holdRequestId) and $holdRequestId > 0),
+    "holdRequest: ... and id returned on successful holdRequest() is a number");
+
+lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, date, who, how, request_id FROM request_hold", 'id'); }
+         "holdRequest: sql command in  database for entry succeeds.";
+is_deeply($val, { $holdRequestId => { id => $holdRequestId, date => $today,
+                                         why => 'in-person delivery', who => 'joe',
+                                         request_id => $tshirtSmallRequestId } },
+          "holdRequest: databse entry from successful return is correct");
+
+my $badHold;
+lives_ok { $badHold = $sp->holdRequest( { donorId => $drapperId, who => 'john',
+                                                   requestType => "does-not-exist",
+                                                    how => "in-person delivery" }); }
+     "holdRequest: attempt to hold a request never made does not die...";
+
+ok( (not defined $badHold),
+     "holdRequest: ... but, rather, returns undef.");
+
+is($sp->getRequestType("does-not-exist"), undef,
+     "holdRequest: requestType not created when holdRequest fails.");
+
+my $lookedUpHoldId;
+
+lives_ok { $lookedUpHoldId = $sp->holdRequest( { donorId => $drapperId,
+                                            requestType => "t-shirt-0", who => 'peggy',
+                                                    how => "left in his office." }); }
+     "holdRequest: attempt to hold an already-hold request does not die ...";
+
+is($lookedUpHoldId, $holdRequestId,
+     "holdRequest: ... but, rather, returns the same value from the previous holdRequest() call.");
+
+
+my $holdRequest;
+lives_ok { $newHoldId = $sp->holdRequest( { donorId => $drapperId, releaseDate => '3000-01-01',
+                                            requestTypeId => $tShirt0RequestTypeId, who => 'john',
+                                                    how => "mailed" }); }
+     "holdRequest: succeeds for existing request, using requestTypeId";
+
+ok( (defined $newHoldId and looks_like_number($newHoldId) and $newHoldId > 0 and ($newHoldId != $holdRequestId)),
+    "holdRequest: id returned on successful holdRequest() is a number and is not the one returned by previous");
+
+=item releaseRequestHold
+
+=cut
+
+# FIXME: releaseRequestHold
+
 
 =item fulfillRequest
 
@@ -631,7 +709,14 @@ lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestTypeId => $tShir
 is($tt->{requestType}, 't-shirt-0', "getRequest: requestType is correct.");
 is($tt->{requestDate}, $today, "getRequest: request date is today.");
 is($tt->{requestConfiguration}, 'MenL', "getRequest: configuration is correct.");
+is($tt->{heldUntil}, '3000-01-01', "getRequest: heldUntil is correct.");
 is($tt->{notes}, undef,    "getRequest: notes are undef when null in database.");
+
+lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestTypeId => $tShirt0RequestTypeId,
+                                  ignoreHeldRequests => 1}); }
+         "getRequest: succeeds for lookup criteria, including ignoreHeldRequests, that are known to return nothing ....";
+is($tt, undef, 'getRequest: .... and undef is indeed returned');
+
 
 lives_ok { $tt = $sp->getRequest({ donorId => $drapperId,  requestType => "join-announce-email-list" }); }
          "getRequest: succeeds with valid parameters.";
