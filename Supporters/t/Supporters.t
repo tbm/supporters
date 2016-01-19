@@ -52,6 +52,7 @@ Supporters:Match Pledge 2015-02-26 Whitman-Dick \$-300.00
 Supporters:Monthly 2015-02-16 Olson-Margaret \$-10.00
 Supporters:Monthly 2015-06-30 Olson-Margaret \$-10.00
 Supporters:Annual 2015-03-04 Harris-Joan \$-120.00
+Supporters:Annual 2016-01-10  \$-120.00
 FAKE_LEDGER_TEST_DATA_END
 
 =item Public-facing methods of the module, as follows:
