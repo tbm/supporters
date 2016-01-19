@@ -537,6 +537,14 @@ dies_ok { $fulfillRequestId = $sp->fulfillRequest( { donorId => $drapperId,
                                                     how => "in-person delivery" }); }
      "fulfillRequest: dies if who not specified";
 
+my $req;
+lives_ok { $req = $sp->getRequest({donorId => $drapperId, requestType => "t-shirt-small-only" }); }
+        "getRequest: success after failed fulfillRequest attempts...";
+
+is($req->{requestType}, "t-shirt-small-only", "getRequest: ... with correct type");
+is($req->{requestDate}, $today, "getRequest: ... and correct request date.");
+is($req->{fulfillDate}, undef, "getRequest: ... but no fulfillDate.");
+
 lives_ok { $fulfillRequestId = $sp->fulfillRequest( { donorId => $drapperId,
                                             requestType => "t-shirt-small-only", who => 'joe',
                                                     how => "in-person delivery" }); }
