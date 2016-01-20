@@ -914,7 +914,7 @@ following fields may also be included:
 
 =back
 
-If the request has been fufilled, the following keys will also ahve values.
+If the request has been fufilled, the following keys will also have values:
 
 =over
 
