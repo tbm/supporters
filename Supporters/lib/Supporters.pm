@@ -1109,7 +1109,12 @@ A hash reference, the following keys are considered:
 
 =back
 
-Returns the id value of the fulfillment entry.
+Returns the id value of the fulfillment entry.  Note that value may be a
+fulfillment id from a previous fulfillment (i.e., the request may have
+already been fulfilled).
+
+undef can be returned.  Currently, undef is only returned if the request is
+on hold.
 
 =cut
 
