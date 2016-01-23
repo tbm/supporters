@@ -50,6 +50,9 @@ foreach my $supporterId (@supporterIds) {
     }
     next;
   }
+  print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed) and $VERBOSE > 1);
+  next if not $isLapsed;
+
   my %emails;
   my $email = $sp->getPreferredEmailAddress($supporterId);
   if (defined $email) {
