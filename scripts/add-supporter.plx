@@ -27,9 +27,14 @@ print "Display Name: ";
 my $displayName = <STDIN>;
 chomp $displayName;
 
-print "Public Ack (0 or 1): ";
-my $publicAck = <STDIN>;
-chomp $publicAck;
+my $publicAck = 7;
+while ($publicAck != 0 and $publicAck != 1 and $publicAck !~ /^\s*$/) {
+  print "Public Ack (0 or 1, or return to leave undef): ";
+  $publicAck = <STDIN>;
+  chomp $publicAck;
+}
+$publicAck = undef if (defined $publicAck and $publicAck =~ /^\s*$/);
+
 
 print "Email Address: ";
 my $email = <STDIN>;
