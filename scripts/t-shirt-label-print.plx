@@ -99,7 +99,7 @@ foreach my $id (@supporterIds) {
   $lines{$sizeNeeded}{checklist} = [] unless defined $lines{$sizeNeeded}{checklist};
   $lines{$sizeNeeded}{labels} .= '\mlabel{}{TO: \\\\ ' . join(' \\\\ ', split('\n', $latexPostal)) . "}\n";
   my $shortLatexPostal = latex_encode(sprintf('%-30.30s', join(" ", reverse split('\n', $postalAddresses[0]))));
-  push(@{$lines{$sizeNeeded}{checklst}}, '{ $\Box$} &' . sprintf("%-3d  & %5s & %-30s  & %s ",
+  push(@{$lines{$sizeNeeded}{checklist}}, '{ $\Box$} &' . sprintf("%-3d  & %5s & %-30s  & %s ",
                                                   $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
                                                   encode('UTF-8', $sizeNeeded),
                                                   $shortLatexPostal) .
@@ -107,7 +107,7 @@ foreach my $id (@supporterIds) {
 }
 my $lineCount = 0;
 foreach my $size (sort { $a cmp $b } keys %lines) {
-  foreach my $line (@{$lines{$size}{boxes}}) {
+  foreach my $line (@{$lines{$size}{checklist}}) {
     if ($lineCount++ > 40) {
       $lineCount = 0;
       print LIST "\n\n", '\end{tabular}',"\n\\pagebreak\n\\begin{tabular}{|l|l|l|l|l|} \\hline\n";
