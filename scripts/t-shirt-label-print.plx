@@ -78,7 +78,7 @@ foreach my $id (@supporterIds) {
 
   my $amount = $sp->donorTotalGaveInPeriod(donorId => $id);
   if ($amount < $GIVING_LIMIT) {
-    print "Skipping $id request for $sizeNeeded because donor only gave $amount and giving limit is $GIVING\n" if $VERBOSE;
+    print "Skipping $id request for $sizeNeeded because donor only gave $amount and giving limit is $GIVING_LIMIT\n" if $VERBOSE;
     next;
   }
 
