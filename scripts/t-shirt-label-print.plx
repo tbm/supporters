@@ -13,12 +13,12 @@ use Supporters;
 
 my $LEDGER_CMD = "/usr/local/bin/ledger";
 
-if (@ARGV != 4 and @ARGV != 5) {
-  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <GIVING_LIMIT> <SIZE_COUNTS> <OUTPUT_DIRECTORY> <VERBOSE>\n";
+if (@ARGV < 8) {
+  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <GIVING_LIMIT> <SIZE_COUNTS> <OUTPUT_DIRECTORY > <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
   exit 1;
 }
 
-my($SUPPORTERS_SQLITE_DB_FILE, $GIVING_LIMIT, $SIZE_COUNTS, $OUTPUT_DIRECTORY, $VERBOSE) = @ARGV;
+my($SUPPORTERS_SQLITE_DB_FILE, $GIVING_LIMIT, $SIZE_COUNTS, $OUTPUT_DIRECTORY, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE, @LEDGER_CMD_LINE) = @ARGV;
 $VERBOSE = 0 if not defined $VERBOSE;
 
 open(SIZE_COUNTS, "<", $SIZE_COUNTS);
@@ -57,9 +57,7 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$SUPPORTERS_SQLITE_DB_FILE", "", "",
                                { RaiseError => 1, sqlite_unicode => 1 })
   or die $DBI::errstr;
 
-my $sp = new Supporters($dbh, [ "none" ]);
-
-
+my $sp = new Supporters($dbh, \@LEDGER_CMD_LINE, { monthly => $MONTHLY_SEARCH_REGEX, annual => $ANNUAL_SEARCH_REGEX});
 my(@supporterIds) = $sp->findDonor({});
 
 my $overallCount = 0;
