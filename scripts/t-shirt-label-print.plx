@@ -117,7 +117,6 @@ foreach my $size (sort { $a cmp $b } keys %lines) {
   print LABELS $lines{$size}{labels};
   delete $lines{$size}{labels};
 }
-die "error: parallel hashes had different keys?" unless scalar(keys %{$lines{$size}{labels}}) <= 0;
 
 print LIST "\n\n", '\end{tabular}',"\n";
 print LIST "FINAL INVENTORY EXPECTED\n\\begin{tabular}{|l|l|} \\hline\n";
