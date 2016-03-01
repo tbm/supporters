@@ -68,6 +68,10 @@ foreach my $id (sort keys %idsSent) {
     $emailTo = $addr[0];
   }
   my $fromAddress = 'info@sfconservancy.org';
+  my $pingNoGet = "";
+  $pingNoGet = "\nPlease ping us if you do not receive your t-shirt within two weeks in the\nUSA, or three weeks outside of the USA.\n\n"
+  if ($HOW =~ /post/);
+
   open(SENDMAIL, "|/usr/lib/sendmail -f \"$fromAddress\" -oi -oem -- $emailTo $fromAddress") or
       die "unable to run sendmail: $!";
   print SENDMAIL <<DATA;
@@ -75,15 +79,12 @@ To: $emailTo
 From: "Software Freedom Conservancy" <$fromAddress>
 Subject: $idsSent{$id} Conservancy T-Shirt sent via post yesterday.
 
-The t-shirt of size $idsSent{$id} that you requested as a Conservancy
-Supporter was sent to you via the post yesterday.  Please ping us if you do
-not receive your t-shirt within two weeks in the USA, or three weeks outside
-of the USA.
-
-Thank you again so much for supporting Conservancy.  When your shirt arrives,
-we'd really appreciate if you'd post pictures of the shirt on social media
-and encourage others to sign up as a Conservancy supporter at
-https://sfconservancy.org/supporter/ .
+According to our records, the t-shirt of size $idsSent{$id} that you
+requested as a Conservancy Supporter was $HOW.
+$pingNoGet
+Thank you again so much for supporting Conservancy.  We'd really appreciate
+if you'd post pictures of the shirt on social media and encourage others to
+sign up as a Conservancy supporter at https://sfconservancy.org/supporter/ .
 
 
 Sincerely,
