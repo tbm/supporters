@@ -70,8 +70,16 @@ while (my $line = <STDIN>) {
 
 my $sp = new Supporters($dbh, [ "none" ]);
 
-my $donorId = $sp->addSupporter({ ledger_entity_id => $entityId, email_address => $email, email_address_type => $emailType,
-                  display_name => $displayName, public_ack => $publicAck} );
+my $args = {};
+$args->{ledger_entity_id} = $entityId;
+$args->{display_name} = $displayName;
+$args->{public_ack} = $publicAck;
+if (defined $email and email !~ /^\s*$/) {
+  $args->{email_address} = $email;
+  $args->{email_address_type} = $emailType;
+}
+
+my $donorId = $sp->addSupporter($args);
 if ($tshirt) {
   my $requestParamaters = { donorId => $donorId, requestConfiguration => $tshirtSize, requestType => 't-shirt-0' };
   $sp->addRequest($requestParamaters);

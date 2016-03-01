@@ -33,11 +33,14 @@ foreach my $supporterId (@supporterIds) {
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn lt $TODAY);
   next unless $isLapsed;
 
-  print "$supporterId (", $sp->getLedgerEntityId($supporterId), ") lapsed on $expiresOn\n" if $isLapsed;
+
+  my $lapsedStr = (defined $expiresOn) ? "lapsed on $expiresOn" : "never gave enough to be a supporter";
+
+  print "$supporterId (", $sp->getLedgerEntityId($supporterId), ") $lapsedStr\n" if $isLapsed;
   $lapsedCount++;
 }
 
 my $per = ( ($lapsedCount / scalar(@supporterIds)) * 100.00);
 print "\n\nWe have ", scalar(@supporterIds), " supporters and $lapsedCount are lapsed.  That's ",
-  sprintf("%.2f", $per), "%.\n";
+  sprintf("%.2f", $per), "%.\nActive supporter count: ", scalar(@supporterIds) - $lapsedCount, "\n";
 
