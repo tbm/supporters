@@ -41,6 +41,7 @@ my @lapseCategories = ('00-lapsing-this-week', '01-lapsing-this-month', '02-laps
 foreach my $cat (@lapseCategories) {
   $expireReport{$cat}{list} = [];
 }
+my $lapsedCount = 0;
 
 foreach my $supporterId (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
@@ -48,6 +49,7 @@ foreach my $supporterId (@supporterIds) {
   my $lapsesInOneWeek = ( (defined $expiresOn) and $expiresOn le $ONE_WEEK);
   my $lapsesInOneMonth = ( (defined $expiresOn) and $expiresOn le $ONE_MONTH);
   $expiresOn = "NO-FULL-SIGNUP" if not defined $expiresOn;
+  $lapsedCount++ if $isLapsed;
   my %emails;
   my $email = $sp->getPreferredEmailAddress($supporterId);
   if (defined $email) {
@@ -109,7 +111,12 @@ foreach my $supporterId (@supporterIds) {
   $sp->addRequest({donorId => $supporterId, requestType => $REQUEST_NAME});
 }
 
-my $emailText = "";
+my $subject = "Supporter lapsed report for $TODAY";
+my $per = ( ($lapsedCount / scalar(@supporterIds)) * 100.00);
+my $emailText = "$subject\n" . ("=" x length($subject)) .
+  "\n\nWe have " . scalar(@supporterIds) . " supporters and $lapsedCount are lapsed.  That's " .
+  sprintf("%.2f", $per) . "%.\nActive supporter count: " . (scalar(@supporterIds) - $lapsedCount) . "\n\n";
+
 foreach my $cat (sort { $a cmp $b } @lapseCategories) {
   my $heading = scalar(@{$expireReport{$cat}{list}}) . " " . $expireReport{$cat}{description};
   $emailText .= "$heading\n";
@@ -126,7 +133,7 @@ my $email = Email::MIME->create(
     header_str => [
        To => $FROM_ADDRESS,
        From => $FROM_ADDRESS,
-       Subject => "Supporter lapsed report for $TODAY" ],
+       Subject => $subject ],
     attributes => {
                    content_type => 'text/plain',
                    charset => 'utf-8',
