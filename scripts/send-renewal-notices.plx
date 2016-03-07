@@ -11,6 +11,7 @@ use Date::Manip::DM5;
 use Supporters;
 
 my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
+my $ONE_WEEK = UnixDate(DateCalc(ParseDate("today"), "+ 1 week"), '%Y-%m-%d');
 
 if (@ARGV < 7 ) {
   print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <REQUEST_NAME> <FROM_ADDRESS> <EMAIL_TEMPLATE> <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
@@ -31,15 +32,16 @@ my(@supporterIds) = $sp->findDonor({});
 
 foreach my $supporterId (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
-  my $isLapsed = ( (not defined $expiresOn) or $expiresOn lt $TODAY);
+  my $isLapsed = ( (not defined $expiresOn) or $expiresOn le $TODAY);
+  my $lapsesInOneWeek = ( (defined $expiresOn) and $expiresOn le $ONE_WEEK);
 
   my $request = $sp->getRequest({ donorId => $supporterId, requestType => $REQUEST_NAME});
 
   if (defined $request) {
     if (defined $request->{fulfillDate}) {
       print STDERR "$supporterId lapsed on $expiresOn but recorded as renewed on $request->{fulfillDate}\n"
-        if ($isLapsed and $VERBOSE);
-    } elsif (not $isLapsed) {
+        if ( ($isLapsed or $lapsesInOneWeek) and $VERBOSE);
+    } elsif ( (not $isLapsed) and (not $lapsesInOneWeek)) {
       $sp->fulfillRequest({donorId => $supporterId, requestType => $REQUEST_NAME,
                            who => $supporterId, how => "apparent renewal not noticed during import"});
       print STDERR "$supporterId now expires on $expiresOn, recording rewnewal of type $REQUEST_NAME\n"
@@ -50,8 +52,8 @@ foreach my $supporterId (@supporterIds) {
     }
     next;
   }
-  print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed) and $VERBOSE > 1);
-  next if not $isLapsed;
+  print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed and not $lapsesInOneWeek) and $VERBOSE > 1);
+  next unless $isLapsed or $lapsesInOneWeek;
 
   my %emails;
   my $email = $sp->getPreferredEmailAddress($supporterId);
@@ -73,7 +75,7 @@ foreach my $supporterId (@supporterIds) {
   open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
     die "unable to run sendmail: $!";
 
-  print STDERR "Sending to $supporterId at $emailTo\n";
+  print STDERR "Sending to $supporterId at $emailTo who expires on $expiresOn\n";
   print SENDMAIL "To: ", join(', ', keys %emails), "\n";
   print SENDMAIL @message;
 
