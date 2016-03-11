@@ -34,7 +34,7 @@ my @requestTypes = $sp->getRequestType();
 foreach my $id (@supporterIds) {
   $found = 1;
   my $preferredEmail = $sp->getPreferredEmailAddress($id);
-  my $preferredPostal = undef; # $sp->getPreferredPostalAddress($id);
+  my $preferredPostal = $sp->getPreferredPostalAddress($id);
   print "Found:  $id, ", $sp->getLedgerEntityId($id), "\n";
   print "     Public Ack: ";
   if (not defined $sp->getPublicAck($id)) {

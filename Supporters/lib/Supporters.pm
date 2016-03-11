@@ -372,6 +372,68 @@ sub setPreferredEmailAddress($$$) {
   $self->_commit;
   return $emailAddressId;
 }
+
+######################################################################
+
+=begin setPreferredPostalAddress
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+
+=item $postalAddress
+
+   Scalar string that contains an postal Address.  undef is returned if the
+   email address is not already in the database for this supporter.
+
+=back
+
+Returns the email_address_id of the preferred email address.  undef can be
+returned; it means the preferred email address wasn't selected for some reason.
+
+=cut
+
+sub setPreferredPostalAddress($$$) {
+  my($self, $donorId, $postalAddress) = @_;
+
+  die "setPreferredPostalAddress: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
+  die "setPreferredPostalAddress: email address not defined" unless defined $postalAddress;
+
+  my $ems = $self->dbh()->selectall_hashref("SELECT ea.formatted_address, ea.id, sem.preferred " .
+                                            "FROM postal_address ea, donor_postal_address_mapping sem " .
+                                            "WHERE ea.id = sem.postal_address_id AND ".
+                                            "sem.donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'),
+                                            'formatted_address');
+  # Shortcut: it was already set
+  return $ems->{$postalAddress}{id} if (defined $ems->{$postalAddress} and $ems->{$postalAddress}{preferred});
+
+  my $anotherPreferred = 0;
+  my $postalAddressId;
+  # Iterate over email addresses, finding if any were preferred before, and finding outs too.
+  foreach my $em (keys %{$ems}) {
+    $anotherPreferred = 1 if $ems->{$em}{preferred};
+    $postalAddressId = $ems->{$em}{id} if $em eq $postalAddress;
+  }
+  return undef if not defined $postalAddressId;
+
+  $self->_beginWork();
+  if ($anotherPreferred) {
+    $self->dbh->do("UPDATE donor_postal_address_mapping " .
+                     "SET preferred = " . $self->dbh->quote(0, 'SQL_BOOLEAN') . " " .
+                     "WHERE donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'));
+  }
+  $self->dbh->do("UPDATE donor_postal_address_mapping " .
+                 "SET preferred = " . $self->dbh->quote(1, 'SQL_BOOLEAN') . " " .
+                 "WHERE postal_address_id = " . $self->dbh->quote($postalAddressId, 'SQL_INTEGER'));
+  $self->_commit;
+  return $postalAddressId;
+}
 ######################################################################
 
 =begin getPreferredEmailAddress
@@ -416,6 +478,52 @@ sub getPreferredEmailAddress($$) {
   } else {
     my ($emailAddress) = keys %$ems;
     return $emailAddress;
+  }
+}
+######################################################################
+
+=begin getPreferredPostalAddress
+
+Arguments:
+
+=over
+
+=item $donorId
+
+   Valid supporter id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+
+=item $postalAddress
+
+   Scalar string that contains an postalAddress.  undef is returned if the
+   postal address is not already in the database for this supporter.
+
+=back
+
+Returns the postal_address_id of the preferred postal address.  undef can be
+returned; it means the preferred postal address wasn't selected for some reason.
+
+=cut
+
+sub getPreferredPostalAddress($$) {
+  my($self, $donorId) = @_;
+
+  die "setPreferredPostalAddress: invalid supporter id, $donorId" unless $self->_verifyId($donorId);
+
+  my $ems = $self->dbh()->selectall_hashref("SELECT formatted_address FROM postal_address em, donor_postal_address_mapping sem " .
+                                            "WHERE preferred AND sem.postal_address_id = em.id AND " .
+                                            "sem.donor_id = " . $self->dbh->quote($donorId, 'SQL_INTEGER'),
+                                            'formatted_address');
+  my $rowCount = scalar keys %{$ems};
+  die "setPreferredPostalAddress: DATABASE INTEGRITY ERROR: more than one postal address is preferred for supporter, \"$donorId\""
+    if $rowCount > 1;
+
+  if ($rowCount != 1) {
+    return undef;
+  } else {
+    my ($postalAddress) = keys %$ems;
+    return $postalAddress;
   }
 }
 ######################################################################
