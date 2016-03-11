@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 331;
+use Test::More tests => 334;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -413,6 +413,10 @@ lives_ok { $tShirt0RequestTypeId = $sp->addRequestType('t-shirt-0'); }
 ok( (defined $tShirt0RequestTypeId and looks_like_number($tShirt0RequestTypeId) and $tShirt0RequestTypeId > 0),
     "addRequestType: id is a number");
 
+my @allRequestsList = $sp->getRequestType();
+
+is_deeply(\@allRequestsList, ['t-shirt-0' ], "getRequestType: no argument returns full list of request types (1)");
+
 my $testSameRequestType;
 
 lives_ok { $testSameRequestType = $sp->addRequestType('t-shirt-0'); }
@@ -490,6 +494,11 @@ my $joinEmailListRequestId = $sp->getRequestType("join-announce-email-list");
 ok((defined $joinEmailListRequestId and looks_like_number($joinEmailListRequestId) and $joinEmailListRequestId > 0),
    "addRequest: underlying call to addRequestType works properly, per getRequestType");
 
+@allRequestsList = $sp->getRequestType();
+
+is_deeply(\@allRequestsList, ['t-shirt-0', 'join-announce-email-list'],
+          "getRequestType: no argument returns full list of request types (2)");
+
 my $tshirtSmallRequestId;
 
 lives_ok { $tshirtSmallRequestId =
@@ -501,7 +510,13 @@ lives_ok { $tshirtSmallRequestId =
 ok( (defined $tshirtSmallRequestId and looks_like_number($tshirtSmallRequestId) and $tshirtSmallRequestId > 0),
     "addRequest: successful call returns an integer id.");
 
+@allRequestsList = $sp->getRequestType();
+
+is_deeply(\@allRequestsList, ['t-shirt-0', 'join-announce-email-list', 't-shirt-small-only' ],
+          "getRequestType: no argument returns full list of request types (3)");
+
 my $tShirt0RequestId;
+
 lives_ok { $tShirt0RequestId =
              $sp->addRequest({ donorId => $drapperId, requestTypeId => $tShirt0RequestTypeId,
                                requestConfigurationId => $tShirt0Data->{$tShirt0RequestTypeId}{'MenL'} }); }

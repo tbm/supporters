@@ -682,22 +682,27 @@ Arguments:
 
 =item type
 
-   A string describing the request.
+   A string describing the request.  Argument is optional.
 
 =back
 
-Returns the id value of the request_type entry.  undef is returned if there
-is no request of that type.
+If type is given, returns a scalar the id value of the request_type entry.
+undef is returned if there is no request of that type.
+
+If type is not given, a list of all known request types is returned.
 
 =cut
 
-sub getRequestType($$) {
+sub getRequestType($;$) {
   my($self, $type) = @_;
 
-  return undef if not defined $type;
-  my $val = $self->dbh()->selectall_hashref("SELECT id, type FROM request_type WHERE type = '$type'", 'type');
-  return $val->{$type}{id} if (defined $val and defined $val->{$type} and defined $val->{$type}{id});
-  return undef;
+  if (not defined $type) {
+     return @{$self->dbh()->selectcol_arrayref("SELECT type, id FROM request_type ORDER BY id", { Columns=>[1] })};
+   } else {
+     my $val = $self->dbh()->selectall_hashref("SELECT id, type FROM request_type WHERE type = '$type'", 'type');
+     return $val->{$type}{id} if (defined $val and defined $val->{$type} and defined $val->{$type}{id});
+     return undef;
+   }
 }
 ######################################################################
 
