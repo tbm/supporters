@@ -74,7 +74,7 @@ my $args = {};
 $args->{ledger_entity_id} = $entityId;
 $args->{display_name} = $displayName;
 $args->{public_ack} = $publicAck;
-if (defined $email and email !~ /^\s*$/) {
+if (defined $email and $email !~ /^\s*$/) {
   $args->{email_address} = $email;
   $args->{email_address_type} = $emailType;
 }
