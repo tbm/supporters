@@ -30,14 +30,29 @@ if ($CRITERION ne 'id') {
 } else {
   push(@supporterIds, $SEARCH_PARAMETER);
 }
+my @requestTypes = $sp->getRequestType();
 foreach my $id (@supporterIds) {
   print "Found:  $id, ", $sp->getLedgerEntityId($id), "\n";
   my(%addr) = $sp->getEmailAddresses($id);
   print "     Email Addresses: ", join(", ", keys %addr), "\n";
   my(%postalAddresses) = $sp->getPostalAddresses($id);
   print "     Postal Addresses: ", join("\n\n", keys %postalAddresses), "\n";
-  
   $found = 1;
+  foreach my $requestType (@requestTypes) {
+    my $req = $sp->getRequest({ donorId => $id, requestType => $requestType});
+    if (defined $req) {
+      print "     Request $req->{requestType}";
+      print "($req->{requestConfiguration})" if defined $req->{requestConfiguration};
+      print " made on $req->{requestDate}";
+      if (not defined $req->{fulfillDate}) {
+        print "\n";
+      } else {
+        print "...\n          fulfilled on $req->{fulfillDate}";
+        print "...\n          notes: $req->{notes}" if defined $req->{notes};
+        print "\n";
+      }
+    }
+  }
 }
 print "No entries found\n" unless $found;
 ###############################################################################
