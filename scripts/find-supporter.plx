@@ -24,9 +24,19 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$SUPPORTERS_SQLITE_DB_FILE", "", "",
 my $sp = new Supporters($dbh, ['none']);
 
 my $found = 0;
-my(@supporterIds) = $sp->findDonor({$CRITERION => $SEARCH_PARAMETER });
+my(@supporterIds);
+if ($CRITERION ne 'id') {
+  @supporterIds  = $sp->findDonor({$CRITERION => $SEARCH_PARAMETER });
+} else {
+  push(@supporterIds, $SEARCH_PARAMETER);
+}
 foreach my $id (@supporterIds) {
   print "Found:  $id, ", $sp->getLedgerEntityId($id), "\n";
+  my(%addr) = $sp->getEmailAddresses($id);
+  print "     Email Addresses: ", join(", ", keys %addr), "\n";
+  my(%postalAddresses) = $sp->getPostalAddresses($id);
+  print "     Postal Addresses: ", join("\n\n", keys %postalAddresses), "\n";
+  
   $found = 1;
 }
 print "No entries found\n" unless $found;
