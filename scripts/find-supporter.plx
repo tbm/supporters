@@ -36,6 +36,14 @@ foreach my $id (@supporterIds) {
   my $preferredEmail = $sp->getPreferredEmailAddress($id);
   my $preferredPostal = undef; # $sp->getPreferredPostalAddress($id);
   print "Found:  $id, ", $sp->getLedgerEntityId($id), "\n";
+  print "     Public Ack: ";
+  if (not defined $sp->getPublicAck($id)) {
+    print " unknown\n";
+  } elsif ($sp->getPublicAck($id)) {
+    print " yes\n";
+  } else {
+    print " no\n";
+  }
   my(%addr) = $sp->getEmailAddresses($id);
   print "     Email Addresses: ";
   my $cnt = 0;
