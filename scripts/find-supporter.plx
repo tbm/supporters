@@ -59,7 +59,7 @@ foreach my $id (@supporterIds) {
   } else {
     print "\n     Postal Addresses:\n";
     foreach my $address (keys %postalAddresses) {
-      print "          PREFERRED\n" if (defined $preferredPostal) and $address eq $preferredPostal;
+      print "          PREFERRED FOLLOWS:\n" if (defined $preferredPostal) and $address eq $preferredPostal;
       foreach my $addrLine (split("\n", $address)) {
         print "          $addrLine\n";
       }
