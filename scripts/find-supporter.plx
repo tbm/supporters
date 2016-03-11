@@ -32,17 +32,31 @@ if ($CRITERION ne 'id') {
 }
 my @requestTypes = $sp->getRequestType();
 foreach my $id (@supporterIds) {
+  $found = 1;
+  my $preferredEmail = $sp->getPreferredEmailAddress($id);
+  my $preferredPostal = undef; # $sp->getPreferredPostalAddress($id);
   print "Found:  $id, ", $sp->getLedgerEntityId($id), "\n";
   my(%addr) = $sp->getEmailAddresses($id);
-  print "     Email Addresses: ", join(", ", keys %addr), "\n";
+  print "     Email Addresses: ";
+  my $cnt = 0;
+  foreach my $email (keys %addr) {
+    $cnt++;
+    print $email;
+    print "(preferred)" if (defined $preferredEmail) and $email eq $preferredEmail;
+    print ", " unless $cnt == scalar keys %addr;
+  }
   my(%postalAddresses) = $sp->getPostalAddresses($id);
-  print "     Postal Addresses:\n";
-  foreach my $address (keys %postalAddresses) {
-    foreach my $addrLine (split("\n", $address)) {
-      print "          $addrLine\n";
+  if (scalar keys %postalAddresses <= 0) {
+    print "\n     NO POSTAL ADDRESSES.\n";
+  } else {
+    print "\n     Postal Addresses:\n";
+    foreach my $address (keys %postalAddresses) {
+      print "          PREFERRED\n" if (defined $preferredPostal) and $address eq $preferredPostal;
+      foreach my $addrLine (split("\n", $address)) {
+        print "          $addrLine\n";
+      }
     }
   }
-  $found = 1;
   foreach my $requestType (@requestTypes) {
     my $req = $sp->getRequest({ donorId => $id, requestType => $requestType});
     if (defined $req) {
