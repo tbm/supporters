@@ -58,9 +58,7 @@ foreach my $supporterId (@supporterIds) {
     %emails = $sp->getEmailAddresses($supporterId);
   }
   my(@emails) = keys(%emails);
-  
   my $lastDonateDate = $sp->donorLastGave($supporterId);
-
   my $cat;
   if ($isLapsed) { $cat = '02-lapsed';} elsif ($lapsesInOneWeek) { $cat = '00-lapsing-this-week' }
   elsif ($lapsesInOneMonth) { $cat = '01-lapsing-this-month'; }
