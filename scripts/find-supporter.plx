@@ -36,7 +36,12 @@ foreach my $id (@supporterIds) {
   my(%addr) = $sp->getEmailAddresses($id);
   print "     Email Addresses: ", join(", ", keys %addr), "\n";
   my(%postalAddresses) = $sp->getPostalAddresses($id);
-  print "     Postal Addresses: ", join("\n\n", keys %postalAddresses), "\n";
+  print "     Postal Addresses:\n";
+  foreach my $address (keys %postalAddresses) {
+    foreach my $addrLine (split("\n", $address)) {
+      print "          $addrLine\n";
+    }
+  }
   $found = 1;
   foreach my $requestType (@requestTypes) {
     my $req = $sp->getRequest({ donorId => $id, requestType => $requestType});
