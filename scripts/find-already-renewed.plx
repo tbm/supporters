@@ -9,6 +9,11 @@ use Encode qw(encode decode);
 
 use Supporters;
 
+use Date::Manip::DM5;
+
+my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
+my $ONE_YEAR_AGO = UnixDate(DateCalc(ParseDate("today"), "- 1 year"), '%Y-%m-%d');
+
 my $LEDGER_CMD = "/usr/local/bin/ledger";
 
 if (@ARGV < 5 ) {
@@ -28,13 +33,27 @@ my(@supporterIds) = $sp->findDonor({});
 
 foreach my $id (@supporterIds) {
   my $amount = $sp->donorTotalGaveInPeriod(donorId => $id);
-  if ($amount > 120.00) {   # Ok, so they gave more than the minimum
+  my $lastGaveDate = $sp->donorLastGave($id);
+  my $firstGaveDate = $sp->donorFirstGave($id);
+  if ($amount > 180.00 and $lastGaveDate ne $firstGaveDate and $firstGaveDate le $ONE_YEAR_AGO) {   # Ok, so they gave more than the minimum a year later
     my $ledgerEntityId = $sp->getLedgerEntityId($id);
-    my $lastGaveDate = $sp->donorLastGave($id);
-    my $firstGaveDate = $sp->donorFirstGave($id);
-    if ($lastGaveDate ne $firstGaveDate) {
-      print "$ledgerEntityId gave total of $amount, firstGave $firstGaveDate, last Gave $lastGaveDate\n";
+    my $type = $sp->{ledgerData}{ledgerData}{__TYPE__};
+    my $shirt1 = $sp->getRequest({ donorId => $id, requestType => 't-shirt-1' });
+    my $shirt0 = $sp->getRequest({ donorId => $id, requestType => 't-shirt-0' });
+    if (not defined $shirt0 and not defined $shirt1) {
+      print "NEVER WANTED SHIRT: ";
+    } elsif (defined $shirt0 and not defined $shirt1) {
+      if (not defined $shirt0->{fulfillDate}) {
+        print "NEEDS 2 SHIRTS, 2ND SHIRT REQUEST MISSING: ";
+      } else {
+        print "NEEDS 1 SHIRT, 2ND SHIRT REQUEST MISSING: ";
+      }
+    } elsif (defined $shirt1 and not defined $shirt0) {
+        print "NEEDS WEIRDNESS ATTENTION, NO SHIRT0 REQUEST BUT THERE IS A SHIRT1 REQUEST: ";
+    } elsif (defined $shirt1 and defined $shirt0) {
+      print "ALL OK, 2 SHIRTS, WITH REQUESTS: ";
     }
+    print " $ledgerEntityId gave total of $amount, firstGave $firstGaveDate, last Gave $lastGaveDate\n";
   }
 }
 ###############################################################################
