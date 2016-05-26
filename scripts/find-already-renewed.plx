@@ -35,11 +35,11 @@ foreach my $id (@supporterIds) {
   my $amount = $sp->donorTotalGaveInPeriod(donorId => $id);
   my $lastGaveDate = $sp->donorLastGave($id);
   my $firstGaveDate = $sp->donorFirstGave($id);
-  my $oneYearSinceFirstGave = UnixDate(DateCalc(ParseDate($firstGaveDate), "+ 1 year"), '%Y-%m-%d');
+  my $nineMonthsSinceFirstGave = UnixDate(DateCalc(ParseDate($firstGaveDate), "+ 9 months"), '%Y-%m-%d');
   if ($amount > 180.00 and
       $lastGaveDate ne $firstGaveDate and
       $firstGaveDate le $ONE_YEAR_AGO and
-      $lastGaveDate ge $oneYearSinceFirstGave ) {
+      $lastGaveDate ge $nineMonthsSinceFirstGave ) {
     my $ledgerEntityId = $sp->getLedgerEntityId($id);
     my $type = $sp->{ledgerData}{$ledgerEntityId}{__TYPE__};
     my $shirt1 = $sp->getRequest({ donorId => $id, requestType => 't-shirt-1' });
