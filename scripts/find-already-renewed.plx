@@ -37,14 +37,21 @@ foreach my $id (@supporterIds) {
   my $firstGaveDate = $sp->donorFirstGave($id);
   if ($amount > 180.00 and $lastGaveDate ne $firstGaveDate and $firstGaveDate le $ONE_YEAR_AGO) {   # Ok, so they gave more than the minimum a year later
     my $ledgerEntityId = $sp->getLedgerEntityId($id);
-    my $type = $sp->{ledgerData}{ledgerData}{__TYPE__};
+    my $type = $sp->{ledgerData}{$ledgerEntityId}{__TYPE__};
     my $shirt1 = $sp->getRequest({ donorId => $id, requestType => 't-shirt-1' });
     my $shirt0 = $sp->getRequest({ donorId => $id, requestType => 't-shirt-0' });
+    print "$type: ";
     if (not defined $shirt0 and not defined $shirt1) {
       print "NEVER WANTED SHIRT: ";
     } elsif (defined $shirt0 and not defined $shirt1) {
       if (not defined $shirt0->{fulfillDate}) {
-        print "NEEDS 2 SHIRTS, 2ND SHIRT REQUEST MISSING: ";
+        my $rangeStart = UnixDate(DateCalc(ParseDate($lastGaveDate), "- 3 months"), '%Y-%m-%d');
+        my $rangeEnd = UnixDate(DateCalc(ParseDate($lastGaveDate), "+ 3 months"), '%Y-%m-%d');
+        if ($shirt0->{requestDate} ge $rangeStart and $shirt0->{requestDate} le $rangeEnd) {
+          print "ALL OK, only 1 SHIRT EVER REQUESTED: ";
+        } else {
+          print "NEEDS 2 SHIRTS, 2ND SHIRT REQUEST MISSING: ";
+        }
       } else {
         print "NEEDS 1 SHIRT, 2ND SHIRT REQUEST MISSING: ";
       }
