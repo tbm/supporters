@@ -31,7 +31,7 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=$SUPPORTERS_SQLITE_DB_FILE", "", "",
 my $sp = new Supporters($dbh, \@LEDGER_CMD_LINE, { monthly => $MONTHLY_SEARCH_REGEX, annual => $ANNUAL_SEARCH_REGEX});
 my(@supporterIds) = $sp->findDonor({});
 
-foreach my $id (@supporterIds) {
+foreach my $id (sort { $sp->donorLastGave($a) cmp $sp->donorLastGave($b) } @supporterIds) {
   my $amount = $sp->donorTotalGaveInPeriod(donorId => $id);
   my $lastGaveDate = $sp->donorLastGave($id);
   my $firstGaveDate = $sp->donorFirstGave($id);
