@@ -93,10 +93,14 @@ foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
     next;
   }
 
-  my(@postalAddresses) = $sp->getPostalAddresses($id);
-  my $latexPostal = latex_encode($postalAddresses[0]);
+  my $postalAddress = $sp->getPreferredEmailAddress($id);
+  if (not defined $postalAddress) {
+    my(@postalAddresses) = $sp->getPostalAddresses($id);
+    $postalAddress = $postalAddresses[0];
+  }
+  my $latexPostal = latex_encode($postalAddress);
   if ($latexPostal =~ /unmatched/) {
-    print "Skipping $id request for $sizeNeeded because the address has characters the post office will not accept\n" if $VERBOSE;
+    print "Skipping $id request for $sizeNeeded because the address has characters the post office will not accept\n  Address was: ", encode('UTF-8', $postalAddress), "\n and became\n$latexPostal\n"  if $VERBOSE;
     next;
   }
 
@@ -109,7 +113,7 @@ foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
   $lines{$sizeNeeded}{labels} = "" unless defined $lines{$sizeNeeded}{labels};
   $lines{$sizeNeeded}{checklist} = [] unless defined $lines{$sizeNeeded}{checklist};
   $lines{$sizeNeeded}{labels} .= '\mlabel{}{TO: \\\\ ' . join(' \\\\ ', split('\n', $latexPostal)) . "}\n";
-  my $shortLatexPostal = latex_encode(sprintf('%-30.30s', join(" ", reverse split('\n', $postalAddresses[0]))));
+  my $shortLatexPostal = latex_encode(sprintf('%-30.30s', join(" ", reverse split('\n', $postalAddress))));
   push(@{$lines{$sizeNeeded}{checklist}}, '{ $\Box$} &' . sprintf("%-3d  & %5s & %-30s  & %s ",
                                                   $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
                                                   encode('UTF-8', $sizeNeeded),
