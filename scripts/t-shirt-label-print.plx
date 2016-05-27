@@ -63,7 +63,20 @@ my(@supporterIds) = $sp->findDonor({});
 my $overallCount = 0;
 my %lines;
 
-foreach my $id (@supporterIds) {
+sub sortFunction($$) {
+  my $lastGaveDate0 = $sp->donorLastGave($_[0]);
+  my $lastGaveDate1 = $sp->donorLastGave($_[1]);
+  my $ledgerEntityId0 = $sp->getLedgerEntityId($_[0]);
+  my $ledgerEntityId1 = $sp->getLedgerEntityId($_[1]);
+  my $type0 = $sp->{ledgerData}{$ledgerEntityId0}{__TYPE__};
+  my $type1 = $sp->{ledgerData}{$ledgerEntityId1}{__TYPE__};
+  if ( (defined $type0 and $type =~ /month/i) or (defined $type1 and $type =~ /month/i)) {
+    return ($_[0] <=> $_[1]);
+  } else {
+    return ($lastGaveDate0 cmp $lastGaveDate1);
+  }
+}
+foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
   my $sizeNeeded;
   foreach my $type (qw/t-shirt-0 t-shirt-1/) {
     my $request = $sp->getRequest({ donorId => $id, requestType => 't-shirt-0', ignoreFulfilledRequests => 1 });
