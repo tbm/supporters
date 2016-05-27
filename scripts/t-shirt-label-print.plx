@@ -79,7 +79,7 @@ sub sortFunction($$) {
 foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
   my $sizeNeeded;
   foreach my $type (qw/t-shirt-0 t-shirt-1/) {
-    my $request = $sp->getRequest({ donorId => $id, requestType => 't-shirt-0', ignoreFulfilledRequests => 1 });
+    my $request = $sp->getRequest({ donorId => $id, requestType => $type, ignoreFulfilledRequests => 1 });
     if (defined $request and defined $request->{requestType}) {
       $sizeNeeded = $request->{requestConfiguration};
       last;
