@@ -141,14 +141,17 @@ foreach my $size (sort keys %sizeCounts) {
   }
   print LIST "$size & $sizeCounts{$size}\\\\\n";
 }
+my $overallNeed = 0;
 if (scalar(keys %needList) > 0) {
   print LIST "\\hline \n\n", '\end{tabular}',"\n\n\\bigskip\n\n";
   print LIST "T-SHIRTS NEEDED\n\\begin{tabular}{|l|l|} \\hline\n";
   foreach my $size (sort keys %needList) {
     print LIST "$size & $needList{$size}\\\\\n";
+    $overallNeed += $needList{$size};
   }
 }
-print LIST "\\hline \n\n", '\end{tabular}',"\n\n\nOVERALL SENDING COUNT: $overallCount", '\end{document}', "\n";
+print LIST "\\hline \n\n", '\end{tabular}',"\n\n\nOVERALL SENDING COUNT: $overallCount",
+  "\n\nOVERAL NEED COUNT: $overallNeed\n", '\end{document}', "\n";
 close LIST;
 close LABELS;
 
