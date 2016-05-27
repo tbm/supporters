@@ -70,7 +70,7 @@ sub sortFunction($$) {
   my $ledgerEntityId1 = $sp->getLedgerEntityId($_[1]);
   my $type0 = $sp->{ledgerData}{$ledgerEntityId0}{__TYPE__};
   my $type1 = $sp->{ledgerData}{$ledgerEntityId1}{__TYPE__};
-  if ( (defined $type0 and $type =~ /month/i) or (defined $type1 and $type =~ /month/i)) {
+  if ( (defined $type0 and $type0 =~ /month/i) or (defined $type1 and $type1 =~ /month/i)) {
     return ($_[0] <=> $_[1]);
   } else {
     return ($lastGaveDate0 cmp $lastGaveDate1);
