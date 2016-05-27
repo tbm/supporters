@@ -155,6 +155,6 @@ close LABELS;
 ###############################################################################
 #
 # Local variables:
-# compile-command: "perl -c send-t-shirts.plx"
+# compile-command: "perl -c t-shirts-label-print.plx"
 # End:
 
