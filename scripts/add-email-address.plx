@@ -39,7 +39,7 @@ my $sp = new Supporters($dbh, [ "none" ]);
 
 $sp->addEmailAddress($supporterId, $email, $emailType);
 
-print "Preferred email address was: ", $sp->getPreferredEmailAddress($supporterId), "\n";
+print "Preferred email address was: ", $sp->getPreferredEmailAddress($supporterId) || "(none)", "\n";
 if ($preferred) {
   $sp->setPreferredEmailAddress($supporterId, $email);
     print "Preferred email address is now: ", $sp->getPreferredEmailAddress($supporterId), "\n";
