@@ -116,6 +116,8 @@ foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
   $lines{$sizeNeeded}{checklist} = [] unless defined $lines{$sizeNeeded}{checklist};
   $lines{$sizeNeeded}{labels} .= '\mlabel{}{TO: \\\\ ' . join(' \\\\ ', split('\n', $latexPostal)) . "}\n";
   my $shortLatexPostal = latex_encode(sprintf('%-30.30s', join(" ", reverse split('\n', $postalAddress))));
+  $shortLatexPostal =~ s/\\unmatched\{0141\}/\L{}/g;
+  $shortLatexPostal =~ s/\\unmatched\{0142\}/\l{}/g;
   push(@{$lines{$sizeNeeded}{checklist}}, '{ $\Box$} &' . sprintf("%-3d  & %5s & %-30s  & %s ",
                                                   $id, encode('UTF-8', $sp->getLedgerEntityId($id)),
                                                   encode('UTF-8', $sizeNeeded),
