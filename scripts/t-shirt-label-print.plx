@@ -99,6 +99,8 @@ foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
     $postalAddress = $postalAddresses[0];
   }
   my $latexPostal = latex_encode($postalAddress);
+  $latexPostal =~ s/\\unmatched\{0141\}/\L{}/g;
+  $latexPostal =~ s/\\unmatched\{0142\}/\l{}/g;
   if ($latexPostal =~ /unmatched/) {
     print "Skipping $id request for $sizeNeeded because the address has characters the post office will not accept\n  Address was: ", encode('UTF-8', $postalAddress), "\n and became\n$latexPostal\n"  if $VERBOSE;
     next;
