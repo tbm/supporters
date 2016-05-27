@@ -45,6 +45,7 @@ print LIST <<LIST_HEADER
 \\usepackage{latexsym}
 \\usepackage{amsfonts}
 \\usepackage{amssymb}
+\\usepackage[T1]{fontenc}
 \\begin{document}
 \\vspace{-15in}
 
