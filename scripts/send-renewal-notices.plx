@@ -14,6 +14,8 @@ use Supporters;
 my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
 my $ONE_WEEK = UnixDate(DateCalc(ParseDate("today"), "+ 1 week"), '%Y-%m-%d');
 my $ONE_MONTH = UnixDate(DateCalc(ParseDate("today"), "+ 1 month"), '%Y-%m-%d');
+my $TWO_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 2 years"), '%Y-%m-%d');
+my $THREE_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 3 years"), '%Y-%m-%d');
 
 if (@ARGV < 7 ) {
   print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <REQUEST_NAME> <FROM_ADDRESS> <EMAIL_TEMPLATE> <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
@@ -120,9 +122,17 @@ foreach my $cat (sort { $a cmp $b } @lapseCategories) {
   $emailText .= "$heading\n";
   $emailText .= "-" x length($heading);
   $emailText .= "\n";
-  foreach my $sup (sort { $a->{expiresOn} cmp $b->{expiresOn} } @{$expireReport{$cat}{list}}) {
+  foreach my $sup (sort { ($cat eq '02-lapsed') ? ($b->{expiresOn} cmp $a->{expiresOn})
+                            : ($a->{expiresOn} cmp $b->{expiresOn}) }
+              @{$expireReport{$cat}{list}}) {
+    my $threeYearTot = $sp->donorTotalGaveInPeriod(donorId => $sup->{supporterId},
+                                                 startDate => $THREE_YEARS_AGO, endDate => $TODAY);
+    my $twoYearTot = $sp->donorTotalGaveInPeriod(donorId => $sup->{supporterId},
+                                                 startDate => $TWO_YEARS_AGO, endDate => $TODAY);
+    
     $emailText .= "    $sup->{expiresOn}: $sup->{supporterId}, $sup->{ledgerEntityId}, $sup->{displayName},  ";
-    $emailText .= join(", ", @{$sup->{emails}});
+    $emailText .= "2YrTot: \$" . sprintf("%.2f", $twoYearTot).  ", 3YrTot: \$" . sprintf("%.2f", $threeYearTot);
+    $emailText .= ", Emails: " . join(", ", @{$sup->{emails}});
     $emailText .= "\n";
   }
   $emailText .=  "\n";
