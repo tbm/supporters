@@ -45,8 +45,12 @@ foreach my $cat (@lapseCategories) {
 }
 my $lapsedCount = 0;
 
+my %monthExpirations;
 foreach my $supporterId (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
+  my $expiresOnMonth = UnixDate(ParseDate($expiresOn), '%Y-%m');
+  { no warnings 'uninitialized';  $monthExpirations{$expiresOnMonth}++; }
+
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn le $TODAY);
   my $lapsesInOneWeek = ( (defined $expiresOn) and $expiresOn le $ONE_WEEK);
   my $lapsesInOneMonth = ( (defined $expiresOn) and $expiresOn le $ONE_MONTH);
@@ -137,6 +141,13 @@ foreach my $cat (sort { $a cmp $b } @lapseCategories) {
   }
   $emailText .=  "\n";
 }
+$emailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
+$emailText .= "\n     ==========================\n";
+
+foreach my $month (sort { $a cmp $b } keys %monthExpirations) {
+  $emailText .=  sprintf("$month: %5d\n", $monthExpirations{$month});
+}
+
 my $email = Email::MIME->create(
     header_str => [
        To => $FROM_ADDRESS,
