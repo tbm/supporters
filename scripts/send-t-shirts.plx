@@ -52,6 +52,7 @@ foreach my $id (sort keys %idsSent) {
         $request = undef;
       }
     }
+    last if defined $request;
   }
   if (not defined $request) {
     my $out = "WARNING: We seem to have sent $id an $idsSent{$id} t-shirt that $id didn't request!  Ignoring that and contuining...\n";
