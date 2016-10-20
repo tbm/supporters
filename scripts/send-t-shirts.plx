@@ -77,15 +77,25 @@ foreach my $id (sort keys %idsSent) {
   print SENDMAIL <<DATA;
 To: $emailTo
 From: "Software Freedom Conservancy" <$fromAddress>
-Subject: $idsSent{$id} Conservancy T-Shirt sent via post yesterday.
+Subject: $idsSent{$id} Conservancy T-Shirt was $HOW
 
 According to our records, the t-shirt of size $idsSent{$id} that you
 requested as a Conservancy Supporter was $HOW.
 $pingNoGet
-Thank you again so much for supporting Conservancy.  We'd really appreciate
-if you'd post pictures of the shirt on social media and encourage others to
-sign up as a Conservancy supporter at https://sfconservancy.org/supporter/ .
 
+Thank you again so much for supporting Conservancy.  When we placed our order
+for these t-shirts, our shirt supplier (which is itself a 501c3 dedicated to
+educating high school kids in New York) sent us the wrong color t-shirt
+before appropriately filling the order in a deep gray. We decided to give you
+a second shirt in this fun color as an extra thank you for being a Supporter.
+
+The two shirts now feel like a symbol for where we are in our Supporter
+program - if each of our Supporters just got a single friend to sign up, we'd
+achieve sustainability for all of Conservancy's programs.
+
+We'd really appreciate if you'd post pictures of the shirt on social media
+and encourage others to sign up as a Conservancy supporter at
+https://sfconservancy.org/supporter/ .
 
 Sincerely,
 -- 
