@@ -17,12 +17,12 @@ my $ONE_MONTH = UnixDate(DateCalc(ParseDate("today"), "+ 1 month"), '%Y-%m-%d');
 my $TWO_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 2 years"), '%Y-%m-%d');
 my $THREE_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 3 years"), '%Y-%m-%d');
 
-if (@ARGV < 7 ) {
-  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <REQUEST_NAME> <FROM_ADDRESS> <EMAIL_TEMPLATE> <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
+if (@ARGV < 8 ) {
+  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <REQUEST_NAME> <FROM_ADDRESS> <ALL_STAFF_ADDRESS> <EMAIL_TEMPLATE> <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
   exit 1;
 }
 
-my($SUPPORTERS_SQLITE_DB_FILE, $REQUEST_NAME, $FROM_ADDRESS, $EMAIL_TEMPLATE, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE,
+my($SUPPORTERS_SQLITE_DB_FILE, $REQUEST_NAME, $FROM_ADDRESS, $ALL_STAFF_ADDRESS, $EMAIL_TEMPLATE, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE,
    @LEDGER_CMN_LINE) = @ARGV;
 
 
@@ -117,15 +117,29 @@ foreach my $supporterId (@supporterIds) {
 
 my $subject = "Supporter lapsed report for $TODAY";
 my $per = ( ($lapsedCount / scalar(@supporterIds)) * 100.00);
-my $emailText = "$subject\n" . ("=" x length($subject)) .
+my $headerInfo = "$subject\n" . ("=" x length($subject)) .
   "\n\nWe have " . scalar(@supporterIds) . " supporters and $lapsedCount are lapsed.  That's " .
   sprintf("%.2f", $per) . "%.\nActive supporter count: " . (scalar(@supporterIds) - $lapsedCount) . "\n\n";
+my $emailText .= $headerInfo;
+my $allStaffEmailText = $headerInfo;
+$emailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
+$emailText .= "\n     ==========================\n";
+$allStaffEmailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
+$allStaffEmailText .= "\n     ==========================\n";
+
+foreach my $month (sort { $a cmp $b } keys %monthExpirations) {
+  my $xx = sprintf("$month: %5d\n", $monthExpirations{$month});
+  $emailText .=  $xx;
+  $allStaffEmailText .= $xx;
+}
+$emailText .= "\n";
 
 foreach my $cat (sort { $a cmp $b } @lapseCategories) {
   my $heading = scalar(@{$expireReport{$cat}{list}}) . " " . $expireReport{$cat}{description};
   $emailText .= "$heading\n";
   $emailText .= "-" x length($heading);
   $emailText .= "\n";
+  $allStaffEmailText .= "$heading\n";
   foreach my $sup (sort { ($cat eq '02-lapsed') ? ($b->{expiresOn} cmp $a->{expiresOn})
                             : ($a->{expiresOn} cmp $b->{expiresOn}) }
               @{$expireReport{$cat}{list}}) {
@@ -140,12 +154,6 @@ foreach my $cat (sort { $a cmp $b } @lapseCategories) {
     $emailText .= "\n";
   }
   $emailText .=  "\n";
-}
-$emailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
-$emailText .= "\n     ==========================\n";
-
-foreach my $month (sort { $a cmp $b } keys %monthExpirations) {
-  $emailText .=  sprintf("$month: %5d\n", $monthExpirations{$month});
 }
 
 my $email = Email::MIME->create(
@@ -162,4 +170,20 @@ my $email = Email::MIME->create(
 open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $FROM_ADDRESS") or
   die "unable to run sendmail: $!";
 print SENDMAIL $email->as_string;
+close SENDMAIL;
+
+my $allStaffEmail = Email::MIME->create(
+    header_str => [
+       To => $ALL_STAFF_ADDRESS,
+       From => $FROM_ADDRESS,
+       Subject => $subject ],
+    attributes => {
+                   content_type => 'text/plain',
+                   charset => 'utf-8',
+                   encoding     => "quoted-printable",
+                   disposition => 'inline' },
+    body_str => $allStaffEmailText);
+open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $ALL_STAFF_ADDRESS") or
+  die "unable to run sendmail: $!";
+print SENDMAIL $allStaffEmail->as_string;
 close SENDMAIL;
