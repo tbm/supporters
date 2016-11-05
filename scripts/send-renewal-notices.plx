@@ -44,8 +44,10 @@ foreach my $cat (@lapseCategories) {
   $expireReport{$cat}{list} = [];
 }
 my $lapsedCount = 0;
+my(%activeCounter, %lapsedCounter);
 
 my %monthExpirations;
+
 foreach my $supporterId (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
   my $expiresOnMonth = UnixDate(ParseDate($expiresOn), '%Y-%m');
@@ -54,8 +56,14 @@ foreach my $supporterId (@supporterIds) {
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn le $TODAY);
   my $lapsesInOneWeek = ( (defined $expiresOn) and $expiresOn le $ONE_WEEK);
   my $lapsesInOneMonth = ( (defined $expiresOn) and $expiresOn le $ONE_MONTH);
+  my $type = $sp->getType($supporterId);
   $expiresOn = "NO-FULL-SIGNUP" if not defined $expiresOn;
-  $lapsedCount++ if $isLapsed;
+  if ($isLapsed) {
+    $lapsedCount++;
+    $lapsedCounter{$type}++ if defined $type;
+  } else {
+    $activeCounter{$type}++ if defined $type;
+  }
   my %emails;
   my $email = $sp->getPreferredEmailAddress($supporterId);
   if (defined $email) {
@@ -119,7 +127,16 @@ my $subject = "Supporter lapsed report for $TODAY";
 my $per = ( ($lapsedCount / scalar(@supporterIds)) * 100.00);
 my $headerInfo = "$subject\n" . ("=" x length($subject)) .
   "\n\nWe have " . scalar(@supporterIds) . " supporters and $lapsedCount are lapsed.  That's " .
-  sprintf("%.2f", $per) . "%.\nActive supporter count: " . (scalar(@supporterIds) - $lapsedCount) . "\n\n";
+  sprintf("%.2f", $per) . "%.\nActive supporter count: " . (scalar(@supporterIds) - $lapsedCount) . "\n" .
+  sprintf("    Of the active supporters, %.2f%% are monthly and %.2f%% are annual",
+          ( ($activeCounter{Monthly} / (scalar(@supporterIds) - $lapsedCount)) * 100.00),
+          ( ($activeCounter{Annual} / (scalar(@supporterIds) - $lapsedCount)) * 100.00)) . ".\n\n";
+
+foreach my $type (keys %lapsedCounter) {
+  $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d\n",
+                         $type, $lapsedCounter{$type}, $activeCounter{$type});
+}
+$headerInfo .= "\n";
 my $emailText .= $headerInfo;
 my $allStaffEmailText = $headerInfo;
 $emailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
