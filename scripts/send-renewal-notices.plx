@@ -54,7 +54,10 @@ my(%activeCounter, %lapsedCounter);
 
 my %monthExpirations;
 
+my $totalSupporters = 0;
 foreach my $supporterId (@supporterIds) {
+  next unless $sp->isSupporter($supporterId);
+  $totalSupporters++;
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
   my $expiresOnMonth = UnixDate(ParseDate($expiresOn), '%Y-%m');
   { no warnings 'uninitialized';  $monthExpirations{$expiresOnMonth}++; }
@@ -142,13 +145,13 @@ foreach my $supporterId (@supporterIds) {
 }
 
 my $subject = "Supporter lapsed report for $TODAY";
-my $per = ( ($lapsedCount / scalar(@supporterIds)) * 100.00);
+my $per = ( ($lapsedCount / $totalSuppporters) * 100.00);
 my $headerInfo = "$subject\n" . ("=" x length($subject)) .
-  "\n\nWe have " . scalar(@supporterIds) . " supporters and $lapsedCount are lapsed.  That's " .
-  sprintf("%.2f", $per) . "%.\nActive supporter count: " . (scalar(@supporterIds) - $lapsedCount) . "\n" .
+  "\n\nWe have " . $totalSuppporters . " supporters and $lapsedCount are lapsed.  That's " .
+  sprintf("%.2f", $per) . "%.\nActive supporter count: " . ($totalSuppporters - $lapsedCount) . "\n" .
   sprintf("    Of the active supporters, %.2f%% are monthly and %.2f%% are annual",
-          ( ($activeCounter{Monthly} / (scalar(@supporterIds) - $lapsedCount)) * 100.00),
-          ( ($activeCounter{Annual} / (scalar(@supporterIds) - $lapsedCount)) * 100.00)) . ".\n\n";
+          ( ($activeCounter{Monthly} / ($totalSuppporters - $lapsedCount)) * 100.00),
+          ( ($activeCounter{Annual} / ($totalSuppporters - $lapsedCount)) * 100.00)) . ".\n\n";
 
 foreach my $type (keys %lapsedCounter) {
   $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d\n",
