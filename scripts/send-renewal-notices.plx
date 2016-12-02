@@ -98,11 +98,6 @@ foreach my $supporterId (@supporterIds) {
     if (defined $request->{fulfillDate}) {
       print STDERR "$supporterId lapsed on $expiresOn but recorded as renewed on $request->{fulfillDate}\n"
         if ( ($isLapsed or $lapsesInOneWeek) and $VERBOSE);
-    } elsif ( (not $isLapsed) and (not $lapsesInOneWeek)) {
-      $sp->fulfillRequest({donorId => $supporterId, requestType => $REQUEST_NAME,
-                           who => $supporterId, how => "apparent renewal not noticed during import"});
-      print STDERR "$supporterId now expires on $expiresOn, recording rewnewal of type $REQUEST_NAME\n"
-        if $VERBOSE;
     } else {
       print STDERR "$supporterId received this renewal notice already on $request->{requestDate}\n"
         if $VERBOSE;
