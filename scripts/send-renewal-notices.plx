@@ -97,14 +97,14 @@ foreach my $supporterId (@supporterIds) {
   if (defined $request) {
     if (defined $request->{fulfillDate}) {
       print STDERR "$supporterId lapsed on $expiresOn but recorded as renewed on $request->{fulfillDate}\n"
-        if ( ($isLapsed or $lapsesInOneWeek) and $VERBOSE);
+        if ( ($isLapsed or $lapsesSoon) and $VERBOSE);
     } else {
       print STDERR "$supporterId received this renewal notice already on $request->{requestDate}\n"
         if $VERBOSE;
     }
     next;
   }
-  print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed and not $lapsesInOneWeek) and $VERBOSE > 1);
+  print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed and not $lapsesSoon) and $VERBOSE > 1);
   next unless $isLapsed or $lapsesSoon;
 
 
