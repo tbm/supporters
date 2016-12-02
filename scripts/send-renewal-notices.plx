@@ -2,6 +2,8 @@
 
 use strict;
 use warnings;
+use Encode;
+use utf8;
 
 use autodie qw(open close);
 
@@ -116,11 +118,22 @@ foreach my $supporterId (@supporterIds) {
   }
   close MESSAGE;
   my $emailTo = join(' ', @emails);
+  my $displayName = $sp->getDisplayName($supporterId);
+  my $fullEmailLine = "";
+  foreach my $email (@emails) {
+    $fullEmailLine .= ", " if ($fullEmailLine ne "");
+    my $line = "";
+    if (defined $displayName) {
+      $line .= "\"$displayName\" ";
+    }
+    $line .= "<$email>";
+  $fullEmailLine .= Encode::encode("MIME-Header", $line);
+  }
   open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
     die "unable to run sendmail: $!";
 
   print STDERR "Sending to $supporterId at $emailTo who expires on $expiresOn\n";
-  print SENDMAIL "To: ", join(', ', @emails), "\n";
+  print SENDMAIL "To: $fullEmailLine\n";
   print SENDMAIL @message;
 
   close SENDMAIL;
