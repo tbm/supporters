@@ -18,13 +18,17 @@ my $TWO_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 2 years"), '%Y-%m-%
 my $THREE_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 3 years"), '%Y-%m-%d');
 
 if (@ARGV < 8 ) {
-  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <REQUEST_NAME> <FROM_ADDRESS> <ALL_STAFF_ADDRESS> <EMAIL_TEMPLATE> <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
+  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <HOW_FAR_IN_ADVANCE> <REQUEST_NAME> <FROM_ADDRESS> <ALL_STAFF_ADDRESS> <EMAIL_TEMPLATE> <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
   exit 1;
 }
 
-my($SUPPORTERS_SQLITE_DB_FILE, $REQUEST_NAME, $FROM_ADDRESS, $ALL_STAFF_ADDRESS, $EMAIL_TEMPLATE, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE,
+my($SUPPORTERS_SQLITE_DB_FILE, $HOW_FAR_IN_ADVANCE_CALC, $REQUEST_NAME, $FROM_ADDRESS, $ALL_STAFF_ADDRESS, $EMAIL_TEMPLATE, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE,
    @LEDGER_CMN_LINE) = @ARGV;
 
+my $HOW_FAR_IN_ADVANCE = UnixDate(DateCalc(ParseDate("today"), "+ " . $HOW_FAR_IN_ADVANCE_CALC), '%Y-%m-%d');
+die "Unable to compute how far \"$HOW_FAR_IN_ADVANCE_CALC\" is from today" unless defined $HOW_FAR_IN_ADVANCE and $HOW_FAR_IN_ADVANCE =~ /[0-9]+\-[0-9]+\-[0-9]+/;
+
+print "$HOW_FAR_IN_ADVANCE is how far in advance we're sending\n";
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=$SUPPORTERS_SQLITE_DB_FILE", "", "",
                                { RaiseError => 1, sqlite_unicode => 1 })
@@ -56,6 +60,7 @@ foreach my $supporterId (@supporterIds) {
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn le $TODAY);
   my $lapsesInOneWeek = ( (defined $expiresOn) and $expiresOn le $ONE_WEEK);
   my $lapsesInOneMonth = ( (defined $expiresOn) and $expiresOn le $ONE_MONTH);
+  my $lapsesSoon = ( (defined $expiresOn) and $expiresOn le $HOW_FAR_IN_ADVANCE);
   my $type = $sp->getType($supporterId);
   $expiresOn = "NO-FULL-SIGNUP" if not defined $expiresOn;
   if ($isLapsed) {
@@ -100,7 +105,7 @@ foreach my $supporterId (@supporterIds) {
     next;
   }
   print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed and not $lapsesInOneWeek) and $VERBOSE > 1);
-  next unless $isLapsed or $lapsesInOneWeek;
+  next unless $isLapsed or $lapsesSoon;
 
 
   open(MESSAGE, "<", $EMAIL_TEMPLATE);
