@@ -31,6 +31,7 @@ if ($CRITERION ne 'id') {
   push(@supporterIds, $SEARCH_PARAMETER);
 }
 my @requestTypes = $sp->getRequestType();
+binmode STDOUT, ":utf8";
 foreach my $id (@supporterIds) {
   $found = 1;
   my $preferredEmail = $sp->getPreferredEmailAddress($id);
