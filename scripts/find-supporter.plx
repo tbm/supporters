@@ -41,6 +41,7 @@ foreach my $id (@supporterIds) {
     print " unknown\n";
   } elsif ($sp->getPublicAck($id)) {
     print " yes\n";
+    print "     Display name for public ack: \"", $sp->getDisplayName($id), "\"\n";
   } else {
     print " no\n";
   }
