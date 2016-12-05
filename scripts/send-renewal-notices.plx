@@ -140,13 +140,13 @@ foreach my $supporterId (@supporterIds) {
 }
 
 my $subject = "Supporter lapsed report for $TODAY";
-my $per = ( ($lapsedCount / $totalSuppporters) * 100.00);
+my $per = ( ($lapsedCount / $totalSupporters) * 100.00);
 my $headerInfo = "$subject\n" . ("=" x length($subject)) .
-  "\n\nWe have " . $totalSuppporters . " supporters and $lapsedCount are lapsed.  That's " .
-  sprintf("%.2f", $per) . "%.\nActive supporter count: " . ($totalSuppporters - $lapsedCount) . "\n" .
+  "\n\nWe have " . $totalSupporters . " supporters and $lapsedCount are lapsed.  That's " .
+  sprintf("%.2f", $per) . "%.\nActive supporter count: " . ($totalSupporters - $lapsedCount) . "\n" .
   sprintf("    Of the active supporters, %.2f%% are monthly and %.2f%% are annual",
-          ( ($activeCounter{Monthly} / ($totalSuppporters - $lapsedCount)) * 100.00),
-          ( ($activeCounter{Annual} / ($totalSuppporters - $lapsedCount)) * 100.00)) . ".\n\n";
+          ( ($activeCounter{Monthly} / ($totalSupporters - $lapsedCount)) * 100.00),
+          ( ($activeCounter{Annual} / ($totalSupporters - $lapsedCount)) * 100.00)) . ".\n\n";
 
 foreach my $type (keys %lapsedCounter) {
   $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d\n",
