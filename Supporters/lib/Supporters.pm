@@ -419,6 +419,7 @@ sub setPreferredPostalAddress($$$) {
   foreach my $em (keys %{$ems}) {
     $anotherPreferred = 1 if $ems->{$em}{preferred};
     $postalAddressId = $ems->{$em}{id} if $em eq $postalAddress;
+    last if $anotherPreferred;  #FIXME: THIS HAS TO HAPPEN IT IS A BUG NEEDS A TEST .. francois caused bug
   }
   return undef if not defined $postalAddressId;
 
