@@ -1624,7 +1624,7 @@ sub _readLedgerData($) {
   open(ALL, "-|", @cmd) or confess "unable to run command ledger command: @cmd: $!";
   while (my $line = <ALL>) {
     next if $line =~ /^\s*$/;
-    die "Invalid line in @cmd output:\n    $line"
+    warn "Invalid line in @cmd output:\n    $line"
       unless $line =~ /^\s*([^\d]+)\s+([\d\-]+)\s+(\S*)\s+\$\s*(\-?\s*[\d,\.]+)\s*$/;
     my($type, $date, $entityId, $amount) = ($1, $2, $3, $4);
     next unless defined $entityId and $entityId !~ /^\s*$/;
