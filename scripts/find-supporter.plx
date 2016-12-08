@@ -76,8 +76,17 @@ foreach my $id (@supporterIds) {
         print "\n";
       } else {
         print "...\n          fulfilled on $req->{fulfillDate}";
-        print "...\n          notes: $req->{notes}" if defined $req->{notes};
+        print "...\n              by: $req->{fulfilledBy}" if defined $req->{fulfilledBy};
+        print "...\n             via: $req->{fulfilledVia}" if defined $req->{fulfilledVia};
+      }
+      if (not defined $req->{holdDate}  ) {
         print "\n";
+      } else {
+        print "...\n          put on hold on  $req->{holdDate} by $req->{holder}";
+        print "...\n              release on: $req->{holdReleaseDate}\n" if defined $req->{holdRelaseDate};
+        print "...\n              on hold because: $req->{heldBecause}\n" if defined $req->{heldBecause};
+
+
       }
     }
   }

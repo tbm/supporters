@@ -42,8 +42,11 @@ close TEX_FILE;
 
 foreach my $id (sort keys %idsSent) {
   my $request;
-  foreach my $type (qw/t-shirt-0 t-shirt-1/) {
-    $request = $sp->getRequest({ donorId => $id, requestType => $type, ignoreFulfilledRequests => 1 });
+  my @requestTypes = $sp->getRequestType();
+  foreach my $type (@requestTypes) {
+    next unless if ($type =~ /t-shirt/);
+    $request = $sp->getRequest({ donorId => $id, requestType => $type,
+                                 ignoreHeldRequests => 1, ignoreFulfilledRequests => 1 });
     if (defined $request and defined $request->{requestType}) {
       if ($request->{requestConfiguration} ne $idsSent{$id}) {
         my $out = "WARNING: not fufilling $id request for $request->{requstConfiguration} because we sent wrong size of $idsSent{$id}!\n";

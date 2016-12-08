@@ -47,6 +47,19 @@ CREATE TABLE "fulfillment" (
 
 CREATE UNIQUE INDEX fulfillment__one_fulfillment_per_request ON fulfillment(request_id);
 
+DROP TABLE IF EXISTS "request_hold";
+
+CREATE TABLE "request_hold" (
+    "id" integer NOT NULL PRIMARY KEY,
+    "request_id" integer NOT NULL,
+    "hold_date" TEXT NOT NULL,
+    "release_date" TEXT,
+    "who" varchar(300) NOT NULL,
+    "why" TEXT
+);
+
+CREATE UNIQUE INDEX request_hold__one_hold_per_request ON request_hold(request_id);
+
 DROP TABLE IF EXISTS "request_type";
 
 CREATE TABLE "request_type" (

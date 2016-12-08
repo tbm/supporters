@@ -942,6 +942,7 @@ sub addRequestConfigurations($$$) {
   $self->_commit();
   return { $requestId => \%descriptions };
 }
+my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
 ######################################################################
 
 =begin getRequest
@@ -1038,14 +1039,37 @@ If the request has been fufilled, the following keys will also have values:
 
 =back
 
+If the request is on hold, the following keys will also have values:
+
+=over
+
+=item holdReleaseDate
+
+      The date the request will be held until, in ISO 8601 format.
+
+=item holdDate
+
+      The date the hold was requested, in ISO 8601 format.
+
+=item holder
+
+      The person who is holding the request
+
+=item heldBecause
+
+      Why the person is holding the request.
+
+=back
+
 =back
 
 =cut
 
 sub getRequest($$;$) {
   my($self, $params) = @_;
-  my($donorId, $requestType, $requestTypeId, $ignoreFulfilledRequests) =
-    ($params->{donorId}, $params->{requestType}, $params->{requestTypeId}, $params->{ignoreFulfilledRequests});
+  my($donorId, $requestType, $requestTypeId, $ignoreFulfilledRequests, $ignoreHeldRequests) =
+    ($params->{donorId}, $params->{requestType}, $params->{requestTypeId}, $params->{ignoreFulfilledRequests},
+     $params->{ignoreHeldRequests});
 
   die "getRequest: undefined donorId" unless defined $donorId;
   die "getRequest: donorId, \"$donorId\" not found in supporter database"
@@ -1091,12 +1115,25 @@ sub getRequest($$;$) {
       "not valid for requestId, \"$requestId\"") unless defined $configName or (keys %{$configs->{$requestId}} == 0);
   $rsp->{requestConfiguration} = $configName;
 
-  my $fulfillReq = $self->dbh()->selectall_hashref("SELECT id, request_id, date FROM fulfillment WHERE request_id = " .
+  my $fulfillReq = $self->dbh()->selectall_hashref("SELECT id, request_id, date, who, how FROM fulfillment WHERE request_id = " .
                                                    $self->dbh->quote($requestId, 'SQL_INTEGER'),
                                                    'request_id');
   if (defined $fulfillReq and defined $fulfillReq->{$requestId} and defined $fulfillReq->{$requestId}{id}) {
     return undef if $ignoreFulfilledRequests;
     $rsp->{fulfillDate} = $fulfillReq->{$requestId}{date};
+    $rsp->{fulfilledBy} = $fulfillReq->{$requestId}{who};
+    $rsp->{fulfilledVia} = $fulfillReq->{$requestId}{how};
+  }
+  my $holdReq = $self->dbh()->selectall_hashref("SELECT id, request_id, hold_date, release_date, who, why " .
+                                                "FROM request_hold WHERE request_id = " .
+                                                   $self->dbh->quote($requestId, 'SQL_INTEGER'),
+                                                   'request_id');
+  if (defined $holdReq and defined $holdReq->{$requestId} and defined $holdReq->{$requestId}{id}) {
+    return undef if $ignoreHeldRequests and ($TODAY le $holdReq->{$requestId}{release_date});
+    $rsp->{holdDate} = $holdReq->{$requestId}{hold_date};
+    $rsp->{releaseDate} = $holdReq->{$requestId}{release_date};
+    $rsp->{holder} = $holdReq->{$requestId}{who};
+    $rsp->{heldBecause} = $holdReq->{$requestId}{why};
   }
   return $rsp;
 }
@@ -1262,6 +1299,49 @@ sub fulfillRequest($$) {
     $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
   }
   return $fulfillRecord->{$requestId}{id};
+}
+
+######################################################################
+
+=begin holdRequest
+
+FIXME: docs
+
+=cut
+
+sub holdRequest($$) {
+  my($self, $params) = @_;
+  die "holdRequest: undefined donorId" unless defined $params->{donorId};
+  my $donorId = $params->{donorId};
+  die "holdRequest: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+  foreach my $key (qw/who holdReleaseDate heldBecause/) {
+    die "holdRequest: required parameter undefined: \"$key\"" unless defined $params->{$key};
+  }
+  die "holdRequest: requestType, requestTypeId, and requestId are all undefined"
+    unless defined $params->{requestType} or defined $params->{requestTypeId};
+
+  my $req = $self->getRequest($params);
+  return undef if not defined $req;
+  my $requestId = $req->{requestId};
+  return undef if not defined $requestId;
+
+  my $holdLookupSql = "SELECT id, request_id FROM request_hold WHERE request_id = " .
+                        $self->dbh->quote($requestId, 'SQL_INTEGER');
+
+  my $holdRecord = $self->dbh()->selectall_hashref($holdLookupSql, "request_id");
+  if (not defined $holdRecord or not defined $holdRecord->{$requestId}) {
+    $self->_beginWork;
+    my $sth = $self->dbh->prepare("INSERT INTO " .
+                                  "request_hold(request_id, who, why, release_date, hold_date) " .
+                                        "VALUES(?,           ?,   ?  , ?  ,         date('now'))");
+
+    $sth->execute($requestId, $params->{who}, $params->{heldBecause}, $params->{releaseDate});
+    $sth->finish;
+    $self->_commit;
+    $holdRecord = $self->dbh()->selectall_hashref($holdLookupSql, "request_id");
+  }
+  return $holdRecord->{$requestId}{id};
 }
 
 ######################################################################
