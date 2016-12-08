@@ -1497,6 +1497,29 @@ sub donorTotalGaveInPeriod($$) {
   }
   return $amount;
 }
+
+######################################################################
+
+=begin getType
+
+FIXME DOCS
+
+=cut
+
+sub getType ($$) {
+  my($self, $donorId) = @_;
+
+  confess "donorFirstGave: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  return undef unless $self->isSupporter($donorId);
+  $self->_readLedgerData() if not defined $self->{ledgerData};
+
+  my $entityId = $self->getLedgerEntityId($donorId);
+
+  return undef unless defined $self->{ledgerData}{$entityId};
+  return $self->{ledgerData}{$entityId}{__TYPE__};
+}
 ######################################################################
 
 =begin supporterExpirationDate
