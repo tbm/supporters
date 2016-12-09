@@ -25,6 +25,7 @@ open(SIZE_COUNTS, "<", $SIZE_COUNTS);
 
 my %sizeCounts;
 while (my $line = <SIZE_COUNTS>) {
+  next if ($line =~ /^\s*#/ or $line =~ /^\s*$/);
   if ($line =~ /^\s*(\S+)\s+(\d+)\s*/) {
     my($size, $count) = ($1, $2, $3);
     $sizeCounts{$size} = $count;
