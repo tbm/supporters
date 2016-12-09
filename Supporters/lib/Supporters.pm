@@ -1131,7 +1131,7 @@ sub getRequest($$;$) {
   if (defined $holdReq and defined $holdReq->{$requestId} and defined $holdReq->{$requestId}{id}) {
     return undef if $ignoreHeldRequests and ($TODAY le $holdReq->{$requestId}{release_date});
     $rsp->{holdDate} = $holdReq->{$requestId}{hold_date};
-    $rsp->{releaseDate} = $holdReq->{$requestId}{release_date};
+    $rsp->{holdReleaseDate} = $holdReq->{$requestId}{release_date};
     $rsp->{holder} = $holdReq->{$requestId}{who};
     $rsp->{heldBecause} = $holdReq->{$requestId}{why};
   }
@@ -1392,7 +1392,7 @@ sub holdRequest($$) {
                                   "request_hold(request_id, who, why, release_date, hold_date) " .
                                         "VALUES(?,           ?,   ?  , ?  ,         date('now'))");
 
-    $sth->execute($requestId, $params->{who}, $params->{heldBecause}, $params->{releaseDate});
+    $sth->execute($requestId, $params->{who}, $params->{heldBecause}, $params->{holdReleaseDate});
     $sth->finish;
     $self->_commit;
     $holdRecord = $self->dbh()->selectall_hashref($holdLookupSql, "request_id");
