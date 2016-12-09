@@ -4,7 +4,7 @@
 # License: AGPLv3-or-later
 #  Copyright info in COPYRIGHT.md, License details in LICENSE.md with this package.
 ###############################################################################
-# FIXME: Untested things: request holds.
+# FIXME: Untested things: request holds, and fulfill failure
 use strict;
 use warnings;
 

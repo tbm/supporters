@@ -1303,6 +1303,62 @@ sub fulfillRequest($$) {
 
 ######################################################################
 
+=begin fulfillFailure
+
+FIXME better docs
+
+Convert a requests  fulfillment to a mere hold becuase a fulfillment failed.
+
+=cut
+
+sub fulfillFailure($$) {
+  my($self, $params) = @_;
+  die "fulfillFailure: undefined donorId" unless defined $params->{donorId};
+  my $donorId = $params->{donorId};
+  die "fulfillFailure: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+  die "fulfillFailure: both why required"
+    unless defined $params->{why};
+  die "fulfillFailure: both requestType and requestTypeId undefined"
+    unless defined $params->{requestType} or defined $params->{requestTypeId};
+
+  my $req = $self->getRequest($params);
+  return undef if not defined $req;
+  my $requestId = $req->{requestId};
+  return undef if not defined $requestId;
+
+  my $fulfillLookupSql = "SELECT id, request_id, date, who, how FROM fulfillment WHERE request_id = " .
+                        $self->dbh->quote($requestId, 'SQL_INTEGER');
+
+  my $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
+
+  return undef
+    if (not defined $fulfillRecord or not defined $fulfillRecord->{$requestId});
+
+  $self->_beginWork;
+
+  my $reason = "because $params->{why}, fulfillment failed on " . $fulfillRecord->{$requestId}{date} . " (which was attempted via " .
+    $fulfillRecord->{$requestId}{how} . ')';
+
+  my $holdId = $self->holdRequest({donorId => $donorId, requestType => $req->{requestType},
+                                   who => $fulfillRecord->{$requestId}{who},
+                                   heldBecause => $reason, holdReleaseDate => '9999-12-31'});
+
+  die "fulfillFailure: failed to create hold request for fulfillment" unless defined $holdId;
+
+  my $sth = $self->dbh->prepare("UPDATE request_hold SET hold_date = ?  WHERE id = ?");
+  $sth->execute($fulfillRecord->{$requestId}{date}, $holdId);
+  $sth->finish;
+
+  $sth = $self->dbh->prepare("DELETE FROM fulfillment WHERE id = ?");
+  $sth->execute($fulfillRecord->{$requestId}{id});
+  $sth->finish;
+
+  $self->_commit;
+  return $holdId;
+}
+######################################################################
+
 =begin holdRequest
 
 FIXME: docs
