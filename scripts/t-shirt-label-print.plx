@@ -96,7 +96,7 @@ foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
     next;
   }
 
-  my $postalAddress = $sp->getPreferredEmailAddress($id);
+  my $postalAddress = $sp->getPreferredPostalAddress($id);
   if (not defined $postalAddress) {
     my(@postalAddresses) = $sp->getPostalAddresses($id);
     $postalAddress = $postalAddresses[0];
