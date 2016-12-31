@@ -13,9 +13,13 @@ use Email::MIME;
 use Date::Manip::DM5;
 use Supporters;
 
+use LaTeX::Encode;
+my $BIG_DONOR_CUTOFF = 500.00;
+
 my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
 my $ONE_WEEK = UnixDate(DateCalc(ParseDate("today"), "+ 1 week"), '%Y-%m-%d');
 my $ONE_MONTH = UnixDate(DateCalc(ParseDate("today"), "+ 1 month"), '%Y-%m-%d');
+my $ONE_YEAR_AGO = UnixDate(DateCalc(ParseDate("today"), "- 1 year"), '%Y-%m-%d');
 my $TWO_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 2 years"), '%Y-%m-%d');
 my $THREE_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 3 years"), '%Y-%m-%d');
 
@@ -54,8 +58,15 @@ my(%activeCounter, %lapsedCounter);
 
 my %monthExpirations;
 
+my $isPaper = 0;
+$isPaper = 1 if $EMAIL_TEMPLATE =~ /\.tex$/;
+
+if ($isPaper) {
+  open(ENVELOPES, ">envelopes-ready-to-send.tex") or die "unable to open labels: $!";
+}
 my $totalSupporters = 0;
-foreach my $supporterId (@supporterIds) {
+my $sentCount = 0;
+foreach my $supporterId (sort @supporterIds) {
   next unless $sp->isSupporter($supporterId);
   $totalSupporters++;
   my $expiresOn = $sp->supporterExpirationDate($supporterId);
@@ -107,36 +118,78 @@ foreach my $supporterId (@supporterIds) {
   print STDERR "$supporterId skipped since he is not lapsed\n" if ( (not $isLapsed and not $lapsesSoon) and $VERBOSE > 1);
   next unless $isLapsed or $lapsesSoon;
 
-
-  open(MESSAGE, "<", $EMAIL_TEMPLATE);
-  my @message;
-  while (my $line = <MESSAGE> ) {
-    $line =~ s/FIXME_LAST_DONATE_DATE/$lastDonateDate/g;
-    push(@message, $line);
-  }
-  close MESSAGE;
-  my $emailTo = join(' ', @emails);
   my $displayName = $sp->getDisplayName($supporterId);
-  my $fullEmailLine = "";
-  foreach my $email (@emails) {
-    $fullEmailLine .= ", " if ($fullEmailLine ne "");
-    my $line = "";
-    if (defined $displayName) {
-      $line .= "\"$displayName\" ";
+  if ($isPaper) {
+    my $latexDisplayName = latex_encode($displayName);
+    $latexDisplayName =~ s/\\unmatched\{0141\}/\L{}/g;
+    $latexDisplayName =~ s/\\unmatched\{0142\}/\l{}/g;
+    if ($latexDisplayName =~ /unmatched/) {
+      print "Skipping $supporterId because the address has characters I can't print in LaTeX\n  name was: ", encode('UTF-8', $displayName), "\n";
+      next;
     }
-    $line .= "<$email>";
-  $fullEmailLine .= Encode::encode("MIME-Header", $line);
+    my $postalAddress = $sp->getPreferredPostalAddress($supporterId);
+    if (not defined $postalAddress) {
+      my(@postalAddresses) = $sp->getPostalAddresses($supporterId);
+      $postalAddress = $postalAddresses[0];
+    }
+    if ( (not defined $postalAddress) or  $postalAddress =~ /^\s*$/m or $postalAddress eq $displayName) {
+      print "Skipping $supporterId because no postal address was available\n";
+      next;
+    }
+
+    my $latexPostal = latex_encode($postalAddress);
+    $latexPostal =~ s/\\unmatched\{0141\}/\L{}/g;
+    $latexPostal =~ s/\\unmatched\{0142\}/\l{}/g;
+    if ($latexPostal =~ /unmatched/) {
+      print "Skipping $supporterId because the address has characters the post office will not accept\n  Address was: ", encode('UTF-8', $postalAddress), "\n";
+      next;
+    }
+    $latexPostal = join(' \\\\ ', split('\n', $latexPostal));
+    print ENVELOPES '\mlabel{}{TO: \\\\ ' . $latexPostal . "}\n";
+
+    open(MESSAGE, "<", $EMAIL_TEMPLATE);
+    open(LETTER, ">", sprintf("%4.4d", $sentCount++) . "-" . $supporterId . ".tex");
+    while (my $line = <MESSAGE> ) {
+      $line =~ s/FIXME-LAST-DONATE-DATE/$lastDonateDate/g;
+      $line =~ s/FIXME-ADDRESS/$latexPostal/g;
+      $line =~ s/FIXME-FULL-NAME/$latexDisplayName/g;
+      print LETTER $line;
+    }
+    close LETTER;
+    close MESSAGE;
+  } else {
+    open(MESSAGE, "<", $EMAIL_TEMPLATE);
+    my @message;
+    while (my $line = <MESSAGE> ) {
+      $line =~ s/FIXME_LAST_DONATE_DATE/$lastDonateDate/g;
+      push(@message, $line);
+    }
+    close MESSAGE;
+    my $emailTo = join(' ', @emails);
+    my $fullEmailLine = "";
+    foreach my $email (@emails) {
+      $fullEmailLine .= ", " if ($fullEmailLine ne "");
+      my $line = "";
+      if (defined $displayName) {
+        $line .= "\"$displayName\" ";
+      }
+      $line .= "<$email>";
+      $fullEmailLine .= Encode::encode("MIME-Header", $line);
+    }
+    open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
+      die "unable to run sendmail: $!";
+
+    print STDERR "Sending to $supporterId at $emailTo who expires on $expiresOn\n";
+    print SENDMAIL "To: $fullEmailLine\n";
+    print SENDMAIL @message;
+    close SENDMAIL;
+    sleep 1;
   }
-  open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
-    die "unable to run sendmail: $!";
-
-  print STDERR "Sending to $supporterId at $emailTo who expires on $expiresOn\n";
-  print SENDMAIL "To: $fullEmailLine\n";
-  print SENDMAIL @message;
-
-  close SENDMAIL;
-  sleep 1;
   $sp->addRequest({donorId => $supporterId, requestType => $REQUEST_NAME});
+}
+if ($isPaper) {
+  close ENVELOPES;
+  exit 0;
 }
 
 my $subject = "Supporter lapsed report for $TODAY";
