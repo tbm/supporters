@@ -208,6 +208,9 @@ foreach my $type (keys %lapsedCounter) {
 $headerInfo .= "\n";
 my $emailText .= $headerInfo;
 my $allStaffEmailText = $headerInfo;
+my $bigDonorEmailText = "\n   LAPSED BIG DONORS\n" .
+                          "   =================\n";
+
 $emailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
 $emailText .= "\n     ==========================\n";
 $allStaffEmailText .= "\n     RENEWAL DUE COUNT BY MONTH\n";
@@ -233,11 +236,19 @@ foreach my $cat (sort { $a cmp $b } @lapseCategories) {
                                                  startDate => $THREE_YEARS_AGO, endDate => $TODAY);
     my $twoYearTot = $sp->donorTotalGaveInPeriod(donorId => $sup->{supporterId},
                                                  startDate => $TWO_YEARS_AGO, endDate => $TODAY);
-    
+    my $oneYearTot = $sp->donorTotalGaveInPeriod(donorId => $sup->{supporterId},
+                                                 startDate => $ONE_YEAR_AGO, endDate => $TODAY);
     $emailText .= "    $sup->{expiresOn}: $sup->{supporterId}, $sup->{ledgerEntityId}, $sup->{displayName},  ";
     $emailText .= "2YrTot: \$" . sprintf("%.2f", $twoYearTot).  ", 3YrTot: \$" . sprintf("%.2f", $threeYearTot);
     $emailText .= ", Emails: " . join(", ", @{$sup->{emails}});
     $emailText .= "\n";
+    if ( ($threeYearTot / 3) > $BIG_DONOR_CUTOFF or ($twoYearTot / 2) > $BIG_DONOR_CUTOFF or
+         $oneYearTot > $BIG_DONOR_CUTOFF) {
+      $bigDonorEmailText .= "    $sup->{expiresOn}: $sup->{supporterId}, $sup->{ledgerEntityId}, $sup->{displayName},  ";
+      $bigDonorEmailText .= "1YrTot: \$" . sprintf("%.2f", $oneYearTot) . "2YrTot: \$" .
+        sprintf("%.2f", $twoYearTot).  ", 3YrTot: \$" . sprintf("%.2f", $threeYearTot);
+    $bigDonorEmailText .= ", Emails: " . join(", ", @{$sup->{emails}}) . "\n";
+    }
   }
   $emailText .=  "\n";
 }
@@ -272,4 +283,20 @@ my $allStaffEmail = Email::MIME->create(
 open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $ALL_STAFF_ADDRESS") or
   die "unable to run sendmail: $!";
 print SENDMAIL $allStaffEmail->as_string;
+close SENDMAIL;
+
+my $bigDonorLapsedEmail = Email::MIME->create(
+    header_str => [
+       To => $FROM_ADDRESS,
+       From => $FROM_ADDRESS,
+       Subject => "Big Donors Lapsed/Lapsing Soon (for $TODAY)"  ],
+    attributes => {
+                   content_type => 'text/plain',
+                   charset => 'utf-8',
+                   encoding     => "quoted-printable",
+                   disposition => 'inline' },
+    body_str => $bigDonorEmailText);
+open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $FROM_ADDRESS") or
+  die "unable to run sendmail: $!";
+print SENDMAIL $bigDonorLapsedEmail->as_string;
 close SENDMAIL;
