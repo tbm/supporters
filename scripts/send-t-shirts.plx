@@ -32,7 +32,8 @@ while (my $line = <TEX_FILE>) {
   if ($line =~ /Box.*\&\s*(\d+)\s*\&\s*(\S+)\s*\&\s*(\S+)\s*\&/) {
     my($id, $ledgerEntityId, $size) = ($1, $2, $3);
     die "id $id, and/or size $size not defined" unless defined $id and defined $size;
-    $idsSent{$id} = $size;
+    $idsSent{$id}{$size} = 0 if not defined $idsSent{$id}{$size};
+    $idsSent{$id}{$size}++;
   } else {
     print STDERR "skipping line $line" if ($VERBOSE >= 2);
   }
@@ -43,22 +44,30 @@ close TEX_FILE;
 foreach my $id (sort keys %idsSent) {
   my $request;
   my @requestTypes = $sp->getRequestType();
+  my $sizesSent;
   foreach my $type (@requestTypes) {
-    next unless if ($type =~ /t-shirt/);
+    next unless ($type =~ /t-shirt/);
     $request = $sp->getRequest({ donorId => $id, requestType => $type,
                                  ignoreHeldRequests => 1, ignoreFulfilledRequests => 1 });
     if (defined $request and defined $request->{requestType}) {
-      if ($request->{requestConfiguration} ne $idsSent{$id}) {
+      my $size = $request->{requestConfiguration};
+      if (not defined $idsSent{$id}{$size} and $idsSent{$id}{$size}-- > 0) {
         my $out = "WARNING: not fufilling $id request for $request->{requstConfiguration} because we sent wrong size of $idsSent{$id}!\n";
         print $out;
         print STDERR $out;
         $request = undef;
+      } else {
+        if (defined $sizesSent) {
+          $sizesSent .= ", $size";
+        } else {
+          $sizesSent .= "$size";
+        }
       }
     }
     last if defined $request;
   }
   if (not defined $request) {
-    my $out = "WARNING: We seem to have sent $id an $idsSent{$id} t-shirt that $id didn't request!  Ignoring that and contuining...\n";
+    my $out = "WARNING: We seem to have sent $id a t-shirt that $id didn't request!  Ignoring that and contuining...\n";
     print $out;
     print STDERR $out;
     next;
@@ -82,25 +91,21 @@ foreach my $id (sort keys %idsSent) {
   print SENDMAIL <<DATA;
 To: $emailTo
 From: "Software Freedom Conservancy" <$fromAddress>
-Subject: $idsSent{$id} Conservancy T-Shirt was $HOW
+Subject: $sizesSent Conservancy T-Shirt was $HOW
 
-According to our records, the t-shirt of size $idsSent{$id} that you
+According to our records, the t-shirt of size $sizesSent that you
 requested as a Conservancy Supporter was $HOW.
 $pingNoGet
 
-Thank you again so much for supporting Conservancy.  When we placed our order
-for these t-shirts, our shirt supplier (which is itself a 501c3 dedicated to
-educating high school kids in New York) sent us the wrong color t-shirt
-before appropriately filling the order in a deep gray. We decided to give you
-a second shirt in this fun color as an extra thank you for being a Supporter.
-
-The two shirts now feel like a symbol for where we are in our Supporter
-program - if each of our Supporters just got a single friend to sign up, we'd
-achieve sustainability for all of Conservancy's programs.
+Thank you again so much for supporting Conservancy.
 
 We'd really appreciate if you'd post pictures of the shirt on social media
 and encourage others to sign up as a Conservancy supporter at
-https://sfconservancy.org/supporter/ .
+https://sfconservancy.org/supporter/ .  As you can see on that page, we are
+in the midst of our annual fundraising drive and seeking to reach a match
+donation.  There's a unique opportunity until January 15th to give double
+support to Conservancy.  Encouraging others to sign up right now will make a
+huge difference!
 
 Sincerely,
 -- 
@@ -111,7 +116,7 @@ DATA
   close SENDMAIL;
   die "Unable to send email to $id: $!" unless $? == 0;
 
-  print STDERR "Emailed $emailTo for $id sending of $request->{requestConfiguration} size t-shirt and marked it fulfilled in database\n" if ($VERBOSE);
+  print STDERR "Emailed $emailTo for $id sending of $sizesSent size t-shirt and marked it fulfilled in database\n" if ($VERBOSE);
 }
 ###############################################################################
 #
