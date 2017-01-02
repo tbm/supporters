@@ -83,7 +83,7 @@ foreach my $id (@supporterIds) {
         print "\n";
       } else {
         print "...\n          put on hold on  $req->{holdDate} by $req->{holder}";
-        print "...\n              release on: $req->{holdReleaseDate}\n" if defined $req->{holdRelaseDate};
+        print "...\n              release on: $req->{holdReleaseDate}" if defined $req->{holdReleaseDate};
         print "...\n              on hold because: $req->{heldBecause}\n" if defined $req->{heldBecause};
 
 
