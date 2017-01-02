@@ -66,6 +66,7 @@ foreach my $id (sort keys %idsSent) {
   $sp->fulfillRequest({ donorId => $id, requestType => $request->{requestType},
                       who => $WHO, how => $HOW});
 
+  next unless $sp->emailOk($donorId);
   my $emailTo = $sp->getPreferredEmailAddress($id);
   if (not defined $emailTo) {
     my(@addr) = $sp->getEmailAddresses($id);

@@ -120,6 +120,7 @@ foreach my $supporterId (sort @supporterIds) {
 
   my $displayName = $sp->getDisplayName($supporterId);
   if ($isPaper) {
+    next unless $sp->paperMailOk($donorId);
     my $latexDisplayName = latex_encode($displayName);
     $latexDisplayName =~ s/\\unmatched\{0141\}/\L{}/g;
     $latexDisplayName =~ s/\\unmatched\{0142\}/\l{}/g;
@@ -158,6 +159,7 @@ foreach my $supporterId (sort @supporterIds) {
     close LETTER;
     close MESSAGE;
   } else {
+    next unless $sp->emailOk($donorId);
     open(MESSAGE, "<", $EMAIL_TEMPLATE);
     my @message;
     while (my $line = <MESSAGE> ) {

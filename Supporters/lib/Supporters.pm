@@ -1469,6 +1469,42 @@ sub findDonor($$) {
   return(@donorIds);
 }
 ######################################################################
+# FIXME: docs
+
+sub emailOk($$) {
+  my($self, $donorId) = @_;
+
+  confess "lastGave: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  my $contactSetting;
+
+  my $req = $self->getRequest({donorId => $donorId,
+                               requestType => 'contact-settings'});
+  $contactSetting =$req->{requestConfiguration}
+    if defined $req and defined $req->{requestConfiguration};
+  return ((not defined $contactSetting) or
+                 ($contactSetting eq 'no-paper-but-email-ok'));
+}
+
+sub paperMailOk($$) {
+  my($self, $donorId) = @_;
+
+  confess "lastGave: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+
+  my $contactSetting;
+
+  my $req = $self->getRequest({donorId => $donorId,
+                               requestType => 'contact-settings'});
+  $contactSetting =$req->{requestConfiguration}
+    if defined $req and defined $req->{requestConfiguration};
+  return ((not defined $contactSetting) or
+                 ($contactSetting eq 'no-email-but-paper-ok'));
+}
+
+
+######################################################################
 
 =begin donorLastGave
 
