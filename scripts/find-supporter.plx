@@ -35,15 +35,15 @@ foreach my $id (@supporterIds) {
   $found = 1;
   my $preferredEmail = $sp->getPreferredEmailAddress($id);
   my $preferredPostal = $sp->getPreferredPostalAddress($id);
-  print "Found:  $id, ", $sp->getLedgerEntityId($id), "\n";
+  print "Found: $id, ", $sp->getLedgerEntityId($id), "\n";
   print "     Public Ack: ";
   if (not defined $sp->getPublicAck($id)) {
-    print " unknown\n";
+    print "unknown\n";
   } elsif ($sp->getPublicAck($id)) {
-    print " yes\n";
+    print "yes\n";
     print "     Display name for public ack: \"", $sp->getDisplayName($id), "\"\n";
   } else {
-    print " no\n";
+    print "no\n";
   }
   my(%addr) = $sp->getEmailAddresses($id);
   print "     Email Addresses: ";
