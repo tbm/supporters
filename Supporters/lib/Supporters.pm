@@ -1129,7 +1129,7 @@ sub getRequest($$;$) {
                                                    $self->dbh->quote($requestId, 'SQL_INTEGER'),
                                                    'request_id');
   if (defined $holdReq and defined $holdReq->{$requestId} and defined $holdReq->{$requestId}{id}) {
-    return undef if $ignoreHeldRequests and ($TODAY le $holdReq->{$requestId}{release_date});
+    return undef if $ignoreHeldRequests and ($TODAY lt $holdReq->{$requestId}{release_date});
     $rsp->{holdDate} = $holdReq->{$requestId}{hold_date};
     $rsp->{holdReleaseDate} = $holdReq->{$requestId}{release_date};
     $rsp->{holder} = $holdReq->{$requestId}{who};
