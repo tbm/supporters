@@ -42,14 +42,15 @@ while (my $line = <TEX_FILE>) {
 close TEX_FILE;
 
 foreach my $id (sort keys %idsSent) {
-  my $request;
   my @requestTypes = $sp->getRequestType();
   my $sizesSent;
+  my $foundRequestCount = 0;
   foreach my $type (@requestTypes) {
-    next unless ($type =~ /t-shirt/);
-    $request = $sp->getRequest({ donorId => $id, requestType => $type,
+    next unless ($type =~ /shirt/);
+    my $request = $sp->getRequest({ donorId => $id, requestType => $type,
                                  ignoreHeldRequests => 1, ignoreFulfilledRequests => 1 });
-    if (defined $request and defined $request->{requestType}) {
+    if (defined $request and defined $request->{requestId} and defined $request->{requestType}) {
+      $foundRequestCount++;
       my $size = $request->{requestConfiguration};
       if (not defined $idsSent{$id}{$size} and $idsSent{$id}{$size}-- > 0) {
         my $out = "WARNING: not fufilling $id request for $request->{requstConfiguration} because we sent wrong size of $idsSent{$id}!\n";
@@ -57,6 +58,8 @@ foreach my $id (sort keys %idsSent) {
         print STDERR $out;
         $request = undef;
       } else {
+        $sp->fulfillRequest({ donorId => $id, requestType => $request->{requestType},
+                              who => $WHO, how => $HOW});
         if (defined $sizesSent) {
           $sizesSent .= ", $size";
         } else {
@@ -64,18 +67,14 @@ foreach my $id (sort keys %idsSent) {
         }
       }
     }
-    last if defined $request;
   }
-  if (not defined $request) {
+  unless ($foundRequestCount > 0) {
     my $out = "WARNING: We seem to have sent $id a t-shirt that $id didn't request!  Ignoring that and contuining...\n";
     print $out;
     print STDERR $out;
     next;
   }
-  $sp->fulfillRequest({ donorId => $id, requestType => $request->{requestType},
-                      who => $WHO, how => $HOW});
-
-  next unless $sp->emailOk($donorId);
+  next unless $sp->emailOk($id);
   my $emailTo = $sp->getPreferredEmailAddress($id);
   if (not defined $emailTo) {
     my(@addr) = $sp->getEmailAddresses($id);
