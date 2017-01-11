@@ -7,6 +7,9 @@ use DBI;
 use Encode qw(encode decode);
 use Supporters;
 
+binmode STDIN, ":utf8";
+binmode STDOUT, ":utf8";
+
 if (@ARGV != 1 and @ARGV !=2) {
   print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <VERBOSITY_LEVEL>\n";
   exit 1;
