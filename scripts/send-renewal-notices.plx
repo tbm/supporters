@@ -204,8 +204,8 @@ my $headerInfo = "$subject\n" . ("=" x length($subject)) .
           ( ($activeCounter{Annual} / ($totalSupporters - $lapsedCount)) * 100.00)) . ".\n\n";
 
 foreach my $type (keys %lapsedCounter) {
-  $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d\n",
-                         $type, $lapsedCounter{$type}, $activeCounter{$type});
+  $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d    Percent of %7ss Lapsed:  %2.2f%\n",
+                         $type, $lapsedCounter{$type}, $activeCounter{$type}, ($lapsedCounter{$type} / $activeCounter{$type}) * 100.00);
 }
 $headerInfo .= "\n";
 my $emailText .= $headerInfo;
