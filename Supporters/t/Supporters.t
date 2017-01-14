@@ -562,19 +562,20 @@ dies_ok { $drapperTShirt0HoldId = $sp->holdRequest( { donorId => $drapperId,
      "holdRequest: dies if who not specified";
 
 lives_ok { $drapperTShirt0HoldId = $sp->holdRequest( { donorId => $drapperId,
-                                            requestType => "t-shirt-0", who => 'joe',
+                                            requestType => "t-shirt-0", who => 'joe', holdReleaseDate => '9999-12-31',
                                                     heldBecause => "in-person delivery" }); }
      "holdRequest: succeeds for existing request...";
 
 ok( (defined $drapperTShirt0HoldId and looks_like_number($drapperTShirt0HoldId) and $drapperTShirt0HoldId > 0),
     "holdRequest: ... and id returned on successful holdRequest() is a number");
 
-lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, date, who, how, request_id FROM request_hold", 'id'); }
+lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, hold_date, release_date, who, request_id, why FROM request_hold", 'id'); }
          "holdRequest: sql command in  database for entry succeeds.";
-is_deeply($val, { $drapperTShirt0HoldId => { id => $drapperTShirt0HoldId, date => $today, 
-                                         heldBecause => 'in-person delivery planned', who => 'joe',
+is_deeply($val, { $drapperTShirt0HoldId => { id => $drapperTShirt0HoldId, hold_date => $today,
+                                             release_date => '9999-12-31',
+                                             why => 'in-person delivery', who => 'joe',
                                          request_id => $tShirt0RequestId } },
-          "holdRequest: databse entry from successful return is correct");
+          "holdRequest: database entry from successful return is correct");
 
 my $badHold;
 lives_ok { $badHold = $sp->holdRequest( { donorId => $drapperId, who => 'john',
