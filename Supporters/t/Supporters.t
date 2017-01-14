@@ -544,26 +544,26 @@ my $drapperTShirt0HoldId;
 my $newHoldId;
 
 dies_ok { $drapperTShirt0HoldId = $sp->holdRequest(requestType => "t-shirt-0", who => 'joe',
-                                                    why => "will see him soon and give t-shirt in person" ); }
+                                                    heldBecause => "will see him soon and give t-shirt in person" ); }
      "holdRequest: dies if donorId not specified";
 
 dies_ok { $drapperTShirt0HoldId = $sp->holdRequest(donorId => $drapperId + 1000,
                                             requestType => "t-shirt-0", who => 'joe',
-                                            why => "will see him soon and give t-shirt in person"); }
+                                            heldBecause => "will see him soon and give t-shirt in person"); }
      "holdRequest: dies if donorId not found in database";
 
 dies_ok { $drapperTShirt0HoldId = $sp->holdRequest(donorId => $drapperId,  who => 'joe',
-                                                    why => "in-person delivery" ); }
+                                                    heldBecause => "in-person delivery" ); }
      "holdRequest: dies if requestType not specified";
 
 dies_ok { $drapperTShirt0HoldId = $sp->holdRequest( { donorId => $drapperId,
                                                    requestType => "t-shirt-0",
-                                                    why => "in-person delivery" }); }
+                                                    heldBecause => "in-person delivery" }); }
      "holdRequest: dies if who not specified";
 
 lives_ok { $drapperTShirt0HoldId = $sp->holdRequest( { donorId => $drapperId,
                                             requestType => "t-shirt-0", who => 'joe',
-                                                    why => "in-person delivery" }); }
+                                                    heldBecause => "in-person delivery" }); }
      "holdRequest: succeeds for existing request...";
 
 ok( (defined $drapperTShirt0HoldId and looks_like_number($drapperTShirt0HoldId) and $drapperTShirt0HoldId > 0),
@@ -572,14 +572,14 @@ ok( (defined $drapperTShirt0HoldId and looks_like_number($drapperTShirt0HoldId) 
 lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, date, who, how, request_id FROM request_hold", 'id'); }
          "holdRequest: sql command in  database for entry succeeds.";
 is_deeply($val, { $drapperTShirt0HoldId => { id => $drapperTShirt0HoldId, date => $today, 
-                                         why => 'in-person delivery planned', who => 'joe',
+                                         heldBecause => 'in-person delivery planned', who => 'joe',
                                          request_id => $tShirt0RequestId } },
           "holdRequest: databse entry from successful return is correct");
 
 my $badHold;
 lives_ok { $badHold = $sp->holdRequest( { donorId => $drapperId, who => 'john',
                                                    requestType => "does-not-exist",
-                                                    why => "in-person delivery" }); }
+                                                    heldBecause => "in-person delivery" }); }
      "holdRequest: attempt to hold a request never made does not die...";
 
 ok( (not defined $badHold),
@@ -592,13 +592,13 @@ my $reHoldId;
 
 dies_ok { $reHoldId = $sp->holdRequest( { donorId => $drapperId,
                                             requestType => "t-shirt-0", who => 'peggy',
-                                                    why => "will leave in his office." }); }
+                                                    heldBecause => "will leave in his office." }); }
      "holdRequest: attempt to hold an already-hold request  dies ...";
 
 my $holdRequest;
 lives_ok { $newHoldId = $sp->holdRequest( { donorId => $olsonId,
                                             requestTypeId => $tShirt0RequestTypeId, who => 'john',
-                                                    why => "will delivery at conference" }); }
+                                                    heldBecause => "will delivery at conference" }); }
      "holdRequest: succeeds for existing request, using requestTypeId";
 
 ok( (defined $newHoldId and looks_like_number($newHoldId) and $newHoldId > 0 and ($newHoldId != $drapperTShirt0HoldId)),
