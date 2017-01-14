@@ -578,7 +578,7 @@ is_deeply($val, { $drapperTShirt0HoldId => { id => $drapperTShirt0HoldId, hold_d
           "holdRequest: database entry from successful return is correct");
 
 my $badHold;
-lives_ok { $badHold = $sp->holdRequest( { donorId => $drapperId, who => 'john',
+lives_ok { $badHold = $sp->holdRequest( { donorId => $drapperId, who => 'john', holdReleaseDate => '1983-01-05',
                                                    requestType => "does-not-exist",
                                                     heldBecause => "in-person delivery" }); }
      "holdRequest: attempt to hold a request never made does not die...";
@@ -591,13 +591,13 @@ is($sp->getRequestType("does-not-exist"), undef,
 
 my $reHoldId;
 
-dies_ok { $reHoldId = $sp->holdRequest( { donorId => $drapperId,
+dies_ok { $reHoldId = $sp->holdRequest( { donorId => $drapperId, holdReleaseDate => '2112-05-15',
                                             requestType => "t-shirt-0", who => 'peggy',
                                                     heldBecause => "will leave in his office." }); }
      "holdRequest: attempt to hold an already-hold request  dies ...";
 
 my $holdRequest;
-lives_ok { $newHoldId = $sp->holdRequest( { donorId => $olsonId,
+lives_ok { $newHoldId = $sp->holdRequest( { donorId => $olsonId, holdReleaseDate => '2048-05-15',
                                             requestTypeId => $tShirt0RequestTypeId, who => 'john',
                                                     heldBecause => "will delivery at conference" }); }
      "holdRequest: succeeds for existing request, using requestTypeId";
