@@ -763,8 +763,9 @@ is($tt->{notes}, undef,    "getRequest: notes are undef when null in database.")
 my $releasedHoldId;
 
 lives_ok { $releasedHoldId = $sp->releaseRequestHold(donorId => $drapperId, requestType => 't-shirt-0'); }
-  "releaseRequestHold: release of a knonw held request succeeds...";
+  "releaseRequestHold: release of a known held request succeeds...";
 is($releasedHoldId, $drapperTShirt0HoldId, "releaseRequestHold: ... & returns same hold id as holdRequest() call did");
+
 
 lives_ok { $newFRID = $sp->fulfillRequest( { donorId => $drapperId,
                                             requestTypeId => $tShirt0RequestTypeId, who => 'john',
