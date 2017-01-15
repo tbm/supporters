@@ -563,7 +563,7 @@ dies_ok { $drapperTShirt0HoldId = $sp->holdRequest( { donorId => $drapperId,
 
 lives_ok { $drapperTShirt0HoldId = $sp->holdRequest( { donorId => $drapperId,
                                             requestType => "t-shirt-0", who => 'joe', holdReleaseDate => '9999-12-31',
-                                                    heldBecause => "in-person delivery" }); }
+                                                    heldBecause => "in-person delivery planned" }); }
      "holdRequest: succeeds for existing request...";
 
 ok( (defined $drapperTShirt0HoldId and looks_like_number($drapperTShirt0HoldId) and $drapperTShirt0HoldId > 0),
@@ -573,7 +573,7 @@ lives_ok { $val = $sp->dbh()->selectall_hashref("SELECT id, hold_date, release_d
          "holdRequest: sql command in  database for entry succeeds.";
 is_deeply($val, { $drapperTShirt0HoldId => { id => $drapperTShirt0HoldId, hold_date => $today,
                                              release_date => '9999-12-31',
-                                             why => 'in-person delivery', who => 'joe',
+                                             why => 'in-person delivery planned', who => 'joe',
                                          request_id => $tShirt0RequestId } },
           "holdRequest: database entry from successful return is correct");
 
@@ -735,7 +735,7 @@ lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestTypeId => $tShir
 is($tt->{requestType}, 't-shirt-0', "getRequest: requestType is correct.");
 is($tt->{requestDate}, $today, "getRequest: request date is today.");
 is($tt->{requestConfiguration}, 'MenL', "getRequest: configuration is correct.");
-is($tt->{holdReleaseDate}, undef, "getRequest: releaseDate is correct.");
+is($tt->{holdReleaseDate}, '9999-12-31', "getRequest: releaseDate is correct.");
 is($tt->{holdDate}, $today, "getRequest: holdDate is correct.");
 is($tt->{holder}, 'joe', "getRequest: holder is correct.");
 is($tt->{heldBecause}, 'in-person delivery planned', "getRequest: heldBecause is correct.");
