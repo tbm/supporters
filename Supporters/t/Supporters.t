@@ -591,12 +591,22 @@ is($sp->getRequestType("does-not-exist"), undef,
 
 my $reHoldId;
 
-dies_ok { $reHoldId = $sp->holdRequest( { donorId => $drapperId, holdReleaseDate => '2112-05-15',
+# FIXME: Do the following two tests really exhibit the behavior we actually
+#        want?  The API caller might be receiving unexpected results here,
+#        because as the two tests below show, it's possible, when attempting
+#        to hold a request that is already held, that you're returned an id
+#        for a hold that has different details (other than the requestType,
+#        of course).
+ 
+
+lives_ok { $reHoldId = $sp->holdRequest( { donorId => $drapperId, holdReleaseDate => '2112-05-15',
                                             requestType => "t-shirt-0", who => 'peggy',
                                                     heldBecause => "will leave in his office." }); }
-     "holdRequest: attempt to hold an already-hold request  dies ...";
+     "holdRequest: attempt to hold an already-held request lives ...";
 
+is_deeply($reHoldId, $drapperTShirt0HoldId, "holdRequest: ... but returns the id of the old hold request.");
 my $holdRequest;
+
 lives_ok { $newHoldId = $sp->holdRequest( { donorId => $olsonId, holdReleaseDate => '2048-05-15',
                                             requestTypeId => $tShirt0RequestTypeId, who => 'john',
                                                     heldBecause => "will delivery at conference" }); }
