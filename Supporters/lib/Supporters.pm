@@ -1289,6 +1289,16 @@ sub fulfillRequest($$) {
 
   my $fulfillRecord = $self->dbh()->selectall_hashref($fulfillLookupSql, "request_id");
   if (not defined $fulfillRecord or not defined $fulfillRecord->{$requestId}) {
+    # First check if request is held.  If it's held, it cannot be fulfilled.
+    my $holdReq = $self->dbh()->selectall_hashref("SELECT id, request_id, release_date " .
+                                                "FROM request_hold WHERE request_id = " .
+                                                   $self->dbh->quote($requestId, 'SQL_INTEGER'),
+                                                  'request_id');
+    return undef
+      if (defined $holdReq and defined $holdReq->{$requestId} and defined $holdReq->{$requestId}{id}
+          and $TODAY lt $holdReq->{$requestId}{release_date});
+
+    # Ok, it's not on hold, so go ahead and fulfill it.
     $self->_beginWork;
     my $sth = $self->dbh->prepare("INSERT INTO fulfillment(request_id, who, how, date) " .
                                                    "VALUES(?         , ?  , ?  , date('now'))");
