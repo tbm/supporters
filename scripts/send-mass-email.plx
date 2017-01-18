@@ -36,7 +36,8 @@ foreach my $id (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($id);
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn lt $TODAY);
   #  next if $isLapsed;
-  next unless $sp->emailOk($donorId);
+
+  next unless $sp->emailOk($id);
   my $emailTo = $sp->getPreferredEmailAddress($id);
   if (not defined $emailTo) {
     my(@addr) = $sp->getEmailAddresses($id);
