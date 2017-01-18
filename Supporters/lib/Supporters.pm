@@ -1490,9 +1490,10 @@ sub emailOk($$) {
   my $contactSetting;
 
   my $req = $self->getRequest({donorId => $donorId,
-                               requestType => 'contact-settings'});
+                               requestType => 'contact-setting'});
   $contactSetting =$req->{requestConfiguration}
     if defined $req and defined $req->{requestConfiguration};
+
   return ((not defined $contactSetting) or
                  ($contactSetting eq 'no-paper-but-email-ok'));
 }
