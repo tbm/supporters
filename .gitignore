@@ -1,3 +1,5 @@
+python/db.sqlite3
+python/**/__pycache__/
 Supporters/MYMETA.json
 Supporters/MYMETA.yml
 Supporters/Makefile
