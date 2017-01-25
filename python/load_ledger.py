@@ -21,14 +21,18 @@ COLUMNS = collections.OrderedDict([
 ])
 
 def parse_arguments(arglist):
-    parser = argparse.ArgumentParser(prog='load_ledger')
+    parser = argparse.ArgumentParser(
+        prog='load_ledger',
+        usage="load_ledger.py [flags ...] [-- ledger_arguments ...]",
+        description="Import payment data from Ledger to the Django database",
+    )
     parser.add_argument(
         '--ledger-from-scratch', default=False, action='store_true',
-        help="""By default, this script imports all Supporter payments,
-        and you can narrow the set of payments it imports by providing
-        additional search criteria as arguments. If you set this flag,
-        the script will not use any default criteria, and only use the criteria
-        you specify.""")
+        help="""By default, this script runs Ledger with some default search
+        criteria to find Supporter payments only, and additional search
+        criteria you specify further limit that set.  If you set this flag,
+        this script will not use any default search criteria, and import
+        exactly the payments found by your search criteria.""")
     parser.add_argument(
         '--ledger-command', default='ledger', metavar='COMMAND',
         help="Name or path of ledger executable")

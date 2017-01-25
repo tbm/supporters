@@ -19,14 +19,18 @@ def month_date(arg_s):
     return Date.from_pydate(datetime.datetime.strptime(arg_s, MONTH_FMT))
 
 def parse_arguments(arglist):
-    parser = argparse.ArgumentParser(prog='status_report')
+    parser = argparse.ArgumentParser(
+        prog='status_report',
+        description="Print a CSV report counting Supporters over time",
+    )
     parser.add_argument(
-        '--start-month', type=month_date,
+        '--start-month', type=month_date, metavar='YYYY-MM',
         default=Payment.objects.order_by('date').first().date,
-        help="First month in report, in YYYY-MM format")
+        help="First month in report")
     parser.add_argument(
-        '--end-month', default=Date.today(), type=month_date,
-        help="Last month in report, in YYYY-MM format")
+        '--end-month', type=month_date, metavar='YYYY-MM',
+        default=Date.today(),
+        help="Last month in report")
     args = parser.parse_args(arglist)
     if args.end_month < args.start_month:
         parser.error("End month predates start month")
