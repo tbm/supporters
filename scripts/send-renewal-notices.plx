@@ -19,6 +19,7 @@ my $BIG_DONOR_CUTOFF = 500.00;
 my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
 my $ONE_WEEK = UnixDate(DateCalc(ParseDate("today"), "+ 1 week"), '%Y-%m-%d');
 my $ONE_MONTH = UnixDate(DateCalc(ParseDate("today"), "+ 1 month"), '%Y-%m-%d');
+my $TWO_MONTHS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 2 months"), '%Y-%m-%d');
 my $ONE_YEAR_AGO = UnixDate(DateCalc(ParseDate("today"), "- 1 year"), '%Y-%m-%d');
 my $TWO_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 2 years"), '%Y-%m-%d');
 my $THREE_YEARS_AGO = UnixDate(DateCalc(ParseDate("today"), "- 3 years"), '%Y-%m-%d');
@@ -76,8 +77,17 @@ foreach my $supporterId (sort @supporterIds) {
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn le $TODAY);
   my $lapsesInOneWeek = ( (defined $expiresOn) and $expiresOn le $ONE_WEEK);
   my $lapsesInOneMonth = ( (defined $expiresOn) and $expiresOn le $ONE_MONTH);
-  my $lapsesSoon = ( (defined $expiresOn) and $expiresOn le $HOW_FAR_IN_ADVANCE);
   my $type = $sp->getType($supporterId);
+  # Lapses soon calculation is complicated.  Annuals can use the how far in
+  # advance setting, but we really can't with monthlies.  For all we know, a
+  # monthly donation is about to come in for them, so until they reach their
+  # 60-day expired mark, which is already included in the expiration date by
+  # the library, we have to assume they're donation is coming in.
+  my $lapsesSoon;
+  if (defined $expiresOn) {
+    $lapsesSoon = ($expiresOn le $HOW_FAR_IN_ADVANCE) if ($type =~ /ann/i);
+    $lapsesSoon = ($expiresOn lt $TODAY) if ($type =~ /month/i);
+  }
   $expiresOn = "NO-FULL-SIGNUP" if not defined $expiresOn;
   if ($isLapsed) {
     $lapsedCount++;
