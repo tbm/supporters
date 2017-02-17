@@ -2,6 +2,7 @@
 
 import datetime
 import operator
+import time
 
 from django.db import models
 
@@ -24,6 +25,11 @@ class Date(datetime.date):
     @classmethod
     def from_pydate(cls, date):
         return cls(date.year, date.month, date.day)
+
+    @classmethod
+    def strptime(cls, s, fmt):
+        time_tuple = time.strptime(s, fmt)
+        return cls(*time_tuple[:3])
 
     def adjust_month(self, delta, day=None):
         if day is None:
