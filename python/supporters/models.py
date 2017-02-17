@@ -112,12 +112,12 @@ class Supporter:
         return expose_wrapper
 
     def _supporter_type(self, payments):
-        for payment in payments.reverse():
-            if payment.program is not None:
-                break
-        else:
+        try:
+            program = payments.filter(program__isnull=False).reverse()[0].program
+        except IndexError:
             return None
-        return payment.program.rsplit(':', 1)[-1]
+        else:
+            return program.rsplit(':', 1)[-1]
     supporter_type = _expose(_supporter_type)
 
     def _calculate_lapse_date(self, last_payment_date, supporter_type):
