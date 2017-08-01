@@ -38,19 +38,33 @@ foreach my $id (@supporterIds) {
   #  next if $isLapsed;
 
   next unless $sp->emailOk($id);
-  my $emailTo = $sp->getPreferredEmailAddress($id);
-  if (not defined $emailTo) {
-    my(@addr) = $sp->getEmailAddresses($id);
-    $emailTo = $addr[0];
+  my @emails;
+  my $preferredEmail = $sp->getPreferredEmailAddress($id);
+  if (defined $preferredEmail) {
+    push(@emails, $preferredEmail);
+  } else {
+    (@emails) = $sp->getEmailAddresses($id);
   }
-
+  my $fullEmailLine = "";
+  my $emailTo = join(' ', @emails);
+  my $displayName = $sp->getDisplayName($supporterId);
+  foreach my $email (@emails) {
+    $fullEmailLine .= ", " if ($fullEmailLine ne "");
+    my $line = "";
+    if (defined $displayName) {
+      $line .= "\"$displayName\" ";
+    }
+    $line .= "<$email>";
+    $fullEmailLine .= Encode::encode("MIME-Header", $line);
+  }
   open(SENDMAIL, "|-", "/usr/lib/sendmail -f \"$FROM_ADDDRESS\" -oi -oem -- \'$emailTo\'");
 
-  print SENDMAIL "To: $emailTo\n";
+
+  print SENDMAIL "To: $fullEmailLine\n";
   print SENDMAIL @emailLines;
   close SENDMAIL;
 
-  print STDERR "Emailed $emailTo with $id\n" if ($VERBOSE);
+  print STDERR "Emailed $emailTo with $id who expires on $expiresOn\n" if ($VERBOSE);
 }
 ###############################################################################
 #
