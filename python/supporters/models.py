@@ -2,6 +2,7 @@
 
 import datetime
 import operator
+import time
 
 from django.db import models
 
@@ -24,6 +25,11 @@ class Date(datetime.date):
     @classmethod
     def from_pydate(cls, date):
         return cls(date.year, date.month, date.day)
+
+    @classmethod
+    def strptime(cls, s, fmt):
+        time_tuple = time.strptime(s, fmt)
+        return cls(*time_tuple[:3])
 
     def adjust_month(self, delta, day=None):
         if day is None:
@@ -106,7 +112,12 @@ class Supporter:
         return expose_wrapper
 
     def _supporter_type(self, payments):
-        return payments.last().program.rsplit(':', 1)[-1]
+        try:
+            program = payments.filter(program__isnull=False).reverse()[0].program
+        except IndexError:
+            return None
+        else:
+            return program.rsplit(':', 1)[-1]
     supporter_type = _expose(_supporter_type)
 
     def _calculate_lapse_date(self, last_payment_date, supporter_type):

@@ -4,6 +4,7 @@ import argparse
 import collections
 import csv
 import datetime
+import functools
 import os
 import sys
 
@@ -15,14 +16,12 @@ from supporters.models import Date, Payment, Supporter
 
 MONTH_FMT = '%Y-%m'
 
-def month_date(arg_s):
-    return Date.from_pydate(datetime.datetime.strptime(arg_s, MONTH_FMT))
-
 def parse_arguments(arglist):
     parser = argparse.ArgumentParser(
         prog='status_report',
         description="Print a CSV report counting Supporters over time",
     )
+    month_date = functools.partial(Date.strptime, fmt=MONTH_FMT)
     parser.add_argument(
         '--start-month', type=month_date, metavar='YYYY-MM',
         default=Payment.objects.order_by('date').first().date,
