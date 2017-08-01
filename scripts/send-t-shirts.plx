@@ -75,11 +75,28 @@ foreach my $id (sort keys %idsSent) {
     next;
   }
   next unless $sp->emailOk($id);
-  my $emailTo = $sp->getPreferredEmailAddress($id);
-  if (not defined $emailTo) {
-    my(@addr) = $sp->getEmailAddresses($id);
-    $emailTo = $addr[0];
+  my @emails;
+  my $preferredEmail = $sp->getPreferredEmailAddress($id);
+  if (defined $preferredEmail) {
+    push(@emails, $preferredEmail);
+  } else {
+    my(%emailData) = $sp->getEmailAddresses($id);
+    (@emails) = keys %emailData;
   }
+  my $fullEmailLine = "";
+  my $emailTo = join(' ', @emails);
+  my $displayName = $sp->getDisplayName($id);
+  print "Email to:$emailTo, displayName $displayName\n";
+  foreach my $email (@emails) {
+    $fullEmailLine .= ", " if ($fullEmailLine ne "");
+    my $line = "";
+    if (defined $displayName) {
+      $line .= "\"$displayName\" ";
+    }
+    $line .= "<$email>";
+    $fullEmailLine .= Encode::encode("MIME-Header", $line);
+  }
+
   my $fromAddress = 'info@sfconservancy.org';
   my $pingNoGet = "";
   $pingNoGet = "\nPlease ping us if you do not receive your t-shirt within two weeks in the\nUSA, or three weeks outside of the USA.\n\n"
@@ -88,7 +105,7 @@ foreach my $id (sort keys %idsSent) {
   open(SENDMAIL, "|/usr/lib/sendmail -f \"$fromAddress\" -oi -oem -- $emailTo $fromAddress") or
       die "unable to run sendmail: $!";
   print SENDMAIL <<DATA;
-To: $emailTo
+To: $fullEmailLine
 From: "Software Freedom Conservancy" <$fromAddress>
 Subject: $sizesSent Conservancy T-Shirt was $HOW
 
