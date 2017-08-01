@@ -119,9 +119,12 @@ We'd really appreciate if you'd post pictures of the shirt on social media
 and encourage others to sign up as a Conservancy supporter at
 https://sfconservancy.org/supporter/ .  As you can see on that page, we are
 in the midst of our annual fundraising drive and seeking to reach a match
-donation.  There's a unique opportunity until January 15th to give double
-support to Conservancy.  Encouraging others to sign up right now will make a
-huge difference!
+donation.  There's a unique opportunity remaining for just two more days for
+us to make a match donation.
+
+So, encouraging others to sign up right now will make a huge difference!
+
+Thank you again for your support of Conservancy.
 
 Sincerely,
 -- 
