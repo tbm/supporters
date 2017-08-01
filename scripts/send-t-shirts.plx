@@ -11,8 +11,8 @@ use Supporters;
 
 my $LEDGER_CMD = "/usr/local/bin/ledger";
 
-if (@ARGV != 4 and @ARGV != 5) {
-  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <WHO> <HOW> <SUPPORTER_CHECKLIST_TEX_FILE> <VERBOSITY_LEVEL>\n";
+if (@ARGV != 5 and @ARGV != 6) {
+  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <T_SHIRT_TYPE> <WHO> <HOW> <SUPPORTER_CHECKLIST_TEX_FILE> <VERBOSITY_LEVEL>\n";
   exit 1;
 }
 
@@ -46,7 +46,7 @@ foreach my $id (sort keys %idsSent) {
   my $sizesSent;
   my $foundRequestCount = 0;
   foreach my $type (@requestTypes) {
-    next unless ($type =~ /shirt/);
+    next unless ($type =~ /shirt/ and $type =~ /$T_SHIRT_TYPE/);
     my $request = $sp->getRequest({ donorId => $id, requestType => $type,
                                  ignoreHeldRequests => 1, ignoreFulfilledRequests => 1 });
     if (defined $request and defined $request->{requestId} and defined $request->{requestType}) {

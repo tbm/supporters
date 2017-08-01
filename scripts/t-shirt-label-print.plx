@@ -13,12 +13,12 @@ use Supporters;
 
 my $LEDGER_CMD = "/usr/local/bin/ledger";
 
-if (@ARGV < 8) {
-  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <GIVING_LIMIT> <SIZE_COUNTS> <OUTPUT_DIRECTORY > <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
+if (@ARGV < 9) {
+  print STDERR "usage: $0 <SUPPORTERS_SQLITE_DB_FILE> <GIVING_LIMIT> <T-SHIRT-STYLE> <SIZE_COUNTS> <OUTPUT_DIRECTORY > <MONTHLY_SEARCH_REGEX> <ANNUAL_SEARCH_REGEX>  <VERBOSE> <LEDGER_CMD_LINE>\n";
   exit 1;
 }
 
-my($SUPPORTERS_SQLITE_DB_FILE, $GIVING_LIMIT, $SIZE_COUNTS, $OUTPUT_DIRECTORY, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE, @LEDGER_CMD_LINE) = @ARGV;
+my($SUPPORTERS_SQLITE_DB_FILE, $GIVING_LIMIT, $T_SHIRT_STYLE, $SIZE_COUNTS, $OUTPUT_DIRECTORY, $MONTHLY_SEARCH_REGEX, $ANNUAL_SEARCH_REGEX, $VERBOSE, @LEDGER_CMD_LINE) = @ARGV;
 $VERBOSE = 0 if not defined $VERBOSE;
 
 open(SIZE_COUNTS, "<", $SIZE_COUNTS);
@@ -78,6 +78,15 @@ sub sortFunction($$) {
     return ($lastGaveDate0 cmp $lastGaveDate1);
   }
 }
+my @typeList;
+if ($T_SHIRT_STYLE == 0) {
+  @typeList = qw/t-shirt-0 t-shirt-extra-0/; 
+} elsif ($T_SHIRT_STYLE == 1) {
+  @typeList = qw/t-shirt-1 t-shirt-extra-1/; 
+} else {
+  die "Unknown t-shirt style given: $T_SHIRT_STYLE";
+}
+
 foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
   my $sizeNeeded;
   foreach my $type (qw/t-shirt-0 t-shirt-1/) {
