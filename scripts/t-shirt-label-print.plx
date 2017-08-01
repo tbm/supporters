@@ -89,7 +89,7 @@ if ($T_SHIRT_STYLE == 0) {
 
 foreach my $id (sort { sortFunction($a, $b); } @supporterIds) {
   my $sizeNeeded;
-  foreach my $type (qw/t-shirt-0 t-shirt-1/) {
+  foreach my $type (@typeList) {
     my $request = $sp->getRequest({ donorId => $id, requestType => $type,
                                     ignoreHeldRequests => 1, ignoreFulfilledRequests => 1 });
     if (defined $request and defined $request->{requestType}) {
