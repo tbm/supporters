@@ -1371,7 +1371,45 @@ sub fulfillFailure($$) {
 
 =begin holdRequest
 
-FIXME: docs
+Arguments:
+
+=item $parmas
+
+A hash reference, the following keys are considered:
+
+=over
+
+=item donorId
+
+   Valid donor_id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item requestType / requestTypeId
+
+   If one or both of these parameters is defined, they are used as arguments
+   to C<getRequest()> method.  die()'s if neither is defined.
+
+=item who
+
+   For adding a hold request, the string indicating who put the request on hold.
+
+=item holdReleaseDate
+
+   For adding a hold request, contain an ISO 8601 formatted date for the
+   date to release the hold.  die() may occur if not in ISO-8601 format.
+
+=item heldBecause
+
+   For adding a hold request, the string indicating reason the request is on hold.
+
+
+=back
+
+Returns:
+
+Id of the hold request.  This could be the id of a different hold with
+different details.  See FIXME note in the test code for holdRequest() for
+more detials.
 
 =cut
 
