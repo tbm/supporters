@@ -1422,7 +1422,7 @@ sub holdRequest($$) {
   foreach my $key (qw/who holdReleaseDate heldBecause/) {
     die "holdRequest: required parameter undefined: \"$key\"" unless defined $params->{$key};
   }
-  die "holdRequest: requestType, requestTypeId, and requestId are all undefined"
+  die "holdRequest: requestType and requestTypeId are all undefined"
     unless defined $params->{requestType} or defined $params->{requestTypeId};
 
   my $req = $self->getRequest($params);
