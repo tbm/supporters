@@ -135,7 +135,7 @@ my $val = $sp->dbh()->selectall_hashref("SELECT donor_id, email_address_id " .
                                         'donor_id');
 
 ok((defined $val and defined $val->{$olsonId}{email_address_id} and $val->{$olsonId}{email_address_id} > 0),
-   "addSuporter: email address mapping is created on addSupporter() w/ email address included");
+   "addSupporter: email address mapping is created on addSupporter() w/ email address included");
 
 my $olsonFirstEmailId = $val->{$olsonId}{email_address_id};
 
@@ -297,7 +297,7 @@ is($sp->getPublicAck($sterlingId), 1, "setPublicAck: ...and suceeds in changing 
 $val = $sp->dbh()->selectall_hashref("SELECT id, name FROM address_type WHERE name = 'home'", 'name');
 
 ok((defined $val and defined $val->{home}{id} and $val->{home}{id} > 0),
-   "addSuporter/addEmailAddress: emailAddressType was added when new one given to addSupporter");
+   "addSupporter/addEmailAddress: emailAddressType was added when new one given to addSupporter");
 
 my $emailAddressTypeHomeId = $val->{home}{id};
 
