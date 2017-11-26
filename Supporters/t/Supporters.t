@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 334;
+use Test::More tests => 341;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -762,9 +762,19 @@ is($tt->{notes}, undef,    "getRequest: notes are undef when null in database.")
 
 my $releasedHoldId;
 
-lives_ok { $releasedHoldId = $sp->releaseRequestHold(donorId => $drapperId, requestType => 't-shirt-0'); }
+lives_ok { $releasedHoldId = $sp->releaseRequestHold({ donorId => $drapperId, requestType => 't-shirt-0' }); }
   "releaseRequestHold: release of a known held request succeeds...";
 is($releasedHoldId, $drapperTShirt0HoldId, "releaseRequestHold: ... & returns same hold id as holdRequest() call did");
+lives_ok { $req = $sp->getRequest({ donorId => $drapperId, requestType => 't-shirt-0'}) }
+  "releaseRequestHold: lookup of request after release succeeds....";
+is($req->{holdReleaseDate}, $today, "... and the release date is today.");
+
+lives_ok { $releasedHoldId = $sp->releaseRequestHold({ donorId => $drapperId, requestType => 't-shirt-0' }); }
+  "releaseRequestHold: release again of the same a hold request also succeeds...";
+is($releasedHoldId, $drapperTShirt0HoldId, "releaseRequestHold: ... & also returns same hold id as holdRequest() call did");
+lives_ok { $req = $sp->getRequest({ donorId => $drapperId, requestType => 't-shirt-0'}) }
+  "releaseRequestHold: lookup of request after second release succeeds....";
+is($req->{holdReleaseDate}, $today, "... and the release date is still set to today.");
 
 
 lives_ok { $newFRID = $sp->fulfillRequest( { donorId => $drapperId,

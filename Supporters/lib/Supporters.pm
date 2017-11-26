@@ -1447,7 +1447,72 @@ sub holdRequest($$) {
   }
   return $holdRecord->{$requestId}{id};
 }
+######################################################################
 
+=begin releaseRequestHold
+
+Arguments:
+
+=item $parmas
+
+A hash reference, the following keys are considered:
+
+=over
+
+=item donorId
+
+   Valid donor_id number currently in the database.  die() will occur if
+   the id number is not in the database already as a supporter id.
+
+=item requestType / requestTypeId
+
+   If one or both of these parameters is defined, they are used as arguments
+   to C<getRequest()> method.  die()'s if neither is defined.
+
+=back
+
+Returns:
+
+If the release has been successful, returns the id of the hold request that
+is now released.  Otherwise, undef is returned.
+
+Note that the release can also be "unsuccessful" if the request wasn't on
+hold in the first place.
+
+=cut
+
+
+sub releaseRequestHold($$) {
+  my($self, $params) = @_;
+  die "holdRequest: undefined donorId" unless defined $params->{donorId};
+  my $donorId = $params->{donorId};
+  die "holdRequest: donorId, \"$donorId\" not found in supporter database"
+    unless $self->_verifyId($donorId);
+  die "holdRequest: requestType and requestTypeId are all undefined"
+    unless defined $params->{requestType} or defined $params->{requestTypeId};
+
+  my $req = $self->getRequest($params);
+  return undef if not defined $req;
+  my $requestId = $req->{requestId};
+  return undef if not defined $requestId;
+
+  my $holdLookupSql = "SELECT id, request_id, release_date FROM request_hold WHERE request_id = " .
+                        $self->dbh->quote($requestId, 'SQL_INTEGER');
+
+  my $holdRecord = $self->dbh()->selectall_hashref($holdLookupSql, "request_id");
+  return undef if (not defined $holdRecord or not defined $holdRecord->{$requestId});
+
+  # If this has already been released, just return the release id again.
+  return $holdRecord->{$requestId}{id} if defined $holdRecord->{$requestId}{release_date} and
+    $holdRecord->{$requestId}{release_date} le $TODAY;
+  $self->_beginWork;
+  my $sth = $self->dbh->prepare("UPDATE request_hold SET release_date = date('now') WHERE id = ?");
+
+  $sth->execute($holdRecord->{$requestId}{id});
+  $sth->finish;
+  $self->_commit;
+  return $holdRecord->{$requestId}{id};
+}
 ######################################################################
 
 =begin findDonor
