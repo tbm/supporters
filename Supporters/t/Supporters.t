@@ -772,7 +772,7 @@ lives_ok { $newFRID = $sp->fulfillRequest( { donorId => $drapperId,
                                                     how => "mailed" }); }
      "fulfillRequest: succeeds once the request is no longer on hold...";
 
-is( (defined $newFRID and looks_like_number($newFRID) and $newFRID > 0 and ($newFRID != $fulfillRequestId)),
+ok( (defined $newFRID and looks_like_number($newFRID) and $newFRID > 0 and ($newFRID != $fulfillRequestId)),
     "....id returned on successful fulfillRequest() is a number and is not the one returned by previous");
 
 lives_ok { $tt = $sp->getRequest({donorId => $drapperId, requestTypeId => $tShirt0RequestTypeId } ); }
