@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 341;
+use Test::More tests => 353;
 use Test::Exception;
 use Sub::Override;
 use File::Temp qw/tempfile/;
@@ -369,6 +369,62 @@ my $same;
 ok($same = $sp->addAddressType("paypal payer"), "addAddressType: lookup works");
 
 ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the basic add");
+
+=item addEmailError
+
+=cut
+
+# Add an "undeliverable" delivery_error type
+
+my $sth = $sp->dbh->prepare("INSERT INTO delivery_error(error) VALUES(?)"); $sth->execute("undeliverable"); $sth->finish;
+my $undeliverableId = $sp->dbh->last_insert_id("","","delivery_error","");
+
+dies_ok { $sp->addEmailError(undef); }
+        "addEmailError: undef argument dies.";
+
+dies_ok { $sp->addEmailError({}); }  "addEmailError: dies if donorId not specified.";
+
+dies_ok { $sp->addEmailError({emailAddress => undef}); }  "addEmailError: dies if emailAddress is undef.";
+
+$val = 1;
+lives_ok { $val = $sp->addEmailError({emailAddress => 'nobody@example.com', errorCode => 'undeliverable', dateEncountered => '2017-11-22' }); }
+  "addEmailError: succeeds to run if emailAddress not in database with all other valid args....";
+is($val, undef, "... but returns undef in that situation.");
+
+dies_ok { $sp->addEmailError({emailAddress => 'everyone@example.net', errorCode => 'invalidErrorcode',
+                            dateEncountered => '2017-11-22' }); }
+  "addEmailError: dies if errorCode given is invalid.";
+
+$val = -1;
+lives_ok { $val = $sp->addEmailError({emailAddress => 'everyone@example.net', errorCode => 'undeliverable', dateEncountered => '2017-11-22' })  }
+  "addEmailError: succeeds when all options are valid but comment is missing";
+
+is($val > 0,  "addEmailError: ... and returns a value greater than 0.");
+
+$val = $sp->dbh()->selectrow_hashref("SELECT delivery_error_code_id, email_address_id, date_encountered, comments " .
+                                        "FROM email_error_log  " .
+                                        "WHERE email_address_id = " . $sp->dbh->quote($olsonEmailId2, 'SQL_INTEGER'));
+
+ok((defined $val and defined $val->{email_address_id} and $val->{date_encountered} eq '2017-11-22'
+    and not defined $val->{comments} and $val->{delivery_error_code_id} == $undeliverableId),
+   "addSuporter: error log entry created without comment");
+
+$val = -1;
+lives_ok {$val = $sp->addEmailError({emailAddress => 'drapper@example.org', errorCode => 'undeliverable', dateEncountered => '2017-11-25', comments => "seems he has no email address" }) }
+  "addEmailError: succeeds for valid email address and other options, including comment";
+
+is($val > 0, "addEmailError: ... and returns > 0 in that situation.");
+
+$val = $sp->dbh()->selectrow_hashref("SELECT delivery_error_code_id, email_address_id, date_encountered, comments " .
+                                        "FROM email_error_log  " .
+                                        "WHERE email_address_id = " . $sp->dbh->quote($drapperEmailId, 'SQL_INTEGER'));
+
+ok((defined $val and defined $val->{email_address_id} and $val->{date_encountered} eq '2017-11-25'
+    and $val->{comments} eq "seems he has no email address" and
+    $val->{delivery_error_code_id} == $undeliverableId),
+   "addSuporter: error log entry created with comment added");
+
+=cut
 
 =item addPostalAddress
 
