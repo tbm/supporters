@@ -14,6 +14,7 @@ You'll need Python 3, Django, and Ledger::
 
 Create the database::
 
+  $ ./manage.py makemigrations supporters
   $ ./manage.py migrate
 
 Load data from Ledger.  Depending on how you've configured Ledger, you may need to tell it where to find the books with Supporter payments.  You can pass additional arguments to configure how the import is done; run the script with the ``--help`` flag for details.  A typical first import looks like::
