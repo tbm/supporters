@@ -376,8 +376,19 @@ ok($same == $paypalPayerAddressType, "addAddressType: lookup returns same as the
 
 # Add an "undeliverable" delivery_error type
 
+$val = 1;
+lives_ok { $val =  $sp->_lookupDeliveryError("undeliverable"); },
+  "_lookupDeliveryError: succeeds for unknown error ...";
+
+is($val, undef, "_lookupDeliveryError: ... but returns undef");
+
 my $sth = $sp->dbh->prepare("INSERT INTO delivery_error(error) VALUES(?)"); $sth->execute("undeliverable"); $sth->finish;
 my $undeliverableId = $sp->dbh->last_insert_id("","","delivery_error","");
+
+$val = -1;
+lives_ok { $val =  $sp->_lookupDeliveryError("undeliverable"); },
+  "_lookupDeliveryError: succeeds for known error ...";
+is($val, $undeliverable, "_lookupDeliveryError: ... and returns proper id number");
 
 dies_ok { $sp->addEmailError(undef); }
         "addEmailError: undef argument dies.";

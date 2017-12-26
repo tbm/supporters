@@ -2039,6 +2039,28 @@ sub _lookupRequestTypeById($$) {
 }
 ######################################################################
 
+=item _lookupDeliveryError()
+
+Parameters:
+
+=over
+
+=item $self: current object.
+
+=item $errorName: A scalar string argument that is the error
+
+=back
+
+Returns: undef if the error code does not exist in the delivery_error table,
+otherwise returns the id for the entry in the delivery_table
+
+=cut
+
+sub _lookupDeliveryError($$) {
+}
+
+######################################################################
+
 =item _lookupEmailAddress()
 
 Parameters:
