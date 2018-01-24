@@ -54,12 +54,11 @@ class Date(datetime.date):
         return self.adjust_month(1, day=1)
 
 
-class DateField(models.DateField, metaclass=models.SubfieldBase):
-    def to_python(self, value):
-        retval = super().to_python(value)
-        if retval is not None:
-            retval = Date.from_pydate(retval)
-        return retval
+class DateField(models.DateField):
+    def from_db_value(self, value, expression, connection, context):
+        if value is not None:
+            value = Date.from_pydate(value)
+        return value
 
 
 class Payment(models.Model):
