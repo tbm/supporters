@@ -9,11 +9,15 @@ use autodie qw(open close);
 
 use DBI;
 use Encode qw(encode decode);
+use Encode qw(encode decode);
+use Email::MIME::RFC2047::Encoder;
 use Email::MIME;
 use Date::Manip::DM5;
 use Supporters;
 
+my $encoder = Email::MIME::RFC2047::Encoder->new();
 use LaTeX::Encode;
+
 my $BIG_DONOR_CUTOFF = 500.00;
 
 my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
@@ -177,17 +181,20 @@ foreach my $supporterId (sort @supporterIds) {
       push(@message, $line);
     }
     close MESSAGE;
-    my $emailTo = join(' ', @emails);
-    my $fullEmailLine = "";
-    foreach my $email (@emails) {
-      $fullEmailLine .= ", " if ($fullEmailLine ne "");
-      my $line = "";
-      if (defined $displayName) {
-        $line .= "\"$displayName\" ";
-      }
-      $line .= "<$email>";
-      $fullEmailLine .= Encode::encode("MIME-Header", $line);
+
+  my $fullEmailLine = "";
+  my $emailTo = join(' ', @emails);
+  my $displayName = $sp->getDisplayName($supporterId);
+  foreach my $email (@emails) {
+    $fullEmailLine .= ", " if ($fullEmailLine ne "");
+    my $line = "";
+    if (defined $displayName) {
+      $line .= $encoder->encode_phrase($displayName) . " ";
     }
+    $line .= "<$email>";
+    $fullEmailLine .= $line;
+  }
+
     open(SENDMAIL, "|/usr/lib/sendmail -f \"$FROM_ADDRESS\" -oi -oem -- $emailTo $FROM_ADDRESS") or
       die "unable to run sendmail: $!";
 
@@ -214,7 +221,7 @@ my $headerInfo = "$subject\n" . ("=" x length($subject)) .
           ( ($activeCounter{Annual} / ($totalSupporters - $lapsedCount)) * 100.00)) . ".\n\n";
 
 foreach my $type (keys %lapsedCounter) {
-  $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d    Percent of %7s Lapsed:  %2.2f%\n",
+  $headerInfo .= sprintf("%7s:    Lapsed Count: %3d   Active Count: %3d    Percent of %7s Lapsed:  %2.2f\n",
                          $type, $lapsedCounter{$type}, $activeCounter{$type}, $type, ($lapsedCounter{$type} / ($lapsedCounter{$type} + $activeCounter{$type})) * 100.00);
 }
 $headerInfo .= "\n";

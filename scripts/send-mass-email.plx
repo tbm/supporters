@@ -5,10 +5,14 @@ use warnings;
 
 use autodie qw(open close);
 use DBI;
-use Encode qw(encode decode);
 
 use Date::Manip::DM5;
 use Supporters;
+use Encode qw(encode decode);
+use Email::MIME::RFC2047::Encoder;
+use utf8;
+
+my $encoder = Email::MIME::RFC2047::Encoder->new();
 
 my $TODAY = UnixDate(ParseDate("today"), '%Y-%m-%d');
 
@@ -35,27 +39,33 @@ my(@supporterIds) = $sp->findDonor({});
 foreach my $id (@supporterIds) {
   my $expiresOn = $sp->supporterExpirationDate($id);
   my $isLapsed = ( (not defined $expiresOn) or $expiresOn lt $TODAY);
-  #  next if $isLapsed;
+  #  next unless $expiresOn lt "2017-02-01";
 
+
+  # invalid email address
+  my @invalidEmailAddresses = qw//;
+  next if ($id ~~ @invalidEmailAddresses);
   next unless $sp->emailOk($id);
-  my @emails;
-  my $preferredEmail = $sp->getPreferredEmailAddress($id);
-  if (defined $preferredEmail) {
-    push(@emails, $preferredEmail);
+  my %emails;
+  my $email = $sp->getPreferredEmailAddress($id);
+  if (defined $email) {
+    $emails{$email} = {};
   } else {
-    (@emails) = $sp->getEmailAddresses($id);
+    %emails = $sp->getEmailAddresses($id);
   }
+  my(@emails) = keys(%emails);
+
   my $fullEmailLine = "";
   my $emailTo = join(' ', @emails);
-  my $displayName = $sp->getDisplayName($supporterId);
+  my $displayName = $sp->getDisplayName($id);
   foreach my $email (@emails) {
     $fullEmailLine .= ", " if ($fullEmailLine ne "");
     my $line = "";
     if (defined $displayName) {
-      $line .= "\"$displayName\" ";
+      $line .= $encoder->encode_phrase($displayName) . " ";
     }
     $line .= "<$email>";
-    $fullEmailLine .= Encode::encode("MIME-Header", $line);
+    $fullEmailLine .= $line;
   }
   open(SENDMAIL, "|-", "/usr/lib/sendmail -f \"$FROM_ADDDRESS\" -oi -oem -- \'$emailTo\'");
 
